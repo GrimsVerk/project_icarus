@@ -468,15 +468,17 @@ jobs:
       - name: Lint
         run: swiftlint lint --strict --quiet
       - name: Run tests
-        # Unit tests for an iOS target need an iOS Simulator destination;
-        # the device name must exist in the runner image's simulator list.
+        # Unit tests for an iOS target need an iOS Simulator destination.
+        # The device is whichever iPhone this runner has (pick-simulator.sh),
+        # not a fixed name that the next runner image may lack.
         # Signing is disabled — no provisioning is set up in CI.
-        run: >
-          xcodebuild test
-          -project ProjectIcarus.xcodeproj
-          -scheme ProjectIcarus
-          -destination 'platform=iOS Simulator,name=iPhone 16'
-          CODE_SIGNING_ALLOWED=NO
+        run: |
+          SIM="$(.github/scripts/pick-simulator.sh)"
+          xcodebuild test \
+            -project ProjectIcarus.xcodeproj \
+            -scheme ProjectIcarus \
+            -destination "platform=iOS Simulator,id=$SIM" \
+            CODE_SIGNING_ALLOWED=NO
 
   # The ratchet's one seeded check (AGENTS.md): revert the implementation, keep
   # the new tests, and fail if the suite still passes — tests that pass without
