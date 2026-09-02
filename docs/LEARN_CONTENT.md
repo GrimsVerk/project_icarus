@@ -1,0 +1,343 @@
+# Project Acuras — Learn Section Content
+
+**Purpose of this document:** This is the source-of-truth copy for the app's Learn tab. It is written to be read by a non-specialist. Every substantive claim carries a citation with author names, article title, and DOI link so the reader can check the source themselves.
+
+**Note to the implementing agent:** Each `## Module` below should become its own data file / content object, editable independently of the app's logic. Do not hard-code this text into view code. See the build prompt for the required structure.
+
+**Verification note:** DOIs below were written from reference knowledge and should be verified before shipping. Where a DOI is marked `[VERIFY]`, the agent must confirm it resolves to the stated paper (via doi.org) and correct it if not. Do not ship a broken or mismatched citation.
+
+---
+
+## Module 1 — Start Here: What This App Is Doing
+
+Your skin makes a tan as a **damage response**. Ultraviolet light injures the DNA in your skin cells, and one of the repair signals your body sends out tells pigment cells to produce more melanin. Melanin then sits above the cell nuclei like a parasol and absorbs some of the next dose.
+
+That means there is no way to build a tan without doing some damage first. Anyone who tells you otherwise is selling something.
+
+What this app *can* do is help you find the largest useful dose that stays below a burn, and stop you from blundering past it. It cannot make tanning safe. It can make it deliberate.
+
+> **Sources**
+> - Agar N, Young AR. *Melanogenesis: a photoprotective response to DNA damage?* Mutation Research, 2005. https://doi.org/10.1016/j.mrfmmm.2004.11.016
+> - Miyamura Y, Coelho SG, Wolber R, et al. *Regulation of human skin pigmentation and responses to ultraviolet radiation.* Pigment Cell Research, 2007. https://doi.org/10.1111/j.1600-0749.2006.00358.x `[VERIFY]`
+
+---
+
+## Module 2 — Two Different Tans: UVA and UVB
+
+Sunlight's ultraviolet comes in two bands that matter here, and they produce two completely different-looking tans.
+
+**UVA — the fast, fake-looking one.**
+UVA takes melanin you *already have* and darkens it chemically, by oxidising it. Nothing new is manufactured. This is called **immediate pigment darkening**. It appears within minutes of going outside, and it largely fades within hours to a couple of days.
+
+This is why you can come home looking bronzed and wake up looking pale. Nothing went wrong. That colour was never a real tan.
+
+**UVB — the slow, real one.**
+UVB triggers your pigment cells to actually build new melanin and hand it to the surrounding skin cells. This is called **delayed tanning**, or **neomelanogenesis** — literally "new melanin making." It does not appear for roughly **three to five days** after exposure, peaks around a week later, and lasts for weeks to months.
+
+**The practical consequence:** judge a session by how you look on day four, not by how you look that evening. People give up on a good protocol because the UVA glow disappeared overnight and they assumed it hadn't worked.
+
+> **Sources**
+> - Miyamura Y, Coelho SG, Wolber R, et al. *Regulation of human skin pigmentation and responses to ultraviolet radiation.* Pigment Cell Research, 2007. https://doi.org/10.1111/j.1600-0749.2006.00358.x `[VERIFY]`
+> - Routaboul C, Denis A, Vinche A. *Immediate pigment darkening: description, kinetic and biological function.* European Journal of Dermatology, 1999. (No DOI; PMID 10066941) `[VERIFY]`
+> - Honigsmann H. *Erythema and pigmentation.* Photodermatology, Photoimmunology & Photomedicine, 2002. https://doi.org/10.1034/j.1600-0781.2002.180203.x `[VERIFY]`
+
+---
+
+## Module 3 — Why Midday Is Not Just "More Sun"
+
+This is the single most counter-intuitive thing in the app, so it gets its own module.
+
+Sunlight has to pass through the atmosphere to reach you. When the sun is low — early morning, late afternoon — the light comes in at a shallow angle and travels through far more air to get to you. Ozone in that air absorbs ultraviolet, but it absorbs **UVB much more aggressively than UVA**, because UVB is the shorter, higher-energy wavelength.
+
+So as the sun drops:
+
+- **UVA falls off gently.** It's relatively flat across the middle of the day.
+- **UVB collapses.** It falls away far faster than the total light does.
+
+At 8am or 6pm you are getting a beam that is heavily depleted of UVB and comparatively rich in UVA.
+
+**Why that matters:** UVA is the band that gives you the temporary, fades-by-morning darkening and drives a large share of long-term wrinkling and loss of elasticity. UVB is the band that actually triggers new melanin production.
+
+So an hour of early-evening sun is not "a gentler version" of an hour of midday sun. It is a **worse ratio** — you are paying a photoaging cost for pigment that will not stick around. If you want durable tan per unit of damage, the middle of the day is genuinely the efficient window.
+
+**One important caveat about the UV Index.** The UV Index number you see in a weather app is calculated using the *erythema action spectrum* — a weighting curve built around what causes sunburn, which is overwhelmingly UVB. The UVI is therefore close to blind to UVA. A UVI of 3 in the late afternoon and a UVI of 3 in the early morning can carry quite different UVA loads, and neither tells you much about your UVA exposure at all.
+
+This is also why sunscreen UVA ratings have to be read separately from the SPF number. See Module 8.
+
+> **Sources**
+> - McKinlay AF, Diffey BL. *A reference action spectrum for ultraviolet induced erythema in human skin.* CIE Journal, 1987. (Standardised as ISO 17166:1999 / CIE S 007) `[VERIFY]`
+> - Diffey BL. *Solar ultraviolet radiation effects on biological systems.* Physics in Medicine and Biology, 1991. https://doi.org/10.1088/0031-9155/36/3/001
+> - World Health Organization, WMO, UNEP, ICNIRP. *Global Solar UV Index: A Practical Guide.* WHO, 2002. https://www.who.int/publications/i/item/9241590076
+> - Fisher GJ, Wang ZQ, Datta SC, Varani J, Kang S, Voorhees JJ. *Pathophysiology of premature skin aging induced by ultraviolet light.* New England Journal of Medicine, 1997. https://doi.org/10.1056/NEJM199711133372003
+
+---
+
+## Module 4 — Dose: MED, SED, and Why We Count in Units
+
+To plan sun exposure you need a unit, the way a recipe needs grams rather than "some."
+
+**SED (Standard Erythema Dose)** is a fixed physical unit of sunburn-weighted UV energy. It is the same for everybody — it's a measure of the *light*, not of you. One SED equals 100 joules per square metre of erythemally weighted UV.
+
+**MED (Minimal Erythemal Dose)** is the dose *your particular skin* needs before it goes visibly pink about a day later. This varies enormously between people, which is why the app calibrates it to you over time.
+
+Rough starting values for untanned skin:
+
+| Skin type | Typical description | Approx. MED |
+|---|---|---|
+| I | Always burns, never tans | ~2 SED |
+| II | Burns easily, tans slightly | ~2.5 SED |
+| III | Burns moderately, tans gradually | ~3 SED |
+| IV | Burns rarely, tans easily | ~4.5 SED |
+| V | Very rarely burns, tans darkly | ~6 SED |
+| VI | Never burns | ~10 SED |
+
+These are **starting guesses only**. Two people who both count as type II can differ by 30% or more. That's what the app's logging is for.
+
+**Converting UV Index to dose.** A UV Index of 1 delivers 1 SED in about 67 minutes. So:
+
+> **Minutes to reach 1 SED = 66.7 ÷ UV Index**
+
+For type II skin, one MED is 2.5 SED, so at a steady UVI of 7 you'd hit your burn threshold in roughly `2.5 × 66.7 ÷ 7 ≈ 24 minutes`.
+
+> **Sources**
+> - Diffey BL, Jansén CT, Urbach F, Wulf HC. *The standard erythema dose: a new photobiological concept.* Photodermatology, Photoimmunology & Photomedicine, 1997. https://doi.org/10.1111/j.1600-0781.1997.tb00110.x
+> - Fitzpatrick TB. *The validity and practicality of sun-reactive skin types I through VI.* Archives of Dermatology, 1988. https://doi.org/10.1001/archderm.1988.01670060015008
+> - International Organization for Standardization. *ISO 17166:1999 — Erythema reference action spectrum and standard erythema dose.*
+
+---
+
+## Module 5 — The Uncomfortable Finding: You Have to Ride the Line
+
+Here is the result that shapes this entire app.
+
+For fair skin, the dose needed to trigger meaningful new melanin production is **approximately the same as the dose that causes visible redness**. The melanogenic threshold and the erythemal threshold sit close together. Pathak and Fanselow demonstrated this using solar-spectrum light: sub-threshold doses do not reliably produce a delayed tan.
+
+**What this means for you depends heavily on your skin type:**
+
+**If you are type I or II:** you are stuck in an awkward position. To get real, lasting pigment you have to go up near your burn threshold — around 85–95% of it — and stop. There isn't a comfortable margin. This is why precision matters for you, and why a 20-minute overshoot is not a rounding error. It is also a legitimate reason to conclude that pursuing a tan isn't worth it for your skin. The app will not push you either way, but it will be honest that your margin is thin.
+
+**If you are type III or above:** you have room. Your burn threshold sits well above the dose that gets pigment production going, so you can tan steadily at a comfortable distance from redness. You do not need to flirt with a burn at all, and you shouldn't.
+
+**And a hard limit worth knowing:** a full natural tan is worth roughly **SPF 2 to 3**. Not 15. Not 30. Sheehan and colleagues measured this directly in type II and III skin. A tan is a modest hedge, not armour, and it is not a reason to skip sunscreen later in the season.
+
+> **Sources**
+> - Pathak MA, Fanselow DL. *Photobiology of melanin pigmentation: dose/response of skin to sunlight and its contents.* Journal of the American Academy of Dermatology, 1983. https://doi.org/10.1016/S0190-9622(83)70186-6
+> - Sheehan JM, Potten CS, Young AR. *Tanning in human skin types II and III offers modest photoprotection against erythema.* Photochemistry and Photobiology, 1998. https://doi.org/10.1111/j.1751-1097.1998.tb02518.x
+> - Young AR, Chadwick CA, Harrison GI, et al. *The similarity of action spectra for thymine dimers in human epidermis and erythema suggests that DNA is the chromophore for erythema.* Journal of Investigative Dermatology, 1998. https://doi.org/10.1046/j.1523-1747.1998.00436.x
+
+---
+
+## Module 6 — Why You Plateau, and What to Do About It
+
+Almost everyone who tans deliberately hits the same wall. You run a dose that worked beautifully for two weeks, and then the colour simply stops improving. Nothing changed in your routine, but the results stopped.
+
+Here is what happened.
+
+### Your threshold moved
+
+A tan is not just cosmetic. Melanin genuinely absorbs and scatters UV, and it migrates to sit above the nuclei of your skin cells. Alongside that, the outer layer of your skin thickens measurably in response to repeated UV — a process sometimes called hyperkeratosis, or the "UV callus" — and that thickened layer blocks UV on its own, independently of pigment.
+
+Both effects raise your **burn threshold**. That's why you noticed you could stay out considerably longer without going red. That part is real, and it's the payoff for the work you put in.
+
+But it cuts both ways.
+
+### Why that stalls the tan
+
+Recall from Module 5 that for fair skin, new melanin production needs a dose near your burn threshold. Sub-threshold doses don't reliably trigger it.
+
+So if your threshold has climbed and your dose has stayed fixed, your dose is no longer near your threshold. It's now comfortably beneath it. It has quietly become a sub-threshold dose — enough to maintain what you have, not enough to signal for more.
+
+The intuition that gets people there: **once you have a tan, you are effectively wearing sunscreen at all times.** A developed tan is worth roughly SPF 2 to 3 (Sheehan and colleagues measured this directly in type II and III skin), and the epidermal thickening adds more on top. You didn't stop responding to the sun. You started filtering it.
+
+**The fix is to escalate the dose**, tracking your rising threshold rather than holding a constant number. This app does that for you: as your logs accumulate and show you tolerating more, your estimated threshold rises and the recommended session lengthens to match.
+
+### The important caveat
+
+Escalation has a ceiling, and it's lower than people hope.
+
+- **The protection is small.** SPF 2 to 3 means roughly a doubling of tolerable time, not a tenfold one. Escalating far beyond that isn't "safe because I'm tanned" — it's just a larger dose.
+- **Photoprotection and pigment aren't the same thing.** Epidermal thickening contributes a substantial share of your increased tolerance, so being able to stay out twice as long does not mean you have twice the pigment.
+- **The damage does not plateau.** Your *visible* response saturates. DNA damage, collagen breakdown and immune suppression keep accumulating with dose, as Module 7 covers. A plateau in colour is not a plateau in cost.
+- **There is a genuine biological ceiling.** Each skin type has a maximum achievable pigment density. Past a point, more dose buys damage and no colour at all. If escalation has stopped helping, you have most likely reached yours — and pushing further is purely cost.
+
+### It decays
+
+Adaptation is not permanent. Both the pigment and the thickened outer layer fade over roughly **four to eight weeks** without exposure, and the thickening goes faster than the pigment.
+
+This is the classic cause of a bad burn after a break. You take two or three weeks off, then resume at the dose that felt comfortable before — but your threshold has fallen back toward baseline. Come back down and rebuild. The app decays its own estimate over gaps in your log for exactly this reason.
+
+> **Sources**
+> - Sheehan JM, Potten CS, Young AR. *Tanning in human skin types II and III offers modest photoprotection against erythema.* Photochemistry and Photobiology, 1998. https://doi.org/10.1111/j.1751-1097.1998.tb02518.x
+> - Sheehan JM, Cesarini JP, Young AR, et al. *Repeated ultraviolet exposure affords the same protection against DNA photodamage and erythema in human skin types II and IV but is associated with faster DNA repair in skin type IV.* Journal of Investigative Dermatology, 2002. https://doi.org/10.1046/j.1523-1747.2002.01699.x `[VERIFY]`
+> - Pathak MA, Fanselow DL. *Photobiology of melanin pigmentation: dose/response of skin to sunlight and its contents.* Journal of the American Academy of Dermatology, 1983. https://doi.org/10.1016/S0190-9622(83)70186-6
+> - Pearse AD, Gaskell SA, Marks R. *Epidermal changes in human skin following irradiation with either UVB or UVA.* Journal of Investigative Dermatology, 1987. https://doi.org/10.1111/1523-1747.ep12470201 `[VERIFY]`
+> - Miyamura Y, Coelho SG, Wolber R, et al. *Regulation of human skin pigmentation and responses to ultraviolet radiation.* Pigment Cell Research, 2007. https://doi.org/10.1111/j.1600-0749.2006.00358.x `[VERIFY]`
+
+---
+
+## Module 7 — What Is Actually Happening to Your Skin
+
+### There is no safe threshold
+
+A common misreading of this app would be: "below one MED, nothing bad happens." That is false. Damage starts the moment you step outside and accumulates smoothly. There is no cliff edge at your burn threshold — the burn is just the point where the damage becomes *visible*.
+
+Measured onset points, well below a burn:
+
+- **DNA damage** (cyclobutane pyrimidine dimers — kinks welded into your DNA where UV fused two adjacent bases together) is detectable from roughly **0.2 MED**.
+- **Photoaging enzymes** (matrix metalloproteinases — enzymes that chew up the collagen holding your skin firm) are switched on from doses as low as **0.01 MED**.
+- **Local immune suppression** — your skin's ability to spot and destroy abnormal cells — begins around **0.25 MED**.
+
+So a session at 0.9 MED that produces no redness at all still did all three of those things. The redness threshold is a *visibility* threshold, not a *harm* threshold.
+
+### Where it stops being linear
+
+Below about one MED, damage roughly tracks dose. Push well past it — into the region of about three MED and above — and several things break at once:
+
+- Your DNA repair machinery saturates and falls behind.
+- Inflammation amplifies itself, so damage keeps spreading after you've gone inside.
+- The orderly disposal of badly damaged cells (which is what peeling is) starts failing, meaning some damaged cells survive instead of being cleared.
+
+**Peeling is the visible marker that you entered this region.** If you peel, you did not merely overshoot slightly. You crossed into the part of the curve where the arithmetic stops being kind.
+
+### Sunburn symptoms, by severity
+
+**Mild (roughly 1–2 MED):** pink to red skin appearing 2–6 hours after exposure and peaking at 12–24 hours; warmth; tenderness to touch; mild itching. Settles over a few days, sometimes with light flaking.
+
+**Moderate (roughly 2–4 MED):** deep red, hot, painful skin; noticeable swelling; skin tight and sore to move; sheets of peeling from day 3 to 7; sometimes a headache or feeling generally unwell.
+
+**Severe (above roughly 4–5 MED):** blistering — fluid-filled bubbles where the top layer of skin has separated from the layer beneath; severe pain; chills, fever, nausea, dizziness, and dehydration (sometimes called sun poisoning). Blisters are an open wound risk and can scar. Extensive blistering, fever, confusion, or fainting warrants medical attention rather than home care.
+
+### Long term
+
+The two things that accumulate over years are skin cancer risk and photoaging. Sunburns, particularly in youth, are strongly associated with later melanoma risk. Photoaging — the leathery texture, the loss of elasticity, the mottled pigment — is driven substantially by UVA, and is largely a record of your total lifetime exposure.
+
+**Sunbeds deserve a specific warning.** They are classified as Group 1 carcinogens by the International Agency for Research on Cancer — the same category as tobacco and asbestos. They are overwhelmingly UVA machines, which means they deliver the photoaging band while producing comparatively little of the UVB that drives durable pigment. A meta-analysis found roughly a 75% increase in melanoma risk associated with sunbed use beginning before age 35. This app is for outdoor sun. It should not be used to plan sunbed sessions.
+
+> **Sources**
+> - Young AR, Chadwick CA, Harrison GI, et al. *The similarity of action spectra for thymine dimers in human epidermis and erythema...* Journal of Investigative Dermatology, 1998. https://doi.org/10.1046/j.1523-1747.1998.00436.x
+> - Fisher GJ, Datta SC, Talwar HS, et al. *Molecular basis of sun-induced premature skin ageing and retinoid antagonism.* Nature, 1996. https://doi.org/10.1038/379335a0
+> - Kelly DA, Young AR, McGregor JM, Seed PT, Potten CS, Walker SL. *Sensitivity to sunburn is associated with susceptibility to ultraviolet radiation-induced suppression of cutaneous cell-mediated immunity.* Journal of Experimental Medicine, 2000. https://doi.org/10.1084/jem.191.3.561
+> - Dennis LK, Vanbeek MJ, Beane Freeman LE, et al. *Sunburns and risk of cutaneous melanoma: does age matter?* Annals of Epidemiology, 2008. https://doi.org/10.1016/j.annepidem.2008.04.006
+> - Boniol M, Autier P, Boyle P, Gandini S. *Cutaneous melanoma attributable to sunbed use: systematic review and meta-analysis.* BMJ, 2012. https://doi.org/10.1136/bmj.e4757
+> - El Ghissassi F, Baan R, Straif K, et al. *A review of human carcinogens — Part D: radiation.* The Lancet Oncology, 2009. https://doi.org/10.1016/S1470-2045(09)70213-X `[VERIFY]`
+
+---
+
+## Module 8 — What SPF Actually Means (And Why Yours Is Lower Than the Bottle Says)
+
+### The theory
+
+SPF is a multiplier on your burn time. SPF 30 means that under laboratory conditions, it takes 30 times the dose to burn you. If you'd burn in 20 minutes bare, SPF 30 gives you 600 minutes.
+
+### The problem
+
+That number is measured at an application density of **2 milligrams per square centimetre** of skin. That is a *lot* — for an adult body it works out to roughly 30 millilitres, about a shot glass, per full application.
+
+Almost nobody does this. Measured real-world application typically lands between **0.5 and 1.0 mg/cm²** — a quarter to a half of the tested amount.
+
+### Why that hurts more than you'd expect
+
+Protection does not fall off proportionally with the amount you apply. It falls off **exponentially**. The relationship is approximately:
+
+> **Effective SPF = (Label SPF) ^ (applied density ÷ 2)**
+
+Work that through for a bottle of SPF 50:
+
+| You apply | That's | Effective SPF |
+|---|---|---|
+| 2.0 mg/cm² (lab standard) | full shot glass | 50 |
+| 1.0 mg/cm² (a good effort) | half | ~7 (√50) |
+| 0.5 mg/cm² (typical) | a quarter | ~2.7 |
+
+**Halving the amount does not halve the protection. It takes the square root of it.**
+
+This is why the app's default assumption is that you get roughly the **square root of the label SPF** unless you tell it you applied thickly. It's also why "apply generously and reapply" is not marketing filler — going from a thin to a thick layer is worth vastly more than going from SPF 30 to SPF 50.
+
+### Reading the UVA rating separately
+
+SPF only describes sunburn protection, which is nearly all UVB. It tells you almost nothing about UVA.
+
+For UVA, look for:
+- **The UVA-in-a-circle logo** (EU): means UVA protection is at least one-third of the labelled SPF. It's a ratio, not an absolute — a high SPF with this logo genuinely protects more than a low SPF with the same logo.
+- **PPD / UVA-PF numbers**: a direct measure. Higher is better.
+- **PA+ through PA++++**: a coarse banding of PPD. Note that within a single manufacturer's high-end range, most products carry PA++++, so it stops discriminating between them at the top end.
+
+> **Sources**
+> - Faurschou A, Wulf HC. *The relation between sun protection factor and amount of sunscreen applied in vivo.* British Journal of Dermatology, 2007. https://doi.org/10.1111/j.1365-2133.2006.07684.x
+> - Schalka S, dos Reis VM, Cucé LC. *The influence of the amount of sunscreen applied and its sun protection factor.* Photodermatology, Photoimmunology & Photomedicine, 2009. https://doi.org/10.1111/j.1600-0781.2009.00408.x `[VERIFY]`
+> - Moyal D, Chardon A, Kollias N. *UVA protection efficacy of sunscreens can be determined by the persistent pigment darkening (PPD) method.* Photodermatology, Photoimmunology & Photomedicine, 2000. https://doi.org/10.1034/j.1600-0781.2000.160603.x `[VERIFY]`
+> - European Commission. *Recommendation 2006/647/EC on the efficacy of sunscreen products and the claims made relating thereto.*
+
+---
+
+## Module 9 — Afterwards: What Actually Helps and When
+
+Timing governs almost everything here. The inflammatory cascade after UV exposure starts within hours, so anything meant to interrupt it has a narrow window.
+
+**Within the first few hours:** this is when anti-inflammatory measures have their best shot. Cool (not ice-cold) showers, and if appropriate for you, an over-the-counter anti-inflammatory tablet. Repair-oriented ingredients also lose most of their relevance beyond roughly 6 to 24 hours.
+
+**By the next day:** the useful ingredient list has collapsed to **emollients** — that is, moisturising ingredients that seal water into the skin and repair its barrier. The ones with actual evidence behind them are petrolatum (Vaseline), glycerin, and panthenol.
+
+**The practical upshot:** 24 hours after exposure, a plain unscented moisturiser containing those ingredients does the same job as an expensive branded after-sun. You are not missing out by skipping the aloe gel with a sunburn on the label.
+
+**Avoid:** anything with fragrance or alcohol on already-inflamed skin, and "-caine" numbing sprays, which are a common cause of allergic reactions on damaged skin.
+
+---
+
+## Module 10 — Medications and Conditions That Change Your Threshold
+
+Some medicines make your skin dramatically more UV-sensitive. This is called **photosensitivity**, and it comes in two forms: **phototoxic** reactions, which look like an exaggerated sunburn and can happen on first exposure, and **photoallergic** reactions, which look more like an itchy rash.
+
+If you take anything on this list, your real burn threshold can be well below what the app predicts. Treat its numbers as unreliable and be conservative.
+
+**Common culprits, in plain terms:**
+
+- **NSAIDs** — the everyday anti-inflammatory painkillers. Ibuprofen (Advil, Nurofen), naproxen (Aleve), diclofenac (Voltaren), including the gel version. **Naproxen is the standout offender** and can shift your threshold meaningfully.
+- **Tetracycline antibiotics** — especially **doxycycline**, which is very commonly prescribed for acne and also taken as malaria prevention. This one causes a lot of unexpected burns in travellers.
+- **Retinoids** — vitamin A derivatives used for acne and anti-ageing. Includes tretinoin and adapalene creams, over-the-counter retinol serums, and the oral acne drug isotretinoin (Roaccutane). These both sensitise your skin and thin its outer layer.
+- **Certain diuretics ("water tablets")** for blood pressure, particularly hydrochlorothiazide.
+- **Some antidepressants**, including St John's Wort, which people often don't think of as a drug because it's sold as a supplement.
+- **Certain antifungals and heart-rhythm medications**, including amiodarone.
+- **Some acid exfoliants** applied to skin — AHAs and BHAs such as glycolic and salicylic acid.
+
+**Other things that shift your threshold:**
+
+- **Fever or illness.** If you're running a temperature, skip it.
+- **Cold sores (HSV-1).** UV is a well-known reactivation trigger. If you're prone to them, UV plus being run down is a compounding risk.
+- **Autoimmune conditions**, particularly lupus, where sun exposure can trigger flares.
+- **A recent chemical peel, laser treatment, or waxing** on the area.
+
+If any of these apply to you, this is a conversation to have with a doctor or pharmacist rather than an app.
+
+> **Sources**
+> - Monteiro AF, Rato M, Martins C. *Drug-induced photosensitivity: Photoallergic and phototoxic reactions.* Clinics in Dermatology, 2016. https://doi.org/10.1016/j.clindermatol.2016.05.006
+> - Blakely KM, Drucker AM, Rosen CF. *Drug-Induced Photosensitivity — An Update.* Drug Safety, 2019. https://doi.org/10.1007/s40264-019-00806-5 `[VERIFY]`
+> - Ledo E. *Photodermatoses. Part I: photobiology, photoimmunology, and idiopathic photodermatoses.* International Journal of Dermatology, 1993. `[VERIFY]`
+
+---
+
+## Module 11 — Honest Limitations of This App
+
+Things this app does not and cannot know:
+
+- **Your actual UV exposure.** It uses a forecast for your area. Cloud cover changes minute to minute, and thin cloud can transmit most UV while feeling cool.
+- **Reflection.** Sand, water, concrete and especially snow bounce UV back at you. Near water or snow your real dose can be far above the forecast.
+- **Altitude.** UV rises roughly 10% per 1000 metres of elevation.
+- **What you were actually doing.** Whether you were in and out of shade, what you were wearing, which parts of you were exposed and at what angle.
+- **Your skin's history.** Existing tan, recent exposure, and how well-rested your repair machinery is.
+
+The dose figures are **estimates with real error bars**, not measurements. Build in margin, especially early on before the app has learned anything about you.
+
+**This app is not medical advice and does not diagnose or treat anything.** If you have a personal or family history of skin cancer, a photosensitive condition, take any medication on the list above, or have moles that are changing, talk to a doctor. Nothing here replaces that.
+
+---
+
+## Module 12 — A Note on Vitamin D
+
+People often justify sun exposure by vitamin D. Worth knowing: the dose needed for vitamin D synthesis is **far smaller** than a tanning dose — for fair skin in summer, on the order of a few minutes on arms and legs, well under a quarter of an MED. Vitamin D production also plateaus quickly and then stops, so longer exposure gains you nothing on that front.
+
+If vitamin D is your actual goal, the answer is a short exposure or a supplement, not a tanning session. Tanning is a separate decision with a separate cost.
+
+> **Sources**
+> - Holick MF. *Vitamin D deficiency.* New England Journal of Medicine, 2007. https://doi.org/10.1056/NEJMra070553
+> - Webb AR, Engelsen O. *Calculated ultraviolet exposure levels for a healthy vitamin D status.* Photochemistry and Photobiology, 2006. https://doi.org/10.1562/2006-03-30-RA-857 `[VERIFY]`
