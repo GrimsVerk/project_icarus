@@ -42,7 +42,9 @@ file. Ids are never renumbered; new statements are appended.
   test blocks a release.
 - **V5** — Copy and citations are data. Changing them never touches code, and
   no citation is ever paraphrased, summarised, or dropped.
-- **V6** — Zero running cost, and no data leaves the phone.
+- **V6** — Zero running cost. Revenue comes from one small non-personalised
+  ad banner. No user data leaves the phone beyond what that banner needs to
+  load, and it never carries a tracking identifier.
 - **V7** — Simple and elegant. Polish matters; it does not need to be flashy to
   be polished.
 
@@ -56,9 +58,9 @@ file. Ids are never renumbered; new statements are appended.
 
 - **V10** — No screen, notification, or line of copy may state or imply that
   tanning is safe, or soften the "there is no safe threshold" point.
-- **V11** — The only network calls are the weather fetch and the location
-  lookup that feeds it. No accounts. No analytics. No third-party service
-  receives anything.
+- **V11** — The only network calls are the weather fetch, the location lookup
+  that feeds it, and the ad banner in non-personalised mode. No accounts. No
+  analytics. No tracking identifier, ever.
 
 ## Durable evidence is a requirement, not a nicety
 
@@ -108,3 +110,6 @@ runs, keep every verdict — and never a return to discarding them.
   logged report.
 - **V13** — A skin-type description, or any copy, that is folksy enough to be
   misread. Factual, tolerable to a sensitive reader, never ridiculous.
+- **V14** — An ad next to a number the user acts on. The banner is small and
+  it stays on the entry screens; it never appears on the result, the flip
+  timer, onboarding, a skin-check prompt, or Settings.

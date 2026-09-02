@@ -59,10 +59,14 @@ adaptation or its decay.
 - Keep the engine, the Learn copy, and the UI independently changeable.
 - Be releasable on the App Store: attribution, disclaimer, and health-app
   scrutiny designed in from the start.
+- Earn revenue through one small, non-personalised ad banner that never sits
+  on the numbers the user acts on.
 
 **Non-goals**
 - No paid APIs, subscriptions, accounts, analytics, or any cost that scales
   with users. The only recurring cost is the Apple Developer Program.
+- No personalised advertising, no tracking identifier, no "Allow tracking"
+  prompt. The banner runs in non-personalised mode only.
 - No Apple Watch app, no widgets, no iPad layout, in this version. These are
   "later, not never": no design decision may block any of them.
 - English only.
@@ -298,6 +302,22 @@ Compliance and tone
   prompt delays, staleness limit, posture fractions, uncertainty band) live in
   one configuration file in the engine. — *Evidenced by:* S1
 
+Advertising
+
+- **R39** — One small adaptive banner from Google AdMob, requested in
+  non-personalised mode only, shown at the bottom of the Calculator entry
+  screen and the Learn module list. Never on the result screen, the flip
+  timer, onboarding, the skin-check or lasting-colour prompts, or Settings.
+  — *Evidenced by:* S15, S16
+- **R40** — The ad SDK lives in its own package behind an `AdBannerProvider`
+  protocol with a no-op implementation used by previews, tests, and CI. No ad
+  code or import appears in Core, Data, Content, or the rest of UI.
+  — *Evidenced by:* S15
+- **R41** — Settings links to a privacy policy that states what the ad SDK
+  receives; the App Store privacy labels reflect AdMob's non-personalised
+  data use; the SDK's non-personalised flag is set before any request.
+  — *Evidenced by:* S15, S16
+
 **Non-functional**
 
 - **R31** — Platform / targets: *(non-functional)* iOS 18 and later, iPhone,
@@ -305,16 +325,17 @@ Compliance and tone
   UI uses adaptive layouts and observable state, so that an iPad layout, a Watch
   app, and widgets can be added later without restructuring.
 - **R32** — Privacy / security / data handling: *(non-functional)* no accounts,
-  no analytics, all logs on device. The only network calls are the weather fetch
-  and the location lookup that feeds it.
+  no analytics, all logs on device. The only network calls are the weather
+  fetch, the location lookup that feeds it, and the ad banner's requests in
+  non-personalised mode. No tracking identifier is ever sent.
 - **R33** — Cost / resource limits: *(non-functional)* zero cost per user. The
   only cost is the Apple Developer Program membership, which the App Store
   release needs anyway.
-- **R34** — Modularity: *(non-functional)* four local Swift packages: Core (pure
+- **R34** — Modularity: *(non-functional)* five local Swift packages: Core (pure
   Swift, fully unit-testable with no mocking of network or system services),
-  Data, Content, UI. Changing Learn copy, tuning the engine, and adjusting UI
-  are three independent operations. Content is data, never string literals in
-  views.
+  Data, Content, UI, Ads. Changing Learn copy, tuning the engine, adjusting UI,
+  and swapping the ad provider are independent operations. Content is data,
+  never string literals in views.
 - **R35** — Accessibility: *(non-functional)* Dynamic Type throughout; VoiceOver
   labels on every result figure, warning, and the flip timer.
 - **R36** — Tone: *(non-functional)* frank, not preachy, not promotional. Never
@@ -361,9 +382,9 @@ Assumptions (if wrong, the design changes)
 
 ## 7. Proposed approach (high level)
 
-Four local Swift packages inside the repository, plus the thin app target that
+Five local Swift packages inside the repository, plus the thin app target that
 wires them together. Dependencies point one way: UI → Data → Core, UI →
-Content, App → all.
+Content, UI → Ads (protocol only), App → all.
 
 - **IcarusCore** (pure Swift, no UI, no networking, no system services) —
   - `Tunables`: the single configuration file of every constant in R30.
@@ -404,9 +425,13 @@ Content, App → all.
   History and charts, Learn (module list, markdown rendering, tappable
   citations), Settings (target selector, sensitivity read-only with override
   and reset, attribution, disclaimer, export).
+- **IcarusAds** — the `AdBannerProvider` protocol, a `NoAdsProvider` no-op,
+  and the `AdMobBannerProvider` that wraps the Google Mobile Ads SDK with the
+  non-personalised flag set. The only package that imports the SDK.
 - **App target** — composes the packages, owns the tab bar (Calculator, Learn,
   with History and Settings reachable from them), and injects the real
-  providers.
+  providers, including the AdMob provider in release builds and the no-op in
+  previews and tests.
 
 Data flow: location → forecast fetch → cache → `ForecastCurve` (interpolated
 once, reused) → `Planner` with profile, region states, today's dose → `DoseResult`
@@ -512,6 +537,18 @@ adaptation factors in force; the day-after `SkinReport` runs through
     imports; UI is SwiftUI with adaptive layouts and no fixed sizes; app state
     lives in observable models the app target owns, not in views.
 
+18. **One AdMob banner, non-personalised only.**
+    Options: no ads and a paid app; AdMob personalised; AdMob
+    non-personalised; a smaller privacy-first network. Choice: AdMob in
+    non-personalised mode. It is the network with the fill to actually pay,
+    and non-personalised mode sends no tracking identifier, so the app needs
+    no "Allow tracking" prompt and keeps a clean privacy label for a
+    health-adjacent review. Personalised ads would pay more per view and
+    break the privacy story. The banner is confined to two entry screens and
+    kept off every screen where the user reads a number or a warning, so an
+    ad can never sit beside a dose. A "remove ads" one-time purchase is a
+    later option that stacks on this without changing it.
+
 ## 9. Data model / key entities
 
 - **UserProfile** — skin type (I–VI); sensitivity multiplier (start 1.0); log
@@ -541,8 +578,10 @@ adaptation factors in force; the day-after `SkinReport` runs through
 - CoreLocation and CLGeocoder (location and manual entry).
 - UserNotifications (day-after prompt, four-day prompt, flip timer alerts).
 - SwiftData (persistence), Swift Charts (history), SwiftUI.
-- MarkdownUI (Swift package) for Learn rendering. The only third-party
-  dependency.
+- MarkdownUI (Swift package) for Learn rendering.
+- Google Mobile Ads SDK (AdMob) for the banner, isolated in IcarusAds and used
+  in non-personalised mode. Needs an AdMob account, an app id, and a privacy
+  policy URL. These two are the only third-party dependencies.
 - Apple Developer Program (for WeatherKit on device, TestFlight, App Store).
 - Named fallback only: Open-Meteo hourly `uv_index`, keyless.
 
@@ -578,6 +617,11 @@ adaptation factors in force; the day-after `SkinReport` runs through
   by copy and confounders, not by the engine.
 - **UVA note is qualitative.** The UV Index is nearly blind to UVA; the note is
   triggered by distance from solar noon, not by a UVA measurement.
+- **The ad SDK.** It is large, it makes network calls of its own, and its
+  privacy disclosures must be mirrored in the App Store labels. Non-personalised
+  fill and revenue are lower than personalised. Isolating it in one package
+  behind a protocol keeps it swappable; the no-op provider keeps it out of
+  tests and CI entirely.
 
 ## 12. Milestones / phasing
 
@@ -597,8 +641,9 @@ Milestones are coarse phases; slicing happens in plans.
   Module 1, skin type table and quiz, disclaimer; calculator with window,
   posture, cover toggle, sunscreen choice; result with number, range, per-side
   times, sub-window, sunscreen advice, warnings, UVA note, forecast age, Learn
-  links; flip timer; attribution. *Done when* S9 can be run by the owner on a
-  device with the fake provider and S14 passes.
+  links; flip timer; attribution; the banner slot wired to the no-op ad
+  provider. *Done when* S9 can be run by the owner on a device with the fake
+  provider and S14 passes.
 - **M4 — Learn.** IcarusContent with the twelve module files and citation
   index; Learn tab with markdown rendering, tables, tappable DOIs, deep links.
   *Done when* S7 passes and the S13 verification report exists.
@@ -611,8 +656,9 @@ Milestones are coarse phases; slicing happens in plans.
 - **M6 — History.** Session log, weekly and seasonal totals per region,
   dose-trajectory chart, export UI.
 - **M7 — Release readiness.** Accessibility pass (S9), edge-case copy pass,
-  live WeatherKit on device, TestFlight, App Store listing with the health
-  disclaimer.
+  live WeatherKit on device, the AdMob provider wired in with the
+  non-personalised flag and the privacy policy link (S15, S16), TestFlight,
+  App Store listing with the health disclaimer and privacy labels.
 
 ## 13. Success criteria
 
@@ -679,8 +725,9 @@ the owner's to judge.
   export round-trips every entity and the tunables version.
 - **S11** — *(covers R32, R34)* — Static checks: IcarusCore imports nothing
   but Foundation; no `URLSession` or `WeatherKit` import outside IcarusData; no
-  Learn copy string literal appears in IcarusUI; every user-visible string in
-  IcarusUI resolves through IcarusContent.
+  `GoogleMobileAds` import outside IcarusAds; no Learn copy string literal
+  appears in IcarusUI; every user-visible string in IcarusUI resolves through
+  IcarusContent.
 - **S12** — **(owner)** *(covers R33)* — No cost beyond the Apple Developer
   Program appears in any dependency, service, or plan.
 - **S13** — **(owner)** *(covers R26)* — Every `[VERIFY]` citation has been
@@ -689,3 +736,12 @@ the owner's to judge.
 - **S14** — *(covers R38)* — A performance test recomputes a result after a
   window change 100 times on the cached curve in under 100 ms each on the CI
   runner.
+- **S15** — *(covers R39, R40, R41)* — Ad tests and static checks: the AdMob
+  provider sets the non-personalised flag before its first request (asserted
+  on a recorded request configuration); the result, flip timer, onboarding,
+  prompt, and Settings views contain no banner slot; the Calculator entry and
+  Learn list views contain exactly one; the no-op provider is what tests and
+  previews receive.
+- **S16** — **(owner)** *(covers R39, R41)* — On a device with a live AdMob
+  app id: a banner loads on the Calculator entry screen and the Learn list,
+  appears nowhere else, and the privacy policy link in Settings opens.
