@@ -112,3 +112,36 @@ claimed payoff — fewer mid-run oracle rulings — is measured: every run repor
 carries `oracle-rulings: <n>`. The unattended path is unchanged throughout.
 
 <!-- Append project decisions below, newest at the bottom. -->
+
+## 2026-09-02 — Design revision 2: the owner's rulings on the stage 2 reviews
+
+Two conceptual reviews (`docs/reviews/design/conceptual-1.md`, `-2.md`,
+reconciled in `conceptual-reconciled.md`) were landed into `docs/DESIGN.md`
+and `docs/VISION.md` with these owner rulings, each one line:
+
+- **Target per skin type is a formula, not a table.** `targetDose =
+  min(MED × melanogenicFraction(type), MED × ceiling)`; fractions static per
+  band (I–II 1.0, III 0.95, IV–VI 0.75, `assumption`-labelled per
+  `docs/MELANOGENIC_THRESHOLDS.md`); the addendum's table is reference only.
+- **MED baselines are the build prompt's** (III 3.0, IV 4.5 SED), the more
+  conservative set. The addendum's 3.5 / 5.0 are never used. Explicit so no
+  later agent substitutes them.
+- **Forecast horizon = whatever WeatherKit forecasts**, `forecastHorizonDays`
+  default 10, confirmed on the first live fetch. Nothing reasons past it; the
+  app never says "this season".
+- **Stale data degrades, never refuses.** Heads-up with the age at 3 h, warning
+  at 6 h, range widened, recommendation reduced by `staleReduction` (5%,
+  tunable). This bends the build prompt's "block confident recommendations".
+- **App copy:** agent drafts `docs/APP_COPY.md`, owner approves every line
+  (S17, owner criterion).
+- **Conservative until calibrated:** the number sits at the conservative
+  ceiling until 3 logs; then the selected ceiling with its range.
+- **Derived state, not stored.** The history is the record; state is replayed
+  under current Tunables. Deleting the history means starting over and the app
+  warns so.
+- **Warning lines:** plain past the target, strong (Module 7 language) only at
+  the personal threshold.
+- **Aggressive = at the line, never past it**, unlocked after 5 logs with at
+  least one redness report in the current cycle.
+- **Second conceptual pass, later:** two agents — one blind on the revised
+  draft, one checking every accepted finding was actually implemented.
