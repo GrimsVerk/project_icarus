@@ -145,3 +145,36 @@ and `docs/VISION.md` with these owner rulings, each one line:
   least one redness report in the current cycle.
 - **Second conceptual pass, later:** two agents — one blind on the revised
   draft, one checking every accepted finding was actually implemented.
+
+## 2026-09-02 — Design revision 3: the owner's rulings on the pass 2 reviews
+
+A blind conceptual review of revision 2 and an implementation check of the
+pass 1 findings (`docs/reviews/design/conceptual-3.md`,
+`implementation-check-1.md`, reconciled in `conceptual-reconciled-2.md`) were
+landed with these owner rulings, one line each:
+
+- **The scale applies to whichever bound binds.** `targetDose =
+  min(melanogenicDose, MED_personal) × ceilingScale`, scale 0.75 / 0.90 / 1.0.
+  Types I–II unchanged; III–VI get the selector as fractions of their tanning
+  dose, so it is never inert.
+- **Headroom omitted, in writing.** The addendum's factor is left out because
+  aggressive already reaches the full tanning dose and V2 prefers shorter.
+- **A tolerant surprise goes to tan state first**, up to saturation; only the
+  remainder raises the multiplier, never above the dose tolerated.
+- **The engine prescribes sunscreen; it never asks what the user has.** "I
+  don't have that SPF" re-solves honestly with what they can manage: thicker
+  application if enough, otherwise less time and shade, never more frequent
+  application as a substitute for a higher label.
+- **EEA/UK ad consent** is the owner's understanding to confirm; the
+  network's consent flow is designed in behind the ad protocol.
+- **Every region limits in every posture**, head-and-shoulders included; a
+  credited region that never limits is a planned burn.
+- **Vitamin D is a possible future goal** for skin types IV and up. Not now;
+  the target is a protocol seam so it slots in later without reorganising
+  the code (M8, decision 26).
+- The remaining accepted findings (log = skin report; prompts from planned or
+  logged sessions; tan cycle defined; threshold = MED_personal; window is
+  today and the engine takes the clock; n capped; replay recomputes; range
+  clipped at the line; under-dosed drops to maintenance; per-figure
+  provenance; timer stop shortens the record; V6 is a tenet; V7, V13, V15
+  made decidable) are recorded in the design text itself.
