@@ -393,8 +393,10 @@ jobs:
   # macOS runners cost ten Linux minutes each and a private repository pays for
   # them. A pull request that only moves documents has nothing for Xcode to
   # build, so the three macOS jobs below run only when something outside the
-  # document tree changed. A skipped required check counts as passing, which
-  # is exactly right for a diff Xcode would never see.
+  # document tree changed. "Document tree" is docs/ and the top-level markdown
+  # files, nothing else: .claude/ is delivery machinery and stays in scope. A
+  # skipped required check counts as passing, which is exactly right for a
+  # diff Xcode would never see.
   swift-changed:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
@@ -409,7 +411,7 @@ jobs:
         run: |
           BASE_SHA="$(git merge-base "origin/$GITHUB_BASE_REF" HEAD)"
           if git diff --name-only "$BASE_SHA" HEAD \
-               | grep -qvE '^(docs/|\.claude/|[^/]+\.md$)'; then
+               | grep -qvE '^(docs/|[^/]+\.md$)'; then
             echo "any=true" >> "$GITHUB_OUTPUT"
           else
             echo "any=false" >> "$GITHUB_OUTPUT"
