@@ -16,94 +16,49 @@ and then stops. The owner opens the pull request themselves, reads the diff, and
 merges. That is checked, not asked for: `.github/scripts/owner-authored.sh`
 fails any pull request touching this file that the owner did not open.
 
-The reason is one line long. **If any agent can land the design, there is no
-reason for `docs/DESIGN.oracle.md` to exist** — an agent that can edit the
-design does not need an evidence ledger, it just edits the design. That second
-document is how an agent corrects the design from real evidence while nobody is
-awake, and it only means anything while this one is out of reach.
-
-`CODEOWNERS` on its own would not draw that line. It requires the owner's
-approval, which is a click on a diff someone else composed and opened. The check
-requires their authorship of the pull request, which is a different claim: it
-means the owner has actually read what these two documents say.
-
-So write it for that use. A sentence here is worth having if a reasonable agent
-could cite it to justify one choice over another. A sentence nobody could ever
-cite is decoration.
-
-**Give every statement an id — `V1`, `V2`, `V3` — running continuously across
-every section of this file, and never renumber one; append instead.** The ids
-are not bookkeeping. Each oracle decision names the statement it relied on, and
-`.github/scripts/oracle-decisions.sh` now checks that the quoted sentence really
-appears here — so an id turns your check of a ruling into one `grep` instead of
-a memory test across five sections. It also makes a *new* statement visible: an
-id you do not recognise, in a diff you must open, is an agent having written
-something you never said.
-
-**Deleting this whole file opts the project out of the tiebreaker, not out of
-the oracle.** The oracle still runs, still rules on logged evidence, and still
-writes decisions — it simply rules with nothing to weigh them against, and each
-decision then says so with `(no vision statement decided this)`. If what you
-want is for no agent to amend the design unattended, that is a different thing
-and it is achieved by not starting the delivery driver.
+Every statement carries an id — `V1`, `V2`, … — running continuously across the
+file. Ids are never renumbered; new statements are appended.
 
 ## What this project is for
 
-<!-- One paragraph. The outcome, in the owner's words. Not a feature list —
-     the thing that would be true if this worked. -->
+- **V1** — This app is for people who actually want to develop a tan and stay
+  clear of redness that persists into the next day. They put in the time slot
+  they actually have and get an honest, specific answer: how long, which sides,
+  which minutes, and how much sunscreen. The app learns their real skin from
+  what happened the next day. It grows the dose as their tan grows and shrinks
+  it after a break, so the classic burn after a holiday does not happen. The
+  Learn section says it plainly: getting a tan has a cost to your skin, period.
+  This is not something you do if you want to stay perfectly supple into your
+  old age.
 
 ## Priorities, in order
 
-<!-- Ordered, and the order is the useful part. "Correctness, then cost, then
-     speed" answers a real question; an unordered list of virtues does not.
-     Ids run continuously across the whole file — carry on from wherever the
-     previous section stopped. -->
-
-- **V1** —
-- **V2** —
-- **V3** —
+- **V2** — Never under-warn. When the model is unsure, it errs toward the
+  shorter session and says why.
+- **V3** — Honest over reassuring. Say what is known precisely. Say what is
+  uncertain as a range. Never dress one up as the other, and never present an
+  estimate as a measurement.
+- **V4** — The engine is correct before anything is pretty. A failing decay
+  test blocks a release.
+- **V5** — Copy and citations are data. Changing them never touches code, and
+  no citation is ever paraphrased, summarised, or dropped.
+- **V6** — Zero running cost, and no data leaves the phone.
+- **V7** — Simple and elegant. Polish matters; it does not need to be flashy to
+  be polished.
 
 ## What I would trade away
 
-<!-- The half that actually decides things. Name what is expendable: features,
-     completeness, generality, polish, latency, breadth of support. An agent
-     that knows what may be sacrificed can make a call; one that only knows
-     what matters cannot.
-
-     Ids continue from the section above.
-
-     DELETING THIS SECTION IS A LEGITIMATE ANSWER, and it is the one people most
-     want to skip. If you mean it, do not delete the heading — replace the body
-     with a stated "None." A missing heading is a fact about the file; a stated
-     "none" is a decision you can find again in six weeks. -->
-
-- **V4** —
+- **V8** — Animation and flair. They are not important.
+- **V9** — Breadth: Watch, widgets, iPad, other languages, other weather
+  sources. Later is fine, and no design decision may block any of them.
 
 ## Core tenets
 
-<!-- The stops. A decision that would violate one of these is not made at all:
-     the oracle writes a HALT entry in docs/DESIGN.oracle.md instead of a
-     decision, and the run carries on to the next phase. Keep this list SHORT;
-     a long one turns every decision into an escalation and unattended work
-     stops entirely, which is the failure this whole arrangement exists to
-     prevent. Two or three.
-
-     WRITE EACH ONE AS A PROPERTY A SPECIFIC CHANGE COULD VIOLATE, not as a
-     value you hold. "No configuration option may weaken a security property"
-     names something a diff can be observed doing; "we care about security"
-     does not, and an agent asking "would this decision violate it?" can only
-     answer the first. The test is whether a reader holding only this sentence
-     and a diff could DISAGREE with how the oracle applied it. If they could
-     not, the sentence is decoration however true it is.
-
-     DELETING THIS SECTION IS ALSO LEGITIMATE — plumbing may genuinely have no
-     stops — and it means the oracle has no halt condition and will decide
-     everything the evidence reaches. If that is what you want, keep the
-     heading and write "None. This project has no decision that should stop
-     for me." Same reason as above: an absent heading is a fact about the file,
-     a stated "none" is a decision. -->
-
-- **V5** —
+- **V10** — No screen, notification, or line of copy may state or imply that
+  tanning is safe, or soften the "there is no safe threshold" point.
+- **V11** — The only network calls are the weather fetch and the location
+  lookup that feeds it. No accounts. No analytics. No third-party service
+  receives anything.
 
 ## Durable evidence is a requirement, not a nicety
 
@@ -146,10 +101,10 @@ is visible, bounded and fixable later; missing evidence is none of those. If it
 becomes a problem the answer is a retention rule — prune payloads older than N
 runs, keep every verdict — and never a return to discarding them.
 
-<!-- Delete this section only if this project genuinely never runs unattended.
-     Editing it is how you change what the oracle may cite. -->
-
 ## What makes an answer unacceptable
 
-<!-- Failure described from the outside: what the owner would look at and
-     reject regardless of how it was built or how well it performs. -->
+- **V12** — A confident-looking number with no basis. A rule, a constant, or a
+  line of copy the user cannot trace to the tunables file, a citation, or a
+  logged report.
+- **V13** — A skin-type description, or any copy, that is folksy enough to be
+  misread. Factual, tolerable to a sensitive reader, never ridiculous.
