@@ -61,8 +61,12 @@ on:
       - "template/**"
 
 # These scope GITHUB_TOKEN only; the App token's reach comes from the App's
-# own permissions. Nothing here needs the built-in token at all.
-permissions: {}
+# own permissions. The built-in token is needed for exactly one thing: the
+# checkout that reads .pr-request.json. On a PRIVATE repository a token with
+# no permissions cannot read the repository at all, and actions/checkout dies
+# with "Repository not found" before the request file is ever looked at.
+permissions:
+  contents: read
 
 jobs:
   open-pr:
