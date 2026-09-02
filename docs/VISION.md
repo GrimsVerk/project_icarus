@@ -33,20 +33,30 @@ file. Ids are never renumbered; new statements are appended.
 
 ## Priorities, in order
 
-- **V2** — Never under-warn. When the model is unsure, it errs toward the
-  shorter session and says why.
+- **V2** — Never under-warn. When two defensible numbers differ, the shorter
+  session is the one shown, and the result names the uncertainty that made it
+  shorter. "Says why" means the number moved, not that a range was drawn
+  beside it. This bounds V1: escalation that could be either right or early is
+  late.
 - **V3** — Honest over reassuring. Say what is known precisely. Say what is
   uncertain as a range. Never dress one up as the other, and never present an
   estimate as a measurement.
 - **V4** — The engine is correct before anything is pretty. A failing decay
   test blocks a release.
 - **V5** — Copy and citations are data. Changing them never touches code, and
-  no citation is ever paraphrased, summarised, or dropped.
+  no citation is ever paraphrased, summarised, or dropped. A citation may be
+  corrected only so that it resolves to the paper it names — identifier, year,
+  venue — never in wording, and every correction is listed in
+  `docs/reviews/citations.md`.
 - **V6** — Zero running cost. Revenue comes from one small non-personalised
   ad banner. No user data leaves the phone beyond what that banner needs to
   load, and it never carries a tracking identifier.
-- **V7** — Simple and elegant. Polish matters; it does not need to be flashy to
-  be polished.
+- **V7** — Fewer controls over more options. The calculator asks exactly what
+  the engine needs — window, posture, the cover toggle, a sunscreen choice, and
+  whether the user stays the whole window — and nothing else. A choice the user
+  would make once lives in Settings; a choice they would never make lives in
+  Tunables; a Settings item that does not change a number the user acts on is
+  not added. Polish matters; it does not need to be flashy to be polished.
 
 ## What I would trade away
 
@@ -106,10 +116,20 @@ runs, keep every verdict — and never a return to discarding them.
 ## What makes an answer unacceptable
 
 - **V12** — A confident-looking number with no basis. A rule, a constant, or a
-  line of copy the user cannot trace to the tunables file, a citation, or a
-  logged report.
+  line of copy that cannot be traced to a citation, a logged report, or an
+  entry in the tunables file that carries its citation or the word
+  `assumption` with a one-line rationale. "Trace" means a reader of the
+  repository: every figure on the result screen is reproducible from the JSON
+  export and the tunables version it carries, and a result that depends on an
+  `assumption` constant is labelled an estimate on screen. A file is not a
+  basis; a note beside the number is.
 - **V13** — A skin-type description, or any copy, that is folksy enough to be
   misread. Factual, tolerable to a sensitive reader, never ridiculous.
 - **V14** — An ad next to a number the user acts on. The banner is small and
-  it stays on the entry screens; it never appears on the result, the flip
-  timer, onboarding, a skin-check prompt, or Settings.
+  it stays on the two entry screens, which carry no figure at all; it never
+  appears on the result, the flip timer, onboarding, a skin-check prompt,
+  History, or Settings.
+- **V15** — A number past the burn line. No setting, no adaptation, and no
+  calibration may plan a dose above the user's personal threshold. Aggressive
+  means at the line, never past it, and it unlocks only after the app has seen
+  the user's skin react.
