@@ -153,7 +153,7 @@ run_suite() {
     proj="$(find . -maxdepth 1 -name '*.xcodeproj' | head -1)"
     scheme="$(basename "$proj" .xcodeproj)"
     xcodebuild test -project "$proj" -scheme "$scheme" \
-      -destination 'platform=iOS Simulator,name=iPhone 16' \
+      -destination "platform=iOS Simulator,id=$("$ROOT/.github/scripts/pick-simulator.sh")" \
       CODE_SIGNING_ALLOWED=NO
   fi
 }
