@@ -33,6 +33,9 @@ file. Ids are never renumbered; new statements are appended.
 
 ## Priorities, in order
 
+The core tenets and the design's non-goals are never traded against these
+priorities; the order below ranks only what may be traded.
+
 - **V2** — Never under-warn. When two defensible numbers differ, the shorter
   session is the one shown, and the result names the uncertainty that made it
   shorter. "Says why" means the number moved, not that a range was drawn
@@ -48,24 +51,32 @@ file. Ids are never renumbered; new statements are appended.
   corrected only so that it resolves to the paper it names — identifier, year,
   venue — never in wording, and every correction is listed in
   `docs/reviews/citations.md`.
-- **V6** — Zero running cost. Revenue comes from one small non-personalised
-  ad banner. No user data leaves the phone beyond what that banner needs to
-  load, and it never carries a tracking identifier.
 - **V7** — Fewer controls over more options. The calculator asks exactly what
-  the engine needs — window, posture, the cover toggle, a sunscreen choice, and
-  whether the user stays the whole window — and nothing else. A choice the user
-  would make once lives in Settings; a choice they would never make lives in
-  Tunables; a Settings item that does not change a number the user acts on is
-  not added. Polish matters; it does not need to be flashy to be polished.
+  the engine needs — window, posture, the cover toggle, and whether the user
+  stays the whole window — and nothing else; the engine tells the user what
+  sunscreen to wear, it does not ask. Location comes from the device, or on
+  denial from a manual entry reached from the result's place line; it is
+  never a control on the entry screen and never a Settings item. A choice the
+  user would make once lives in Settings; a choice they would never make lives
+  in Tunables; a Settings item is added only if it changes a number the user
+  acts on or is required for release — attribution, disclaimer, privacy
+  policy, export, import, delete. Polish matters; it does not need to be
+  flashy to be polished.
 
 ## What I would trade away
 
 - **V8** — Animation and flair. They are not important.
 - **V9** — Breadth: Watch, widgets, iPad, other languages, other weather
-  sources. Later is fine, and no design decision may block any of them.
+  sources, and a second goal such as a vitamin D exposure for skin types that
+  tan without trying. Later is fine, and no design decision may block any of
+  them.
 
 ## Core tenets
 
+- **V6** — Zero running cost. Revenue comes from one small non-personalised
+  ad banner. No user data leaves the phone beyond what that banner needs to
+  load, and it never carries a tracking identifier. (Moved here from the
+  priorities: it is a stop, not a trade.)
 - **V10** — No screen, notification, or line of copy may state or imply that
   tanning is safe, or soften the "there is no safe threshold" point.
 - **V11** — The only network calls are the weather fetch, the location lookup
@@ -124,7 +135,11 @@ runs, keep every verdict — and never a return to discarding them.
   `assumption` constant is labelled an estimate on screen. A file is not a
   basis; a note beside the number is.
 - **V13** — A skin-type description, or any copy, that is folksy enough to be
-  misread. Factual, tolerable to a sensitive reader, never ridiculous.
+  misread. Factual, tolerable to a sensitive reader, never ridiculous. This
+  applies to app copy (`docs/APP_COPY.md`), which the owner approves line by
+  line. Learn copy is rendered verbatim under V5 and is never edited by an
+  agent, folksy or not; an agent who thinks a Learn line fails this test files
+  it for the owner.
 - **V14** — An ad next to a number the user acts on. The banner is small and
   it stays on the two entry screens, which carry no figure at all; it never
   appears on the result, the flip timer, onboarding, a skin-check prompt,
@@ -132,4 +147,7 @@ runs, keep every verdict — and never a return to discarding them.
 - **V15** — A number past the burn line. No setting, no adaptation, and no
   calibration may plan a dose above the user's personal threshold. Aggressive
   means at the line, never past it, and it unlocks only after the app has seen
-  the user's skin react.
+  the user's skin react. "Personal threshold" means the app's current estimate
+  `MED_personal`; the estimate's own uncertainty is V2's business, and V2 is
+  satisfied for the aggressive setting by its unlock condition — a redness
+  report has bounded the estimate from above.
