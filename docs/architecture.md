@@ -122,8 +122,9 @@ answer.
 | `App/` | The iOS app shell. Depends only on `IcarusUI`. `ProjectIcarusApp` builds the live environment; `RootTabs` is the two-tab shell with the foreground hook and the deep-link hook, and its Calculator tab owns the one `CalculatorModel` the entry and result screens share. It holds no logic and no copy, and it never names the ad provider: `AppEnvironment.banner(width:)` hands it a view. |
 | `IcarusUI` / `FlipTimerModel` | The session clock for a lying-down session (R11). It plans nothing itself: the calculator builds the request, this model moves the window's start to the real clock, scales every target by the confirmed sunscreen's effective SPF so the plan spans the covered window, and hands it to the `Planner`. A non-plan outcome is a refusal (`TimerError.cannotStart`); notifications that are denied are a refusal too, before anything is written, and the same start is offered again with that refusal waived. It logs the session at the start from the plan's intervals and again, in place and shorter, from the intervals it actually ran. `ScaledGoal` is the one-line goal wrapper that does the SPF scaling. |
 | `IcarusUI` / `FlipTimerView` | The timer screen: which side is up first, the time left on this side and on the session, a stop button, and the refusal lines. No banner, figures yes (R39). Every sentence is a copy key; the sides, the buttons and the clock are symbols and numbers, because no approved line names them. |
-| `IcarusUI` / `SettingsModel` | Everything Settings can change or say: the ceiling (which is the profile), the sensitivity sentence and the manual override, the count of session days with no report, the export file, the import, and deleting the record. The replayed state lives behind an actor, so the model keeps a snapshot of it and refreshes after every write. |
-| `IcarusUI` / `SettingsView` | The list: the ceiling selector (each option named by the share of the threshold it plans at, the aggressive one disabled with the approved line until it unlocks), the sensitivity sentence with a stepper and a reset, the unreported-days line, the record's export, import and delete-with-warning, the WeatherKit attribution, the privacy row (wired in M7) and the disclaimer. |
+| `IcarusUI` / `SettingsModel` | Everything Settings can change or say: the ceiling (which is the profile), the sensitivity sentence and the manual override, the count of session days with no report, the weekly and cycle-to-date totals per region, the export file, the import, and deleting the record. The replayed state, the record and the totals live behind an actor, so the model keeps a snapshot of all three and refreshes after every write. |
+| `IcarusUI` / `SettingsView` | The list: the ceiling selector (each option named by the share of the threshold it plans at, the aggressive one disabled with the approved line until it unlocks), the sensitivity sentence with a stepper and a reset, the unreported-days line, the totals, the record's export, import and delete-with-warning, the WeatherKit attribution, the privacy row (wired in M7) and the disclaimer. |
+| `IcarusUI` / `TotalsView` | The dose the record holds, in two sections of three rows: the last seven days, and everything since each region's tan cycle opened (R24). It sums nothing — `HistoryStore.totals` does that from the logged sessions alone — and it draws every number through `FigureView`, with no estimate badge, because a sum of recorded doses rests on no assumed constant. No approved line names either span or any region, so a symbol heads each section and `PromptWords` names each row from the region's own case. |
 | `IcarusUI` / `AttributionView` | Apple's mark and the link to Apple's legal page (R29). The URL arrives with the forecast in M7; until then the link is absent rather than a placeholder sentence. |
 | `IcarusAds` | The ad banner behind a protocol (R40); the only package that will import the SDK. Not built on Linux. |
 | `IcarusAds` / `AdBannerProvider`, `NoAdsProvider` | The whole surface the app has on advertising: prepare for a region (which is where the consent flow will live), a banner view for a width or nil, and the flags every request carries. `NoAdsProvider` shows nothing, asks for nothing, and reports non-personalised — it is what previews, tests, CI and the app itself use until M7. |
@@ -783,7 +784,7 @@ All three flow flags false is a first launch, and onboarding is what runs then
 ### Change a setting, or move the record
 
 1. `SettingsModel` reads the ceiling out of the profile and takes a snapshot of
-   the replayed state and the record.
+   the replayed state, the record and the totals.
 2. Changing the ceiling saves the profile. The aggressive option is offered only
    when `TanningGoal.effectiveScale` does not refuse it — enough reports, and one
    of them bounding a region in the current cycle (R7).
@@ -793,11 +794,16 @@ All three flow flags false is a first launch, and onboarding is what runs then
 4. An override writes `manualMultiplier` into the profile and invalidates the
    store's memo, so the next `state(now:)` answers under it without any write to
    the history. Resetting clears it and the learned value takes over again.
-5. Export asks `ExportService` for the whole record under the current profile and
+5. The totals are `HistoryStore.totals(now:)`: the week is every logged session
+   whose actual window ended inside the last seven days, summed per region; the
+   cycle is every logged session since that region's cycle opened, and a region
+   whose cycle has not opened shows nothing but zero. Both are read out of the
+   record on each refresh, never stored.
+6. Export asks `ExportService` for the whole record under the current profile and
    writes it to a temporary file the share sheet hands on.
-6. Import reads the file, lands it whole or not at all, applies the profile the
+7. Import reads the file, lands it whole or not at all, applies the profile the
    file carried, invalidates the memo and refreshes the snapshot.
-7. Delete shows the R44 warning first, then empties the record — which is what
+8. Delete shows the R44 warning first, then empties the record — which is what
    deletes the calibration, the tan state and today's budget with it.
 
 ## State and storage
@@ -870,6 +876,12 @@ rather than failed.
 `IcarusUI` is not built at all, it says so and checks the ten declared rows in
 `ScreenManifest.swift` one at a time instead, so a table that lost a row fails
 there too. Both platforms then run the `FigureView` grep.
+
+`acceptance/S10.sh` runs the logging suites and prints the twelve-line S10
+checklist beside the result. The filter is `IcarusDataTests` on Linux and
+`IcarusDataTests|IcarusUITests` on macOS, because `IcarusUI` is not built on
+Linux: the script says which half it could not observe rather than passing
+quietly, and an empty selection fails, as in S18.
 
 The file names are `S<n>.sh` exactly: `.github/scripts/acceptance-criteria.sh`
 matches a criterion id to `acceptance/S<n>.sh` and runs nothing else, so a
