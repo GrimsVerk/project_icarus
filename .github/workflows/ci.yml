@@ -474,6 +474,29 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 
+  # Engine, content and data tests on a Linux runner (D-2026-09-03-F6). The
+  # package manifest declares only IcarusCore, IcarusContent and IcarusData
+  # (and their tests) on Linux, so `swift test` here is the cheap runner's
+  # share of the suite; the macOS `test` job keeps the app build. It runs on
+  # every PUSH as well as on pull requests: a push without a pull request is
+  # the branch's own compile check, and a Linux minute costs a tenth of a
+  # macOS one. On pull requests it follows swift-changed like the macOS jobs;
+  # `!cancelled()` lets it run on push, where swift-changed is skipped.
+  # The owner adds this job to the ruleset after its first green run.
+  core-tests:
+    needs: swift-changed
+    if: ${{ !cancelled() && (github.event_name == 'push' || needs.swift-changed.outputs.any == 'true') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: swift-actions/setup-swift@v2
+        with:
+          swift-version: "6.0"
+      - run: swift --version
+      - name: Engine, content and data tests
+        run: swift test
+
   test:
     needs: swift-changed
     if: github.event_name == 'pull_request' && needs.swift-changed.outputs.any == 'true'
