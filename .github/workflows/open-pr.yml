@@ -78,6 +78,12 @@ jobs:
       APP_ID: ${{ secrets.APP_ID }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Two commits deep: the freshness guard below also asks GIT whether
+          # the pushed head wrote the marker (ESC-1). The push event's
+          # per-commit file lists arrived empty for pushes from a hosted
+          # session, so the event-only read opened nothing, ever, there.
+          fetch-depth: 2
       - name: Read the request
         id: request
         # No request file means this push is not asking for a pull request —
@@ -101,6 +107,17 @@ jobs:
           touched="$(jq -r '([.head_commit // empty] + (.commits // []))
               | map((.added // []) + (.modified // [])) | flatten
               | any(. == ".pr-request.json")' "$GITHUB_EVENT_PATH")"
+          # Second witness (ESC-1): the diff of the pushed head against its
+          # parent. The event's file lists were empty on a hosted session's
+          # pushes; git's answer does not depend on the payload. A root
+          # commit has no parent and falls through to the event's answer.
+          if [ "$touched" != "true" ] \
+             && git rev-parse --verify -q HEAD^ >/dev/null 2>&1 \
+             && git diff --name-only HEAD^ HEAD -- .pr-request.json \
+                  | grep -qx '.pr-request.json'; then
+            touched=true
+            echo "open-pr: the push event listed no files, but git shows this head wrote .pr-request.json (ESC-1)."
+          fi
           if [ "$touched" != "true" ]; then
             echo "wanted=false" >> "$GITHUB_OUTPUT"
             echo "open-pr: .pr-request.json exists but this push did not write it —"
