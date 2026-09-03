@@ -10,7 +10,9 @@ import SwiftUI
 /// placeholder sentence, because a user-visible sentence would have to be a
 /// `CopyKey` the owner approved (R42) and no key stands for "not built yet". The
 /// tab items are system images for the same reason; their titles land with the
-/// copy for them. History and Settings reach the toolbar with Slice 4.
+/// copy for them. Settings opens as a sheet from a control row above the
+/// Calculator (the entry screen owns its own navigation bar); History reaches
+/// the same row in M6.
 struct RootTabs: View {
     @EnvironmentObject private var env: AppEnvironment
     @EnvironmentObject private var taps: NotificationTaps
@@ -20,10 +22,27 @@ struct RootTabs: View {
     /// identifier, because that is all the shell knows: `RoutedPromptView` is
     /// what turns it into a day and a question.
     @State private var tappedPrompt: TappedPrompt?
+    /// Settings is a sheet off the Calculator's toolbar, not a third tab: R39
+    /// keeps the two tabs, and the banner, exactly where they are.
+    @State private var settingsShown = false
 
     var body: some View {
         TabView(selection: $tab) {
+            // The entry screen owns its own navigation stack, so the shell's
+            // controls sit in a row above it rather than in a bar it cannot
+            // reach. Settings is a sheet, not a third tab (R39).
             CalculatorTab(env: env)
+                .safeAreaInset(edge: .top) {
+                    HStack {
+                        Spacer()
+                        Button {
+                            settingsShown = true
+                        } label: {
+                            Image(systemName: "gearshape")
+                        }
+                    }
+                    .padding(.horizontal)
+                }
                 .tabItem { Image(systemName: "sun.max") }
                 .tag(Tab.calculator)
             // `Color.clear` and not `EmptyView`: a tab whose content is empty is
@@ -32,6 +51,9 @@ struct RootTabs: View {
             Color.clear
                 .tabItem { Image(systemName: "book") }
                 .tag(Tab.learn)
+        }
+        .sheet(isPresented: $settingsShown) {
+            SettingsView(model: SettingsModel(env: env))
         }
         .onOpenURL { url in
             // Every deep link the app registers is a Learn module (R27), so the
