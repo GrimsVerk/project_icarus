@@ -501,8 +501,11 @@
             XCTAssertEqual(state.totalReports, 1)
         }
 
-        /// The same day's evidence with no redness is a one-sided confirmation, so
-        /// the effect it reports is not a multiplier move.
+        /// The same day's evidence with no redness is one-sided: it only says the
+        /// threshold lies above what was delivered. Past the estimate it credits
+        /// tan state first, and only the excess saturation cannot absorb reaches
+        /// the multiplier, which then never falls (R21). Either way it is not
+        /// the redness branch.
         func testANormalReportOnTheSameDayReportsADifferentEffect() async throws {
             let harness = SkinCheckHarness.make()
             let record = Fixture.record()
@@ -513,8 +516,13 @@
 
             let effect = try await model.submit(now: Fixture.answeredAt)
 
-            if case .multiplierMoved = effect {
-                XCTFail("a normal report is one-sided evidence, not a redness correction")
+            switch effect {
+            case .tanStateCredited:
+                break
+            case let .multiplierMoved(from, to):
+                XCTAssertGreaterThanOrEqual(to, from, "a normal report never lowers the multiplier")
+            default:
+                XCTFail("a normal report past the estimate credits tan state or raises the multiplier, got \(effect)")
             }
             XCTAssertNotEqual(effect, .noDoseThatDay, "the day had a logged dose")
             let state = try await harness.environment.history.state(now: Fixture.answeredAt)
