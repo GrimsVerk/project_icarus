@@ -13,13 +13,17 @@ var products: [Product] = [
 
 var targets: [Target] = [
     .target(name: "IcarusCore"),
-    .target(name: "IcarusContent", resources: [.copy("Resources")]),
+    // Content depends on Core for `CopyKey` and `SkinType`: the app copy is
+    // keyed by the engine's enum, never by strings (D-2026-09-03-F7).
+    .target(name: "IcarusContent", dependencies: ["IcarusCore"], resources: [.copy("Resources")]),
     .target(name: "IcarusData", dependencies: ["IcarusCore"], resources: [.copy("Resources")]),
     // The Learn module files are generated from docs/LEARN_CONTENT.md by this
     // executable (D-2026-09-03-F4). It is Linux-safe, so it is always built.
     .executableTarget(name: "split-learn-content", dependencies: ["IcarusContent"]),
+    // The app copy is generated from docs/APP_COPY.md the same way (R42).
+    .executableTarget(name: "build-app-copy", dependencies: ["IcarusContent"]),
     .testTarget(name: "IcarusCoreTests", dependencies: ["IcarusCore"]),
-    .testTarget(name: "IcarusContentTests", dependencies: ["IcarusContent"]),
+    .testTarget(name: "IcarusContentTests", dependencies: ["IcarusContent", "IcarusCore"]),
     .testTarget(name: "IcarusDataTests", dependencies: ["IcarusData"]),
 ]
 
