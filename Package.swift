@@ -14,7 +14,7 @@ var products: [Product] = [
 var targets: [Target] = [
     .target(name: "IcarusCore"),
     .target(name: "IcarusContent", resources: [.copy("Resources")]),
-    .target(name: "IcarusData", dependencies: ["IcarusCore"]),
+    .target(name: "IcarusData", dependencies: ["IcarusCore"], resources: [.copy("Resources")]),
     .testTarget(name: "IcarusCoreTests", dependencies: ["IcarusCore"]),
     .testTarget(name: "IcarusContentTests", dependencies: ["IcarusContent"]),
     .testTarget(name: "IcarusDataTests", dependencies: ["IcarusData"]),

@@ -1,7 +1,7 @@
 import Foundation
 
 /// Why a forecast curve could not be built.
-public enum ForecastCurveError: Error, Equatable {
+public enum ForecastCurveError: Error, Sendable, Equatable {
     case tooFewSamples
     case unsorted
 }
