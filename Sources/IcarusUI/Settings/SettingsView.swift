@@ -19,8 +19,8 @@
     /// behind it or a symbol, never a sentence this file made up. No banner ever
     /// appears here (R39).
     public struct SettingsView: View, ScreenManifest {
-        public static let hasBannerSlot = false
-        public static let showsFigures = true
+        public nonisolated static let hasBannerSlot = false
+        public nonisolated static let showsFigures = true
 
         @ObservedObject private var model: SettingsModel
         @State private var override: Double = 1
