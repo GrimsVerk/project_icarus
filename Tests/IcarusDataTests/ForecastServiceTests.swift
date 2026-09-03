@@ -2,7 +2,6 @@
 // embedded here so the mapping test does not depend on the test target
 // declaring resources. Splitting either out would put half of this slice's
 // tests in a file the plan does not declare.
-// swiftlint:disable file_length
 
 import Foundation
 import IcarusCore
