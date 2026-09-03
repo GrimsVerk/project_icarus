@@ -8,7 +8,8 @@ private enum TargetFixture {
 
     /// A replayed state at multiplier 1.0. `reports` sets both the all-time and
     /// the cycle-windowed count, so a test never depends on which one a gate
-    /// reads; `redness` is the count that narrows the upper edge of the range.
+    /// reads; `redness` is the count that narrows the upper edge of the range,
+    /// and any redness marks every region as bounded in the current cycle.
     static func state(reports: Int = 0, redness: Int = 0, tanState: Double = 0, doseToday: SED = 0) -> DerivedState {
         var state = DerivedState.initial(tunables: .current)
         state.multiplier = 1.0
@@ -18,6 +19,10 @@ private enum TargetFixture {
         for region in Region.allCases {
             state.regions[region]?.tanState = tanState
             state.regions[region]?.doseToday = doseToday
+            // A redness report bounds the region it was about within the
+            // current tan cycle (R7, R14); the aggressive unlock reads that
+            // per-cycle bound, not the all-time redness count.
+            state.regions[region]?.rednessBoundInCycle = redness > 0
         }
         return state
     }
