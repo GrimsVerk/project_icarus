@@ -1,0 +1,24 @@
+Preparing worktree (new branch 'worker/calculator-ui-4')
+HEAD is now at c06072f Merge learn-tab slice 2: the Learn tab views
+=== spawn-worker[calculator-ui-4] engine=claude branch=worker/calculator-ui-4 base=feat/calculator-ui-2 (c06072f1d6c4306fd6e70598fb0b19a10dc8cec0) bypass=0 ===
+=== 2026-09-03T06:04:26Z ===
+Ignoring 2 permissions.allow entries from .claude/settings.json: this workspace has not been trusted. Run Claude Code interactively here once and accept the trust dialog, or set projects["/home/user/project_icarus"].hasTrustDialogAccepted: true in /root/.claude.json.
+Done. Here is what I did.
+
+**Made (new files)**
+- `Sources/IcarusUI/Timer/FlipTimerModel.swift` — the timer brain: it asks the calculator for the same plan request, moves the start to "now", scales targets by the sunscreen SPF, refuses non-plan outcomes, warns when alerts are off, logs at start, logs again (shorter) on stop, and stops itself past midnight.
+- `Sources/IcarusUI/Timer/FlipTimerView.swift` — the timer screen.
+- `Sources/IcarusUI/Settings/SettingsModel.swift`, `SettingsView.swift`, `AttributionView.swift` — ceiling, sensitivity sentence, override/reset, unreported days, export, import, delete, Apple attribution.
+
+**Changed**
+- `App/RootTabs.swift` — Settings opens from the Calculator toolbar.
+- `Sources/IcarusData/PromptScheduler.swift` — added one read-only `authorization()`. Needed: the timer must warn *before* it starts, and nothing else exposed that.
+- `docs/architecture.md` — new components, two new main paths, two rough edges.
+
+**Did it work**
+- `swift build` ✅, `swift test` 457 tests ✅, `acceptance/S11.sh` ✅, `acceptance/S15.sh` ✅, `swiftformat` + `swiftlint --strict` clean ✅.
+- Note: IcarusUI does not compile on Linux (Apple-only). So my new UI code was written with care against the SDK, but no compiler checked it here.
+
+Committed: `315cab0`.
+
+WORK_ON_BRANCH worker/calculator-ui-4

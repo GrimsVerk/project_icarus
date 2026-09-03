@@ -1,0 +1,32 @@
+Preparing worktree (new branch 'worker/calculator-ui-2-tests')
+HEAD is now at c06072f Merge learn-tab slice 2: the Learn tab views
+=== spawn-worker[calculator-ui-2-tests] engine=claude branch=worker/calculator-ui-2-tests base=feat/calculator-ui-2 (c06072f1d6c4306fd6e70598fb0b19a10dc8cec0) bypass=0 ===
+=== 2026-09-03T06:00:08Z ===
+Ignoring 2 permissions.allow entries from .claude/settings.json: this workspace has not been trusted. Run Claude Code interactively here once and accept the trust dialog, or set projects["/home/user/project_icarus"].hasTrustDialogAccepted: true in /root/.claude.json.
+**Done. Tests are written and committed.**
+
+**What I made**
+- One new file: `Tests/IcarusUITests/OnboardingModelTests.swift` (23 tests).
+- No source code. No views rendered. No `### Internals` in my plan copy — the strip was correct.
+
+**What the tests check**
+- A new model has answered nothing.
+- `canComplete` is false with only the disclaimer, false with only a skin type, true with both, and false again if either is taken back.
+- All six skin-type table rows can finish the flow.
+- The quiz maps score 0 → type I, 40 → type VI, and every band edge, through `FitzpatrickQuiz`.
+- An unanswered quiz changes nothing; an answered quiz replaces an earlier guess; the quiz never sets the disclaimer.
+- `complete()` saves `Profile(skinType:, ceiling: .standard, manualMultiplier: nil)` and sets both flags.
+- The whole flow on `AppEnvironment.preview()`.
+- The first page carries Module 1's own markdown, with the "no safe tan" wording kept.
+- `OnboardingFlow` declares `(false, false)` and matches `ScreenTable`.
+
+**Did it work**
+- `swiftformat .` = no changes. `swiftlint lint --strict --quiet` = clean.
+- `swift build` and `swift test` on Linux = green (457 tests). My file does not compile on Linux, by design. It is untested code until assembly on a Mac.
+
+**Two things to watch at assembly**
+1. `OnboardingModel.module1` — I assert on this static. The contract allowed either it or the index. If the code author put `ModuleIndex.module(ModuleID(1)!)!` inline instead, two tests will not compile until that static is added. This is my main guess.
+2. I did not test the `precondition` in `complete()`. XCTest cannot catch a crash.
+3. I did not assert that `complete()` leaves `adConsentDone` alone — that would over-specify how flags are written.
+
+WORK_ON_BRANCH worker/calculator-ui-2-tests
