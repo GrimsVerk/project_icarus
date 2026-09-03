@@ -60,6 +60,9 @@ answer.
 | `IcarusData` / `HistoryPersistence` | The one seam under the history: load the whole record, replace it whole, upsert one session or one report. `MemoryPersistence` is the reference implementation and what Linux runs; `SwiftDataPersistence` is the same contract over a SwiftData container, built only where SwiftData exists. |
 | `IcarusData` / `HistoryStore` | The one way in and out of the history: it stores planned sessions, logs them, discards them, records reports and lasting colour, and answers with the replayed state and the weekly and cycle totals. Nothing derived is stored. |
 | `IcarusData` / `ExportService` | The export file (version 1), the atomic import, and the recomputation that proves a session record is enough on its own. |
+| `IcarusData` | Everything that touches the outside world or the disk, behind protocols the engine never sees: persistence, the forecast cache (M2), and the prompts. |
+| `IcarusData` / `PromptScheduler` | Every prompt the app makes: the skin check about a day's sessions, the lasting-colour question about a report, the flip timer's alerts, and the in-app fallback for anything the system never delivered. |
+| `IcarusData` / `NotificationPort` | The system notification centre, as the only four things this layer needs from it. `FakeNotificationPort` records; `UserNotificationAdapter` is the real one, and exists only where `UserNotifications` does. |
 | `IcarusContent` | Placeholder. Will own generated copy and Learn content (M3). |
 | `IcarusUI` | Placeholder. Will own the SwiftUI surface (M4). Not built on Linux. |
 | `IcarusAds` | Placeholder. Will own the ad banner behind a protocol (M7). Not built on Linux. |
@@ -574,6 +577,54 @@ The file names are `S<n>.sh` exactly: `.github/scripts/acceptance-criteria.sh`
 matches a criterion id to `acceptance/S<n>.sh` and runs nothing else, so a
 descriptive suffix would be a script the check never runs.
 
+### Ask about a day's skin, once
+
+1. The store tells `PromptScheduler` that a day's planned-or-logged sessions
+   changed, and gives it the end of the last of them. The scheduler never counts
+   sessions itself and never reads the history for this.
+2. The identifier is the day: `"skin-" + day.id`. So the scheduler cancels that
+   identifier and schedules one alert at the last session's end plus
+   `skinCheckDelayHours` (20 h). A later session on the same day simply moves the
+   same alert; there is only ever one per day, and no bookkeeping to lose.
+3. `lastSessionEnd` of nil means the day's last session was discarded. Both of
+   the day's questions — the skin check and the lasting colour — are cancelled.
+4. A report about the day is the only thing that schedules the lasting-colour
+   question, at the answer's time plus `lastingColourDelayDays` (4 d), under
+   `"colour-" + day.id`. It is asked days after the answer, not after the
+   session, so a report given late moves it. Adding the report does not cancel
+   the day's skin check.
+5. `PromptScheduler.day(fromNotificationID:)` reads either identifier back to the
+   day it is about, because `DayKey.id` carries its own time zone and round-trips
+   whatever zone the host is in. That is how a tapped notification knows which
+   day it is asking about.
+
+### When the system will not alert
+
+1. Every schedule asks the port for authorization first. Anything but `granted`
+   drops the request rather than pretending it is pending. Cancelling is
+   unconditional.
+2. `dueInApp(history:now:)` is then what surfaces the question. It is a pure
+   read of the history against the clock, so it also covers a prompt that fired
+   and went unanswered.
+3. A day with a planned or logged session and no report is due for the skin
+   check while now sits inside `inAppSkinCheckWindowHours` (12 h to 72 h) after
+   that day's last session — the actual end when the session was logged, the
+   planned end when it was not.
+4. A report with no lasting-colour answer is due for that question while now
+   sits inside `inAppLastingColourWindowDays` (3 d to 10 d) after the answer.
+5. At most one question per day comes back, ordered by day, so the launch path
+   asks them in a stable order.
+
+### Alert through a flip timer
+
+1. `scheduleTimer` replaces the whole set: it cancels everything under
+   `"timer-"`, then schedules the first side's end (`"timer-side"`, absent for a
+   standing session), one alert per reapplication time
+   (`"timer-reapply-<index>"`, from zero), and the session's end
+   (`"timer-end"`).
+2. `cancelTimer` cancels the same prefix. Stopping the timer therefore takes no
+   record of what was pending.
+
 ## Known rough edges
 
 - A `Planner.plan` call solves the session twice over: once to learn which
@@ -671,6 +722,19 @@ descriptive suffix would be a script the check never runs.
 - `CoreLocationSource` and `AppleGeocoder` are not exercised by any test: they
   exist only where CoreLocation does, and the Linux suite runs the fakes. Their
   first real evidence is the owner's on-device criterion (S8, S9).
+- The notification words in `UserNotificationAdapter` are plain English written
+  in place, not resolved copy: the content layer is M3. The skin check carries
+  its `CopyKey` in the request's `userInfo` so the copy can be swapped without
+  changing the identifiers; the other kinds have no key in the closed `CopyKey`
+  list, so they carry none.
+- `PromptScheduler` asks the port for authorization on every schedule rather
+  than caching it. That is one extra hop per alert, and it is deliberate: the
+  user can revoke permission between two sessions, and a cached "granted" would
+  schedule alerts that never arrive while the in-app fallback stayed quiet.
+- Cancelling is a prefix match, and a day's identifier is a whole `DayKey.id`.
+  No other identifier can extend one, because a time-zone name is never a prefix
+  of another time-zone name in the same position — but it is a prefix match, not
+  an exact one, and that is the assumption it rests on.
 - `.swiftlint.yml` disables `trailing_comma` because SwiftFormat's
   `trailingCommas` rule adds exactly what it removes, and both run in CI; and
   it excludes the short names the design fixes (skin types `i`–`vi`, the
