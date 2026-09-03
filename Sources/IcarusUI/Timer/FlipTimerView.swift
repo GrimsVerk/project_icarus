@@ -16,8 +16,8 @@
     /// It carries no banner and it does show figures, which is exactly what its
     /// `ScreenTable` row declares (R39).
     public struct FlipTimerView: View, ScreenManifest {
-        public static let hasBannerSlot = false
-        public static let showsFigures = true
+        public nonisolated static let hasBannerSlot = false
+        public nonisolated static let showsFigures = true
 
         @ObservedObject private var model: FlipTimerModel
         @State private var now = Date()

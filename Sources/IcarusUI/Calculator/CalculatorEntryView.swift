@@ -24,8 +24,8 @@
     /// labels are built from the option data itself — the posture case name, the
     /// window's own times — which is data, not copy.
     public struct CalculatorEntryView: View, ScreenManifest {
-        public static let hasBannerSlot = true
-        public static let showsFigures = false
+        public nonisolated static let hasBannerSlot = true
+        public nonisolated static let showsFigures = false
 
         @ObservedObject private var model: CalculatorModel
         @State private var showingResult = false

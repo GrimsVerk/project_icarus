@@ -17,8 +17,8 @@
     /// No figure appears anywhere in it, and no MED or SED (R20, R39). It
     /// carries no banner.
     public struct SkinCheckFlow: View, ScreenManifest {
-        public static let hasBannerSlot = false
-        public static let showsFigures = false
+        public nonisolated static let hasBannerSlot = false
+        public nonisolated static let showsFigures = false
 
         @ObservedObject private var model: SkinCheckModel
         @State private var page: Page = .sessions
