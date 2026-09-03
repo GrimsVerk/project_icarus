@@ -11,19 +11,16 @@ format: pseudocode
 
 ## Summary
 
-The loop that makes the app learn: the one-per-day skin check that opens with
-"did you do this session?" and "did you wear it?" for planned sessions, then
-Q1, Q2, region and confounders; the four-day lasting-colour prompt after a
-report; both by notification and in-app, routed by the day's zone-carrying
-id; the answers flowing through the store into replay, with the confirmation
-copy taken from the effect the replay applied; the sensitivity sentence, the
-unreported-days count, and the weekly and cycle totals. Revision 3 lands the
-second tactical pass.
+The loop that makes the app learn: the one-per-day skin check with "did you
+do this session?" and "did you wear it?", Q1, Q2, region and confounders;
+the four-day lasting-colour prompt after a report; both by notification and
+in-app, routed by the day's zone-carrying id; confirmation copy from the
+effect the replay applied; the sensitivity sentence, unreported days, and
+totals. Revision 3 lands the second tactical pass.
 
 Non-goals:
 - We do NOT compute the update here; `CalibrationEngine` and `Replay` (M1) do.
-- We do NOT draw the trajectory chart (M6).
-- We do NOT show MED or SED anywhere in the prompt flow.
+- We do NOT draw the trajectory chart (M6), and we show no MED or SED in the prompts.
 - We do NOT add copy keys: every key this plan uses is in Core's list already.
 
 Owner costs:
