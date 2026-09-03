@@ -1,7 +1,3 @@
-// swiftlint:disable file_length
-// R30 rules that every tunable constant lives in ONE configuration file, with
-// its basis beside it; splitting this file to satisfy a line count would
-// break that promise, so the rule is off for this file alone.
 import Foundation
 
 /// Where a number came from. A `citation` points at a source the project can
@@ -33,6 +29,17 @@ public struct Tunables: Sendable {
     /// The same constants, with every read reported to `sink`.
     public func recording(_ sink: @escaping @Sendable (String) -> Void) -> Tunables {
         Tunables(version: version, storage: storage, sink: sink)
+    }
+
+    /// The same constants, with every read reported to `sink` AND to whatever
+    /// this copy was already reporting to. A nested observer must not swallow
+    /// the outer one's reads, and observing must never mean computing twice.
+    public func alsoRecording(_ sink: @escaping @Sendable (String) -> Void) -> Tunables {
+        let outer = self.sink
+        return Tunables(version: version, storage: storage, sink: { key in
+            outer?(key)
+            sink(key)
+        })
     }
 
     fileprivate func read<T>(_ key: String, _ value: T) -> T {

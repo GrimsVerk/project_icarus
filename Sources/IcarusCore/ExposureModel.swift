@@ -1,7 +1,6 @@
 // The exposure model is one file by the plan's file list: the request, the
 // plan, the posture geometry and the solver are one contract, and splitting
 // them would put half of it in a file no slice declares.
-// swiftlint:disable file_length
 
 import Foundation
 
