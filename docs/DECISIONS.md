@@ -202,3 +202,15 @@ branch; the owner lands or reverts it with that pull request.
 - **D-2026-09-03-T2** — S4's "one-week rise below 25% of the cap rise" becomes 40%: a single-exponential rise that reaches 0.8 in three weeks is at about 32% after five sessions.
 - **D-2026-09-03-T3** — Use case 3 no longer names "SPF 30" and "four times": the SPF ladder with normal application cannot produce all three of the use case's numbers on one curve; the fixture asserts the ladder's answer for its curve and the UVA multiple is named as N.
 - **D-2026-09-03-T4** — An "all exposed" report takes the highest-dose region when the answer is "normal" and the lowest-dose region when it is redness; a report on a day with no logged dose is never calibrated. Closes the §11 open item.
+
+## 2026-09-03 — Tactical pass 2: rulings and dependency approvals (provisional until the owner lands them)
+
+Findings in `docs/reviews/design/tactical-2.md` and `implementation-check-2.md`
+that touch design text or the dependency rule. Applied on the pass-2 branch;
+the owner lands or reverts them with that pull request.
+
+- **D-2026-09-03-T5** — The gap notice is relative: it fires when a gap of more than two weeks has undone at least `escalationNoticeFraction` of the rise the factor had achieved, inclusive at the half-life boundary. The absolute rule never fired for the three-to-four-week gaps in use case 5 and S4.
+- **D-2026-09-03-T6** — Supersedes T2: S4's one-week bound is 50% of the cap rise. The rise solved with the decay (T1) is 0.47 after five sessions; T2's 32% was the no-decay figure.
+- **D-2026-09-03-DEP1** — Dependency approved: `swift-markdown-ui` 2.4.1 (MIT), for the Learn tab. Apple's `AttributedString` markdown renders no tables and two modules carry them. Isolated in IcarusUI.
+- **D-2026-09-03-DEP2** — Dependency approved: Google Mobile Ads SDK with its User Messaging Platform (Google's licence), for the banner in non-personalised mode and the regional consent form. The only network with fill in non-personalised mode. Isolated in IcarusAds behind `AdBannerProvider`.
+- Also landed in the plans without design text: every region limits and the whole-window lying split is half/half in side order; the solver never returns zero minutes; today's dose resets per day in replay; maintenance is solved before the sunscreen; `.nothingRealistic` never pairs with the stay headline; sessions store the intervals actually faced and the prescribed pair; Tunables reads are recordable and provenance is per band; day ids carry the zone; the range is centred on the target and widens when stale; the learned multiplier moves from itself under an override; confounded credits are discounted; two cycle starts are kept for the report window; export enums carry string raw values; the environment lives in IcarusUI; Linux builds only the non-UI targets.
