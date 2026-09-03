@@ -148,6 +148,22 @@ public enum SunscreenSolver {
             )
         }
 
+        // R15 and S2: "thick application of what they have if it is enough".
+        // The label is what the user has; how much they put on is the one
+        // thing they can still change, so a thicker layer of the same bottle
+        // is offered before any minute is taken away.
+        let thick = SunscreenChoice(spfLabel: have.spfLabel, application: .thick)
+        if have.application != .thick, thick.effectiveSPF >= needed {
+            return AlternativePlan(
+                with: thick,
+                coveredWindow: window,
+                shadeMinutes: 0,
+                coverHeadAndShoulders: false,
+                reapplyAt: reapplicationTimes(window: window, tunables: tunables),
+                copy: .alternativeThickEnough
+            )
+        }
+
         let covered = coveredPrefix(window: window, curve: curve, budgetSED: budgetSED, protection: protection)
         return AlternativePlan(
             with: have,
