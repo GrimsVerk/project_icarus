@@ -16,7 +16,13 @@ arithmetic over a forecast curve — and, on top of it, the budget and the
 solver (what each region may take today, and the session that fits inside
 it), the sunscreen answer, the loop that learns (the history folded into
 derived state, session by session and report by report), and the `Planner`
-that composes all of them into one typed result. The other four targets are
+that composes all of them into one typed result.
+
+As of Slice 1 of the `data-layer` plan, `IcarusData` exists too: the forecast
+side of it. It fetches a forecast through a provider protocol — WeatherKit on
+Apple platforms, a fake that replays a recorded answer everywhere — keeps the
+last good curve in one file, refetches only at the ruled cadence, and names
+every failure it meets. `IcarusContent`, `IcarusUI` and `IcarusAds` are still
 placeholders.
 
 `Planner.plan` is the engine's only entry point. Everything above it — the
@@ -38,7 +44,12 @@ answer.
 | `IcarusCore` / `CalibrationEngine` | One skin report against one day's logged dose: which region it is evidence about, and what it does to that region's tan state and to the person's one sensitivity multiplier. |
 | `IcarusCore` / `Replay` | The fold. The ordered history in, the current derived state and every report's effect out. |
 | `IcarusCore` / `Planner` | The engine's one entry point. A `PlanRequest` in, a `DoseResult` out: the outcome, the budgets it was solved against, the notices, every figure with the constants behind it, and the copy keys in display order. |
-| `IcarusData` | Placeholder. Will own persistence and the forecast cache (M2). |
+| `IcarusData` | Everything that touches the network or the disk, behind protocols the engine never sees. Persistence and the prompts are still to come (M2, slices 2–4). |
+| `IcarusData` / `UVForecastProvider` | The seam a forecast comes through: hourly UVI, solar noon per day, the place's time zone, and the horizon asked for. Its failures are named — unavailable, unauthorized, network. |
+| `IcarusData` / `WeatherKitProvider` | The live source, built only where WeatherKit is. It maps its answer into the recorded response shape first, so the mapping is one pure function tested on every platform; the place's zone comes from a reverse geocode, cached per coordinate. |
+| `IcarusData` / `FakeForecastProvider` | Replays a recorded answer, with an optional delay, a forced failure, or a deliberately malformed answer. Ships the `beach-oslo` fixture, so the whole engine runs end to end with no network. |
+| `IcarusData` / `ForecastCacheStore` | One forecast, kept, with the name of the provider it came from. `FileForecastCache` is a JSON file written by temp-and-rename; `MemoryForecastCache` is the same thing without a disk. |
+| `IcarusData` / `ForecastService` | The one way into a forecast: the cadence, the cache, and the named failure. Answers `.fresh`, `.cached` with the reason, or `.none` with the failure. |
 | `IcarusContent` | Placeholder. Will own generated copy and Learn content (M3). |
 | `IcarusUI` | Placeholder. Will own the SwiftUI surface (M4). Not built on Linux. |
 | `IcarusAds` | Placeholder. Will own the ad banner behind a protocol (M7). Not built on Linux. |
@@ -51,8 +62,14 @@ manifest, so a Linux build sees exactly Core, Content and Data.
 
 ## Data flow
 
-The engine is given data; it never fetches any.
+The engine is given data; it never fetches any. `IcarusData` is what gives it.
 
+- A coordinate and a clock --> `ForecastService.current` --(a `ForecastResult`)-->
+  the caller. Inside: the cache is read, and either answers as it stands or a
+  provider is asked; a good answer becomes a `ForecastCurve` and is saved.
+- A provider --(`ProviderForecast`: hourly samples, solar noon per day, the
+  place's zone)--> `ForecastService` --(`ForecastCurve`)--> the engine. The
+  curve is the only forecast shape that leaves the data layer.
 - A caller supplies hourly UVI samples, a place, a time zone and a fetch time
   → `ForecastCurve`, which integrates them once into a one-minute prefix
   integral of SED. Every later dose question is two lookups and a subtraction.
@@ -94,6 +111,52 @@ Dictionaries keyed by `Region` encode as JSON objects keyed `front` / `back` /
 has a string raw value, so the export is readable and stable.
 
 ## Main paths
+
+### Get a forecast for a place
+
+1. `ForecastService.current(for:now:)` reads the cache first. A cache that
+   cannot be read is not an error here: it is treated as no cache, and the
+   fetch goes ahead.
+2. The cached curve answers as it stands when it is **both** less than
+   `fetchMinIntervalHours` (one hour) old **and** within `fetchMoveKm` (10 km)
+   of the place asked about. The answer says why: `.cached(curve,
+   .withinInterval)`. `force: true` skips this test entirely.
+3. Otherwise the provider is asked for `forecastHorizonDays` days. Its answer
+   becomes a `ForecastCurve` built at `now`, with the place's own time zone, and
+   is saved to the cache before it is returned as `.fresh`.
+4. Every failure is named and none is flattened into "offline". A provider that
+   refuses is `.provider`; an answer no curve can be built from — too few
+   samples, samples out of order — is `.malformed`, never reported as a provider
+   failure, because the two send the user to different remedies.
+5. A failed fetch with a cache present answers `.cached(curve,
+   .providerFailed(failure))`: the last good forecast, with the reason attached.
+   With no cache it answers `.none(failure)`.
+6. `cached()` is the read-only door. It never fetches, and answers whatever is
+   on disk whatever its age; a cache that is empty or unreadable is
+   `.none(.cacheUnreadable(reason))`.
+
+### Record a forecast, and read it back after a relaunch
+
+1. A save encodes the curve and the provider's name, writes a temporary file
+   beside the target, and renames it over the old one. A save cut off halfway
+   leaves the previous forecast whole rather than a half-written one.
+2. Dates are ISO 8601 in both directions. The round trip keeps the place, the
+   fetch time, the horizon, every sample, and the solar noon of every day.
+3. A file that decodes into nothing usable throws, which is what turns
+   `cached()` into a named `.cacheUnreadable` rather than a silent empty.
+
+### Replay a recorded WeatherKit answer
+
+1. The recorded shape is `hours`, `days`, and a time-zone identifier — what
+   WeatherKit actually gives, written down. The live provider maps its answer
+   into that shape and then through the same function the fixtures use, so the
+   part that can be wrong is exercised on Linux with no framework present.
+2. The mapping keeps the hours in order as UVI doubles, keys each day's solar
+   noon by the day it falls on **in the forecast's own zone**, and fails with a
+   named `unavailable("time zone")` on an identifier it does not know.
+3. `FakeForecastProvider.fixture(named:)` loads such a file from the target's
+   own resources. `beach-oslo` is ten days from 2026-06-15, hourly, a daytime
+   hump peaking at UVI 7, solar noon at 11:15 UTC each day, Europe/Oslo.
 
 ### Compute a dose over a window
 
@@ -379,7 +442,12 @@ the person, the report counts, per-region tan state and dose, and the tan-cycle
 starts. `DerivedState.initial` is a user the engine knows nothing about, and
 `Replay.replay` is how a real one is built.
 
-Nothing here persists anything. `SessionRecord` and `SkinReport` are the record
+Nothing in `IcarusCore` persists anything. The only thing stored so far is the
+forecast: one `CachedForecast` — a curve and the provider's name — in
+`forecast.json`, in whatever directory the caller gives `FileForecastCache`. The
+history still lives only in memory (slice 3).
+
+`SessionRecord` and `SkinReport` are the record
 types the history is made of, and `History.ordered()` puts them in one stream —
 logged sessions at the end of what was actually faced, reports when they were
 answered, and a lasting-colour answer at its own timestamp rather than at its
@@ -470,6 +538,25 @@ descriptive suffix would be a script the check never runs.
   key naming a goal; it returns `boundByMelanogenic`, the nearest thing to a
   line about the tanning threshold. When the vitamin D goal lands (M8) both
   goals will want a key of their own.
+- A fetch that succeeds but whose cache write fails still answers `.fresh`. The
+  forecast in hand is worth more than the record of it, and the next call simply
+  fetches again.
+- When the cache is unreadable **and** the provider fails, `current()` reports
+  the provider's failure, not the cache's. The cache failure is still reachable:
+  `cached()` names it.
+- `MemoryForecastCache` is a value type holding a locked box, so every copy of
+  one shares the same forecast. That is what makes it usable as a stand-in for a
+  file, and it is not what a value type usually means.
+- `WeatherKitProvider` exists on Linux too, and every call there fails with
+  `unavailable("WeatherKit is not available on this platform")`. The engine is
+  built against the protocol, so the type must exist to be named; the live path
+  cannot be run or verified until the entitlement lands (M7).
+- The fixture bundle is declared as `.copy("Resources")` on `IcarusData`, so the
+  fixture's path inside the bundle is `Resources/Fixtures/<name>.json`. The test
+  target declares no resources of its own; a test needing a fixture either loads
+  `beach-oslo` through the provider or carries its own JSON as a literal.
+- `ForecastCurveError` gained `Sendable` in `IcarusCore` so `ForecastFailure`
+  can carry it across an actor boundary. Its cases and meaning are unchanged.
 - `.swiftlint.yml` disables `trailing_comma` because SwiftFormat's
   `trailingCommas` rule adds exactly what it removes, and both run in CI; and
   it excludes the short names the design fixes (skin types `i`–`vi`, the
