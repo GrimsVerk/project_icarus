@@ -165,18 +165,13 @@ private final class KeyBox: @unchecked Sendable {
 }
 
 private extension Planner {
-    /// Runs `body` twice: once through a recording copy, to learn which
-    /// constants it reads, and once through the caller's own `Tunables`, so a
-    /// recording copy *they* passed in sees exactly the same reads.
-    ///
-    /// Two runs rather than one because `recording(_:)` replaces the sink
-    /// rather than chaining onto it, so a nested recording would silently
-    /// swallow the caller's. The computations are pure, so the second run
-    /// produces the same value from the same reads.
+    /// Runs `body` once through a copy of `tunables` that reports every read
+    /// both to the caller's own sink and to a local one, so the keys a figure
+    /// depended on are known without computing anything twice (S14).
     static func tracked<T>(_ tunables: Tunables, _ body: (Tunables) -> T) -> (value: T, reads: Set<String>) {
         let box = KeyBox()
-        _ = body(tunables.recording { box.add($0) })
-        return (body(tunables), box.recorded)
+        let value = body(tunables.alsoRecording { box.add($0) })
+        return (value, box.recorded)
     }
 }
 
