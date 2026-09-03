@@ -1,5 +1,5 @@
 {
-  "base": "feat/learn-tab",
-  "title": "calculator-ui (M3) Slice 1: app copy as data, the ad protocol, the profile store, the manifest, the environment",
-  "body": "Plan: `docs/plans/calculator-ui.md`, Slice 1 (app copy as data from the owner-approved `docs/APP_COPY.md` through `scripts/build-app-copy.sh` — D-2026-09-03-F7; the skin-type table and Fitzpatrick quiz; `AdBannerProvider` + `NoAdsProvider`; `ProfileStore`; `ScreenManifest` / `ScreenTable`; `AppEnvironment`; the app shell; `acceptance/S11.sh`, `S15.sh`). Slices 2–4 follow on `feat/calculator-ui-2` after learn-tab Slice 2. Stacked on `feat/learn-tab`. 457 Linux tests; S11 and S15 pass on Linux.\n\nIcarusUI, IcarusAds and `App/` are Apple-only and were NOT compiled here (no SwiftUI on Linux); the macOS `test` job is their first compiler. `IcarusContent` now depends on `IcarusCore` (`AppCopy.text` takes a `CopyKey`), which the plan's signatures imply. No blind test edited.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nhttps://claude.ai/code/session_01YcAj6rStzSvKdhtjXi9csp\n"
+  "base": "feat/calculator-ui",
+  "title": "learn-tab (M4) Slice 2: the Learn tab views",
+  "body": "Plan: `docs/plans/learn-tab.md`, Slice 2 (the Learn tab views: module list with the banner slot, `ModuleView` with MarkdownUI 2.4.1 — D-2026-09-03-DEP1, inside the Linux guard — tappable citation rows, `ModuleRenderModel`). Stacked on `feat/calculator-ui` because the views conform to its `ScreenManifest`. `Citation` gained `Hashable`.\n\nUI only; not compiled here. The blind tests for this slice can only run on macOS. No blind test edited.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nhttps://claude.ai/code/session_01YcAj6rStzSvKdhtjXi9csp\n"
 }
