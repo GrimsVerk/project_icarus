@@ -224,7 +224,13 @@ final class ModuleIndexTests: XCTestCase {
             )
 
             // Every prose and citation line of the source survives, marker aside.
-            for line in section.lines where !line.trimmingCharacters(in: .whitespaces).isEmpty {
+            // The `---` rule between two modules belongs to the document, not to
+            // either module: the split drops it from the end of a section.
+            let kept = section.lines.filter {
+                let trimmed = $0.trimmingCharacters(in: .whitespaces)
+                return !trimmed.isEmpty && trimmed != "---"
+            }
+            for line in kept {
                 let expected = LearnSourceFixture.withoutMarkers(line)
                 XCTAssertTrue(
                     module.markdown.contains(expected),
