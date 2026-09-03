@@ -11,6 +11,8 @@ var products: [Product] = [
     .library(name: "IcarusData", targets: ["IcarusData"]),
 ]
 
+var dependencies: [Package.Dependency] = []
+
 var targets: [Target] = [
     .target(name: "IcarusCore"),
     // Content depends on Core for `CopyKey` and `SkinType`: the app copy is
@@ -28,6 +30,15 @@ var targets: [Target] = [
 ]
 
 #if !os(Linux)
+    // MarkdownUI renders the Learn modules, including the tables two of them
+    // carry, which Apple's `AttributedString` markdown does not render
+    // (D-2026-09-03-DEP1, MIT). Pinned exactly, and declared here rather than at
+    // the top so the Linux build never even resolves it: IcarusUI, its only
+    // client, does not exist there (D-2026-09-03-F6).
+    dependencies += [
+        .package(url: "https://github.com/gonzalezreal/swift-markdown-ui", exact: "2.4.1"),
+    ]
+
     products += [
         .library(name: "IcarusAds", targets: ["IcarusAds"]),
         .library(name: "IcarusUI", targets: ["IcarusUI"]),
@@ -37,7 +48,13 @@ var targets: [Target] = [
         .target(name: "IcarusAds"),
         .target(
             name: "IcarusUI",
-            dependencies: ["IcarusCore", "IcarusData", "IcarusContent", "IcarusAds"]
+            dependencies: [
+                "IcarusCore",
+                "IcarusData",
+                "IcarusContent",
+                "IcarusAds",
+                .product(name: "MarkdownUI", package: "swift-markdown-ui"),
+            ]
         ),
         .testTarget(name: "IcarusAdsTests", dependencies: ["IcarusAds"]),
         .testTarget(name: "IcarusUITests", dependencies: ["IcarusUI"]),
@@ -48,5 +65,6 @@ let package = Package(
     name: "Icarus",
     platforms: [.iOS(.v18), .macOS(.v14)],
     products: products,
+    dependencies: dependencies,
     targets: targets
 )

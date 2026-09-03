@@ -4,7 +4,7 @@ import Foundation
 ///
 /// The source is authoritative (R26): a citation is never given an identifier
 /// the source does not carry, and never dropped for lack of one.
-public enum CitationIdentifier: Sendable, Equatable {
+public enum CitationIdentifier: Sendable, Hashable {
     case doi(String)
     case pmid(String)
     case iso(String)
@@ -26,7 +26,10 @@ public enum CitationIdentifier: Sendable, Equatable {
 }
 
 /// One source line of a Learn module, parsed from the `> **Sources**` block.
-public struct Citation: Sendable, Equatable {
+///
+/// `Hashable` rather than only `Equatable`, so the module screen can list the
+/// citations by identity without inventing an id the source does not have.
+public struct Citation: Sendable, Hashable {
     public let authors: String
     public let title: String
     public let venue: String
