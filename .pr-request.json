@@ -1,0 +1,5 @@
+{
+  "base": "main",
+  "title": "Draft app copy for line-by-line approval (S17)",
+  "body": "Drafts `docs/APP_COPY.md`: one entry per `CopyKey` the core-engine plan declares (60 keys, checked against the plan's list), the onboarding skin-type table (Fitzpatrick 1988), the Fitzpatrick quiz with its scoring bands, and five notification texts whose keys are not yet in the enum (the plan that wires the notification adapter adds them).\n\nWritten to R36, R42, V10 and V13: frank, plain, never \"safe\", estimates called estimates.\n\n**Owner action:** approve every line (S17). Edit anything on this branch before merging; the file is data and no code reads it yet.\n\n**Expected red checks:** `plan` fails because `docs/APP_COPY.md` is outside the planning-paths carve-out and the branch adds more than 50 lines; `review` may block for the same reason. Both need the owner's override merge, like the design pull requests before it.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nhttps://claude.ai/code/session_01YcAj6rStzSvKdhtjXi9csp"
+}
