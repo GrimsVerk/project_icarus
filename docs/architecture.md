@@ -12,7 +12,8 @@ the shell and the package's UI product.
 
 As of Slice 1 of the `core-engine` plan, only the engine's foundation exists:
 the shared value types, the constants table, and dose arithmetic over a forecast
-curve. The other four targets are placeholders.
+curve. Slice 4 adds the sunscreen answer on top of that foundation. The other
+four targets are placeholders.
 
 ## Components
 
@@ -22,6 +23,7 @@ curve. The other four targets are placeholders.
 | `IcarusCore` / models | The shared vocabulary: days, windows, regions, skin types, sunscreen, forecast curves, session and skin-report records, copy keys, figures. |
 | `IcarusCore` / `Tunables` | Every tunable constant, each readable only through an accessor that reports its key, plus one basis (citation or assumption) per number. |
 | `IcarusCore` / `DoseCalculator` | Dose arithmetic against the clock: how long a target takes, the best block of a window, viability, the next viable window, the UVA-heavy flag, and the "window has passed" clip. |
+| `IcarusCore` / `SunscreenSolver` | The sunscreen answer: what to wear for the whole window, the UVA multiple, the reapplication times, and the re-solve with whatever the user actually has. |
 | `IcarusData` | Placeholder. Will own persistence and the forecast cache (M2). |
 | `IcarusContent` | Placeholder. Will own generated copy and Learn content (M3). |
 | `IcarusUI` | Placeholder. Will own the SwiftUI surface (M4). Not built on Linux. |
@@ -43,6 +45,9 @@ The engine is given data; it never fetches any.
 - `ForecastCurve` --(SED over an interval)--> `DoseCalculator`.
 - `DoseCalculator` --(minutes, windows, flags)--> the target and exposure models
   (Slice 2, not yet built).
+- The whole window's raw dose and the remaining budget of the hardest-pushed
+  region --> `SunscreenSolver` --(a label and application, or an honest
+  "shorten the window")--> the result. The solver is pure and holds no state.
 - `Tunables` --(constants, and the key of every constant read)--> everything.
   A `Tunables` created with `recording(_:)` reports each read to a sink; a
   `Figure` carries the set of keys its number came from, and is marked an
@@ -101,6 +106,44 @@ has a string raw value, so the export is readable and stable.
 3. `isUVAHeavy` flags a window whose middle sits further from solar noon than
    the tunable threshold.
 
+### Prescribe sunscreen for a whole window
+
+The engine tells the user what to wear; it never asks what they have (R15).
+
+1. The caller gives `SunscreenSolver.outcome` the whole window's raw dose, the
+   budget left for the region that window pushes hardest, the window, the
+   minutes the bare sub-window would have taken, and whether the dose is
+   UVA-heavy.
+2. The attenuation needed is the raw dose over the budget. At or below one,
+   nothing is needed — the answer still carries the UVA-heavy flag, because a
+   high UVA load is worth saying even when no sunscreen is.
+3. Otherwise the answer is the lowest label on the ladder, applied normally,
+   whose effective protection covers that attenuation. Protection is the label
+   raised to half the applied density, so the default density of 1 mg/cm² makes
+   it the square root of the label: SPF 50 applied normally is worth about 7,
+   not 50. Thick application is never solved for, and a label above the
+   realistic maximum is not an answer.
+4. When no label is enough, the answer says so and carries the attenuation that
+   would have been required — the honest outcome is to shorten the window.
+5. A prescription also carries the UVA multiple (the covered window over the
+   bare sub-window: the same tanning dose over N times the minutes is roughly N
+   times the UVA) and the reapplication times, which are one interval apart from
+   the start and empty for a window no longer than one interval.
+
+### Re-solve when the user does not have that SPF
+
+1. `SunscreenSolver.alternative` takes exactly what the user said they can
+   manage — the label and the application both — and asks whether its
+   protection covers the attenuation the window needs.
+2. If it does, they wear it for the whole window; the answer says whether that
+   rests on a thick application.
+3. If it does not, the answer is less time, never more frequent application.
+   The covered part is the longest prefix of the window whose attenuated dose
+   still fits the budget, found by bisection on the curve's prefix integral
+   because dose from the start only ever grows. The rest of the window is
+   shade, head and shoulders are covered, and the reapplication times fall
+   inside the covered part only.
+
 ## State and storage
 
 Nothing here persists anything. `SessionRecord` and `SkinReport` are the record
@@ -122,6 +165,10 @@ report's. Replaying that stream into derived state is Slice 3.
 - `SessionRecord`, `SkinReport` and `History` live in `Models/Reports.swift`
   because Slice 1 declares every shared type; the adaptation and calibration
   logic that folds them into state arrives in Slice 3.
+- `SunscreenSolver.outcome` and `.alternative` carry an inline
+  `swiftlint:disable:this function_parameter_count`: their parameter lists are
+  the plan's declared signatures, which a blind test author writes against, so
+  they are not ours to shorten. The rule stays on everywhere else.
 - `.swiftlint.yml` disables `trailing_comma` because SwiftFormat's
   `trailingCommas` rule adds exactly what it removes, and both run in CI; and
   it excludes the short names the design fixes (skin types `i`–`vi`, the
