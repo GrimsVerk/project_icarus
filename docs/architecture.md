@@ -566,12 +566,6 @@ types the history is made of, and `History.ordered()` puts them in one stream �
 logged sessions at the end of what was actually faced, reports when they were
 answered, and a lasting-colour answer at its own timestamp rather than at its
 report's.
-Nothing in `IcarusCore` persists anything. `SessionRecord` and `SkinReport` are
-the record types the history is made of, and `History.ordered()` puts them in
-one stream — logged sessions at the end of what was actually faced, reports when
-they were answered, and a lasting-colour answer at its own timestamp rather than
-at its report's.
-
 `HistoryStore` is where the record actually lives. It is an actor over a
 `HistoryPersistence`, so only one caller at a time changes the history, and it
 holds exactly one derived thing: a memo of the replayed state, keyed by the
@@ -657,12 +651,10 @@ descriptive suffix would be a script the check never runs.
 
 ## Known rough edges
 
-- A `Planner.plan` call solves the session twice over: once to learn which
-  constants the solve reads and once for the answer. It is bounded — the worst
-  case measured here, a ten-hour lying window on a cached curve, is about 13 ms
-  in a debug build against the 100 ms R38 allows — but it is a doubling, and the
-  reason for it is the sink-replacing shape of `Tunables.recording(_:)` rather
-  than anything the planner wants.
+- A `Planner.plan` call solves each step once, through a `Tunables` copy that
+  reports every constant it reads both to the caller's observer and to the
+  planner's own bookkeeping (`Tunables.alsoRecording`), so provenance costs
+  no second solve.
 - The UVA-heavy threshold is read for a notice, not for a number, so its key is
   folded into the headline figure. That makes the headline an estimate on
   grounds it did not quite use. The alternative — dropping the key — would break
