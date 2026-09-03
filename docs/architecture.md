@@ -93,9 +93,15 @@ answer.
 | `IcarusUI` / `ModuleView` | One module: its body rendered by MarkdownUI — tables and blockquotes included — then its citations as rows. No banner, no figure. |
 | `IcarusUI` / `ModuleRenderModel` | What reaches a module screen: the body with the `> **Sources**` blockquote removed, and the citations as data. A value, not a view, so what is rendered can be asserted without rendering. `Theme.icarus` (MarkdownUI's GitHub theme) is the markdown styling. |
 | `IcarusUI` / `CitationRow` | One citation as a row: a `Link` when its identifier resolves — a DOI through doi.org, a PMID through PubMed, a URL as given — and text with the identifier beside it when it does not. Never hidden for the lack of a link. |
+| `IcarusUI` / `CalculatorModel` | The Calculator's state and its four actions. It holds the four inputs — window, posture, cover, "staying the whole window" — assembles the one `PlanRequest` both the result and the flip timer plan from, computes a result, keeps exactly one planned session for it, refreshes the forecast on demand, re-solves the sunscreen alternative, and logs the session on "I did this". No arithmetic of its own: it carries values between the engine, the history store and the prompt scheduler. |
+| `IcarusUI` / `CalculatorEntryView` | The entry screen: the window, the posture, the two toggles, a compute button and the ad slot. No figure at all (R39), and no question about sunscreen (R15). Its controls carry system images because no approved copy key names an input. |
+| `IcarusUI` / `ResultView`, `ResultCopy` | The whole answer for one window. The forecast line — place, "change place", "refresh" — renders outside the outcome, so it is there even when there is no number. `ResultCopy` turns the result's `copyKeys` into lines, resolving each through `AppCopy` and filling its `{arguments}` from the same result's own numbers; it drops the two warning lines unless the user marked that they will stay. |
+| `IcarusUI` / `FigureView` | One number with its label and, when the engine says the number rests on an assumed constant, the estimate badge whose VoiceOver label names those assumptions. Every figure the app shows goes through it, and only the Result screen uses it. |
+| `IcarusUI` / `SunscreenAlternativeSheet` | "I don't have that SPF": the SPF ladder and the three applications, the engine's re-solve for the pair chosen, and the confirmation that makes the logged dose that pair's rather than the raw window's. |
+| `IcarusUI` / `ManualLocationSheet` | "Change place": typed text through a `PlaceResolver` — Apple's geocoder on a device — and the chosen place pinned on the location service, which then refetches and recomputes. |
 | `IcarusAds` | The ad banner behind a protocol (R40); the only package that will import the SDK. Not built on Linux. |
 | `IcarusAds` / `AdBannerProvider`, `NoAdsProvider` | The whole surface the app has on advertising: prepare for a region (which is where the consent flow will live), a banner view for a width or nil, and the flags every request carries. `NoAdsProvider` shows nothing, asks for nothing, and reports non-personalised — it is what previews, tests, CI and the app itself use until M7. |
-| `App/` | The iOS app shell. Depends only on `IcarusUI`. `ProjectIcarusApp` builds the live environment; `RootTabs` is the two-tab shell with the foreground hook and the deep-link hook. It holds no logic and no copy. |
+| `App/` | The iOS app shell. Depends only on `IcarusUI`. `ProjectIcarusApp` builds the live environment; `RootTabs` is the two-tab shell with the foreground hook and the deep-link hook, and its Calculator tab owns the one `CalculatorModel` the entry and result screens share. It holds no logic and no copy, and it never names the ad provider: `AppEnvironment.banner(width:)` hands it a view. |
 
 Two things follow from the layout and are deliberate. `IcarusCore` depends on
 nothing, so the engine is testable on Linux and in CI without a simulator. And
@@ -597,6 +603,61 @@ Drift is what `acceptance/S7.sh` catches: it regenerates the files into a
 temporary directory and diffs them byte for byte against the committed ones, so
 an edit to the document that was never regenerated, or an edit to a module file
 that was never made in the document, fails before it ships.
+
+### Ask the Calculator about a window
+
+1. The entry screen holds four inputs and nothing else: the window, the posture,
+   the cover toggle and "staying the whole window". It shows no figure, because
+   it is one of the two screens that carries the ad banner (R39), and it never
+   asks what sunscreen the user has, because that is the engine's answer (R15).
+2. The compute button calls `CalculatorModel.compute()`. It asks the location
+   service where the user is and reads the **cached** forecast. Only an empty
+   cache fetches, and only when there is a coordinate to fetch for, so dragging
+   a window costs no request (R1). The refresh button on the result is the one
+   deliberate fetch.
+3. With no coordinate at all, the request is built with whatever curve the cache
+   held and, when it held none, the "no location" failure. The outcome is then
+   `missingForecast(.noLocation)` — the one answer with no number — and the
+   result screen still offers the manual place that would fix it (R2).
+4. Otherwise `request(window:firstSide:now:)` assembles the one `PlanRequest`
+   the flip timer will also plan from: the same profile, the same replayed
+   state, the same staleness, the same intent and the same cover. `Planner.plan`
+   turns it into a `DoseResult`.
+5. A `.plan` outcome becomes today's one planned session (R45). It carries the
+   plan's intervals, the pair the result prescribed, the ceiling and manual
+   multiplier as they stood, and the day's slice of the curve it was solved on.
+   `upsertPlanned` replaces the session this model planned before rather than
+   adding a second, and `PromptScheduler.sessionsChanged` moves the day's skin
+   check to the end of the last session on it.
+6. `confirmedSunscreen` becomes `.asPrescribed` exactly when the sunscreen is
+   the headline and there is a pair to wear; anything else leaves it `.none`.
+
+### Show one result
+
+1. The forecast line renders first and outside the outcome: the place the curve
+   is for, a button that refetches, and a button that opens the manual place.
+   Every outcome gets it, including the ones with no number (R3).
+2. `ResultCopy` walks the result's `copyKeys` in the order the engine put them
+   in, resolves each through `AppCopy` for the user's skin type, and fills its
+   `{arguments}` from the same result's numbers — the minutes, the shortfall,
+   the cycle dose, the SPF pair, the reapplication times. It shows the two
+   warning lines only when the user marked that they will stay (R19).
+3. `[Module N]` in a resolved line becomes a link to that module's deep link,
+   labelled with the module's own title (R27).
+4. Every figure the result carries renders through `FigureView`, which adds the
+   estimate badge when — and only when — `Figure.isEstimate` says the number
+   rested on an assumed constant (R22, R30).
+5. "I don't have that SPF" opens the alternative sheet, which re-solves through
+   `SunscreenSolver.alternative` against the same region and the same remaining
+   budget the prescription used, over the window clipped at now. Confirming
+   records the pair on the model.
+6. "I did this" logs the planned session. A bare answer logs the block the plan
+   solved with the plan's own doses. A confirmed pair — prescribed or the
+   alternative — logs the entered window instead, halved by side when lying
+   down, with the whole-window dose divided by that pair's effective SPF. An
+   outcome with no realistic product confirms nothing, so it logs the solved
+   block: the raw whole window is never written down, because nobody received
+   it (R15, R45).
 
 ### Show a line of the app's own words
 
