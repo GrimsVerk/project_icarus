@@ -27,7 +27,16 @@ every failure it meets.
 history store, its persistence seam, and the JSON export and import. As of Slice
 1 of the `learn-tab` plan, `IcarusContent` carries the Learn text as data: the
 twelve modules, their citations, and the `icarus://learn/<n>` deep links.
-`IcarusUI` and `IcarusAds` are still placeholders.
+
+As of Slice 1 of the `calculator-ui` plan, the app has a shape. `IcarusContent`
+also carries the app's own words as data — `docs/APP_COPY.md`, generated into
+one JSON file, resolved by key — plus the onboarding skin-type table and the
+Fitzpatrick quiz. `IcarusAds` holds the banner protocol and the no-op that
+stands in for the SDK until M7. `IcarusData` gained the profile store. And
+`IcarusUI` exists: the screen manifest, which is where every screen declares
+whether it carries the ad slot and whether it shows a figure, and
+`AppEnvironment`, which composes the packages and is the only thing the app
+target builds. No screen is built yet; they arrive in Slices 2 to 4.
 
 `Planner.plan` is the engine's only entry point. Everything above it — the
 data layer, the UI, the notifications — asks it one question and reads one
@@ -65,16 +74,24 @@ answer.
 | `IcarusData` / `PromptScheduler` | Every prompt the app makes: the skin check about a day's sessions, the lasting-colour question about a report, the flip timer's alerts, and the in-app fallback for anything the system never delivered. |
 | `IcarusData` / `NotificationPort` | The system notification centre, as the only four things this layer needs from it. `FakeNotificationPort` records; `UserNotificationAdapter` is the real one, and exists only where `UserNotifications` does. |
 | `IcarusContent` | Placeholder. Will own generated copy and Learn content (M3). |
-| `IcarusContent` | The text the app shows, as data. Imports Foundation only. Owns the twelve Learn modules, their citations, and the app's deep links; generated copy is still to come (M3). |
+| `IcarusContent` | The text the app shows, as data: the twelve Learn modules, their citations, the app's deep links, and — since M3 — the app's own copy, the skin-type table and the quiz. Imports Foundation and `IcarusCore`, for the copy keys the engine names. |
 | `IcarusContent` / `LearnSource` | Reading `docs/LEARN_CONTENT.md`. `split` cuts it into its twelve sections verbatim, markers kept; `normalise` removes exactly the build annotations — every `[VERIFY]` token with its backticks, the preamble above Module 1 — and trailing whitespace. Nothing else is ever changed: no text is edited, paraphrased or summarised. |
 | `IcarusContent` / `LearnModule` | One module: its id (1...12, a `ModuleID`), its heading title, its body with the markers stripped, and its citations. Built from the text of one bundled file. |
 | `IcarusContent` / `Citation` | One `> - ` line of a `> **Sources**` block: authors, title, venue, year, the identifier the source carries (`doi`, `pmid`, `iso`, `url` or none) and `needsVerification`. `link` resolves a DOI through doi.org and a PMID through PubMed; an ISO number and a citation with no identifier have no link and render as text. |
 | `IcarusContent` / `ModuleIndex` | The twelve modules, loaded once from `Bundle.module` at `Resources/Learn/module-NN.md`, plus lookup by id and the deep link for a module. |
 | `IcarusContent` / `DeepLink` | `icarus://learn/<n>` in both directions, as pure value work, so the app's router (M3) maps a URL to a screen without reaching further into the content layer. |
 | `split-learn-content` | The executable that generates the module files from the document. Linux-safe, so it is always built. `scripts/split-learn-content.sh` is the one command that runs it. |
-| `IcarusUI` | Placeholder. Will own the SwiftUI surface (M4). Not built on Linux. |
-| `IcarusAds` | Placeholder. Will own the ad banner behind a protocol (M7). Not built on Linux. |
-| `App/` | The iOS app shell. Depends only on `IcarusUI`. |
+| `IcarusContent` / `AppCopySource` | Reading `docs/APP_COPY.md`: the `### <CopyKey>` sections with their `- base:` and optional `- fair:` lines, the skin-type table, and the numbered quiz. It refuses a document that names a key the engine does not have, or leaves one of the engine's without copy. The `## Notification texts` section is skipped: that wording is approved for a later plan and its keys are not in `CopyKey` yet. |
+| `IcarusContent` / `AppCopy` | The app's words, by key. Types I and II get the `fair` line where the document carries one (R43); everyone else gets `base`. `{name}` placeholders are filled from the caller's arguments, and one that was not supplied stays visible as its placeholder rather than becoming a hole in a sentence. A key with no copy is a programmer error and stops the app. |
+| `IcarusContent` / `SkinTypeTable`, `FitzpatrickQuiz` | The onboarding table (six rows, each citing Fitzpatrick 1988) and the optional questionnaire (ten questions, five answers each scoring 0 to 4, and the published bands from a total to a type). Both are sections of the same owner-approved document, loaded from the same JSON. |
+| `build-app-copy` | The executable that turns the document into `Resources/app-copy.json`, with sorted keys so two runs of one document are the same bytes. Linux-safe. `scripts/build-app-copy.sh` runs it; `acceptance/S11.sh` re-runs it and diffs. |
+| `IcarusData` / `ProfileStore` | The profile and the three flow flags — onboarding done, disclaimer acknowledged, ad consent done. `UserDefaultsProfileStore` keeps both as JSON under `icarus.profile` and `icarus.flags`; `MemoryProfileStore` keeps them in a locked box shared by every copy. A stored value that cannot be decoded reads as absent, never as a crash. |
+| `IcarusUI` | The SwiftUI surface. Imports the other four packages and nothing else. Not built on Linux. |
+| `IcarusUI` / `ScreenManifest`, `ScreenTable` | Every screen declares, statically, whether it carries the ad slot and whether it shows a figure. `ScreenTable` is the whole list in one place — the declaration R39 is checked against — and it names screens later slices build, so adding a view agrees with a decision already recorded. |
+| `IcarusUI` / `AppEnvironment` | Everything the screens are given, in one object: the forecast service, the location service, the history store, the profile store, the prompt scheduler, the ad provider, the constants and the clock. It owns three app-level jobs and no calculation: the foreground refresh, discarding stale planned sessions, and turning a URL into a deep link. `live()` composes the real services; `preview()` composes the fakes and a clock that does not move. |
+| `IcarusAds` | The ad banner behind a protocol (R40); the only package that will import the SDK. Not built on Linux. |
+| `IcarusAds` / `AdBannerProvider`, `NoAdsProvider` | The whole surface the app has on advertising: prepare for a region (which is where the consent flow will live), a banner view for a width or nil, and the flags every request carries. `NoAdsProvider` shows nothing, asks for nothing, and reports non-personalised — it is what previews, tests, CI and the app itself use until M7. |
+| `App/` | The iOS app shell. Depends only on `IcarusUI`. `ProjectIcarusApp` builds the live environment; `RootTabs` is the two-tab shell with the foreground hook and the deep-link hook. It holds no logic and no copy. |
 
 Two things follow from the layout and are deliberate. `IcarusCore` depends on
 nothing, so the engine is testable on Linux and in CI without a simulator. And
@@ -118,6 +135,15 @@ The engine is given data; it never fetches any. `IcarusData` is what gives it.
   --> `Planner.plan` --(one `DoseResult`)--> the caller. The planner calls every
   model above and adds nothing of its own except the order they run in, the
   notices, and the bookkeeping that makes each figure's provenance exact.
+- `docs/APP_COPY.md` --(`build-app-copy`)--> `Resources/app-copy.json`
+  --(`AppCopy`)--> a screen. The engine names a `CopyKey` and never a sentence,
+  so the words travel from the owner's document to the screen without any view
+  holding one.
+- A scene becoming active --> `AppEnvironment.didBecomeActive` --> the location
+  service, then the forecast service (only when the cached curve is missing or
+  older than `fetchMinIntervalHours`), then the history store, which discards
+  every planned session whose skin-check window closed unanswered.
+- A URL --> `AppEnvironment.handle` --(a `DeepLink`, or nil)--> the shell.
 - `ForecastCurve` --(one day's samples)--> `StoredCurve`, the external form kept
   inside a session record and inside the export. `StoredCurve.curve()` rebuilds
   a curve that answers the same dose questions.
@@ -550,6 +576,41 @@ temporary directory and diffs them byte for byte against the committed ones, so
 an edit to the document that was never regenerated, or an edit to a module file
 that was never made in the document, fails before it ships.
 
+### Show a line of the app's own words
+
+1. The owner writes or approves the line in `docs/APP_COPY.md`, under a `###`
+   heading spelled exactly as its `CopyKey` case.
+2. `scripts/build-app-copy.sh` runs `build-app-copy`, which parses the document
+   and writes `Sources/IcarusContent/Resources/app-copy.json`. The JSON is
+   committed, so the app never parses markdown at runtime.
+3. A screen asks `AppCopy.text(key, skinType:args:)`. Types I and II get the
+   `fair` line where there is one; the `{name}` placeholders are filled from the
+   arguments the engine computed.
+4. `acceptance/S11.sh` regenerates the JSON and diffs it, checks the enum and
+   the document against each other in both directions, and greps the UI and the
+   app target for a literal at a copy-bearing call site.
+
+### Come back to the app
+
+1. The shell sees the scene become active and calls
+   `AppEnvironment.didBecomeActive()`.
+2. The location service is asked where the user is. An answer with a coordinate
+   is remembered as `lastCoordinate`; a denial leaves the last one in place, so
+   a refresh still has somewhere to fetch for.
+3. The cached forecast is read. A missing curve, or one fetched longer ago than
+   `fetchMinIntervalHours`, is refetched for that coordinate; anything newer is
+   left alone, so coming back twice in a minute costs one request at most.
+4. Every planned session whose in-app skin-check window has closed unanswered is
+   discarded, so a session the user planned and never did stops counting.
+
+### Open a deep link
+
+1. The shell hands the URL to `AppEnvironment.handle(_:)`, which is
+   `DeepLink(url:)` and nothing more — every link the app registers today is a
+   Learn module.
+2. A URL that parses selects the Learn tab. Opening the module itself lands with
+   the Learn list.
+
 ## State and storage
 
 `Profile` is what the user told the app; `DerivedState` is everything else the
@@ -604,6 +665,22 @@ the fixtures are written blind.
 `acceptance/S7.sh` proves the Learn content twice over: the committed module
 files are regenerated and diffed byte for byte against the document, then the
 `IcarusContentTests` suite runs against the bundled files.
+
+`acceptance/S11.sh` is six static checks: the committed app copy is the document
+rebuilt, every `CopyKey` has a line and every line is a `CopyKey`, no literal
+sits at a copy-bearing call site in `Sources/IcarusUI` or `App/`, `IcarusCore`
+depends on nothing and imports nothing but Foundation, no network or weather
+import leaves `IcarusData` and no ad SDK leaves `IcarusAds`, and no figure
+appears on the Calculator entry screen or in the prompts. It looks for
+`import WeatherKit` rather than the word, because the composition root names
+`WeatherKitProvider` legitimately; a path that does not exist yet is skipped
+rather than failed.
+
+`acceptance/S15.sh` asserts the screen manifest. On macOS it runs
+`ScreenManifestTests` and fails on an empty selection; on Linux, where
+`IcarusUI` is not built at all, it says so and checks the ten declared rows in
+`ScreenManifest.swift` one at a time instead, so a table that lost a row fails
+there too. Both platforms then run the `FigureView` grep.
 
 The file names are `S<n>.sh` exactly: `.github/scripts/acceptance-criteria.sh`
 matches a criterion id to `acceptance/S<n>.sh` and runs nothing else, so a
@@ -767,6 +844,32 @@ descriptive suffix would be a script the check never runs.
   No other identifier can extend one, because a time-zone name is never a prefix
   of another time-zone name in the same position — but it is a prefix match, not
   an exact one, and that is the assumption it rests on.
+- `IcarusContent` now depends on `IcarusCore`. It was Foundation-only, but the
+  app copy is keyed by `CopyKey` and chosen by `SkinType`, both of which are
+  engine types (D-2026-09-03-F7). The dependency goes the harmless way — Core
+  still depends on nothing, which is the layering S11 actually checks.
+- `ScreenTable` lists ten screens and only three of them exist. That is
+  deliberate: the table is the declaration R39 is checked against, and listing a
+  screen before building it means the banner decision is made once, in the plan,
+  rather than again by whoever writes the view.
+- `AppEnvironment`, `IcarusAds` and `App/` cannot be compiled on Linux, so
+  nothing in this slice's Apple-only code has been built anywhere yet. It is
+  written against the iOS 18 SDK and checked by eye; the first real evidence is
+  the macOS CI job.
+- `AppEnvironment.live()` has no test and cannot have a useful one: it is the
+  composition root, and every branch in it names a service that only exists on a
+  device. `preview()` is the shape the tests exercise.
+- `SwiftDataPersistence.onDisk()` was added so the composition root can ask for
+  the real store: the two SwiftData entities are internal to `IcarusData`, so
+  nothing outside the package can build a container for them.
+- Both tabs in `RootTabs` render `Color.clear` and neither tab item has a title.
+  A tab whose content is `EmptyView` is not a tab, and a title would be a
+  user-visible literal at a copy-bearing call site — there is no `CopyKey` for a
+  tab name, and inventing one would be writing copy the owner never approved.
+  Both land with the screens themselves.
+- `AppCopy.text` fills `{name}` placeholders by replacing each supplied
+  argument. An argument the caller forgot stays on screen as `{minutes}`, which
+  is ugly on purpose: the alternative is a sentence that quietly lost its number.
 - `.swiftlint.yml` disables `trailing_comma` because SwiftFormat's
   `trailingCommas` rule adds exactly what it removes, and both run in CI; and
   it excludes the short names the design fixes (skin types `i`–`vi`, the
