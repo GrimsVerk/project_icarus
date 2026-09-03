@@ -24,7 +24,7 @@ Non-goals:
 Owner costs:
 - Apple Developer Program membership; WeatherKit capability; AdMob account and app id; a privacy policy page URL; confirming Google's EEA/UK consent requirement; TestFlight testers; S8 (live), S9, S12, S13, S16 on a device.
 
-Rulings: D-2026-09-02 (ads: revision 1; consent: revision 3)
+Rulings: D-2026-09-03-F1 (docs/DECISIONS.md); design revisions 1 and 3 for ads and consent
 
 ## The slices
 

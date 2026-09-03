@@ -26,7 +26,7 @@ Non-goals:
 Owner costs:
 - None until M7 (the WeatherKit capability needs the developer membership).
 
-Rulings: D-2026-09-02 revision 2 (derived state, delete warning) and revision 3 (prompts from planned sessions, replay recomputes)
+Rulings: D-2026-09-03-F1, F5 (docs/DECISIONS.md); design revisions 2 and 3 for derived state and prompts
 
 ## The slices
 

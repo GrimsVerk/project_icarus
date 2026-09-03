@@ -25,7 +25,7 @@ Non-goals:
 Owner costs:
 - None.
 
-Rulings: D-2026-09-02 revision 3 (log means skin report; prompts from planned or logged sessions; Q2 reclassification; in-app fallbacks)
+Rulings: D-2026-09-03-F5, F7 (docs/DECISIONS.md); design revision 3 for log = report and prompt scheduling
 
 ## The slices
 

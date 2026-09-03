@@ -25,20 +25,15 @@ Owner costs:
 - CI change (owner override merge): Core tests run on a Linux runner; the
   macOS `test` job keeps the app build; `project.yml` gains the package.
 
-Rulings: D-2026-09-02 (revision 2 and 3 entries in docs/DECISIONS.md); pass-4 batch pending
+Rulings: D-2026-09-03-F1, F2, F3, F5, F6, F7, F8 (docs/DECISIONS.md)
 
 ## The slices
 
-FORK F1 (structural, batch): package layout. TRUNK — one root `Package.swift`
-with five library targets (`IcarusCore`, `IcarusData`, `IcarusContent`,
-`IcarusAds`, `IcarusUI`) under `Sources/<Target>/` and `Tests/<Target>Tests/`,
-and the app shell in `App/` referenced by `project.yml` as a local package at
-`.`. Alternative — five separate packages under `Packages/`, each with its own
-manifest; needs `TEST_THE_TESTS_IMPL_DIR`/`TEST_DIR` overrides per package and
-five `swift test` invocations. The trunk keeps `Sources/` and `Tests/` as the
-template's checks expect and makes `swift test --filter IcarusCoreTests` the
-Linux command. Dependency enforcement is identical: target dependencies are
-explicit in the manifest either way.
+Layout (ruled D-2026-09-03-F1): one root `Package.swift` with five library
+targets (`IcarusCore`, `IcarusData`, `IcarusContent`, `IcarusAds`, `IcarusUI`)
+under `Sources/<Target>/` and `Tests/<Target>Tests/`, and the app shell in
+`App/` referenced by `project.yml` as a local package at `.`. Tests are XCTest
+(F5). Engine and content tests run on a Linux CI job, `core-tests` (F6).
 
 ## Slice 1 — Dose from a curve: integrate, sub-window, viability, clock
 
@@ -290,11 +285,10 @@ TanningGoal.target(region):
   range = (med×(1−lowerH)) ... min(med×(1+upperH), med); clipped = raw upper > med
   remaining = max(0, target − rs.doseToday)
 
-FORK F2 (structural, batch): the coupled lying-down solve. TRUNK — scalar shrink by bisection:
+The coupled lying-down solve (ruled D-2026-09-03-F2): scalar shrink by bisection.
   let s ∈ (0, 1] scale both sides' durations from their independent optima; find the largest s such that every region's
   dose ≤ remaining (headAndShoulders credit included); 40 iterations of bisection on s; sides keep their own sub-intervals.
-  Alternative — solve the two side durations as an LP under three linear constraints (exact, more code, no library on Linux).
-  The trunk is monotone (dose grows with s) so bisection is exact to a second; picked for size and testability.
+  Monotone (dose grows with s), so bisection is exact to a second.
 
 ExposureModel.solve(r):
   w = clip(window, now) ?? return nil
@@ -395,10 +389,10 @@ public enum Replay {
 ### Internals
 
 ```text
-FORK F3 (structural, batch): discrete form of the leaky integrator. TRUNK — per-event update with decay applied
-  by elapsed time before each event (`decayed` then `advanced`), closed-form as in Signatures; riseTimeConstantDays is
-  solved offline so that 21 daily sessions at doseFraction 1.0 land at tanState 0.8 for band .fair (τ ≈ 13.0 d, see test).
-  Alternative — a daily-step simulation (integrate day by day). The trunk is exact for sparse events and O(events).
+Discrete form of the leaky integrator (ruled D-2026-09-03-F3): per-event update with decay applied by elapsed time
+  before each event (`decayed` then `advanced`), closed-form as in Signatures; riseTimeConstantDays is solved offline so
+  that 21 daily sessions at doseFraction 1.0 land at tanState 0.8 for band .fair (τ ≈ 13.0 d, see test). Exact for sparse
+  events and O(events).
 
 Replay.replay(h, profile, now):
   state = DerivedState.initial

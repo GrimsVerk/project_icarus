@@ -26,7 +26,7 @@ Owner costs:
 - S17: approve every line of `docs/APP_COPY.md` before this milestone starts.
 - S9 on a device, with the fake provider.
 
-Rulings: D-2026-09-02 revision 3 (prescribe sunscreen; warnings only when staying; timer asks the first side; location entry from the result)
+Rulings: D-2026-09-03-F7, F8 (docs/DECISIONS.md); design revision 3 for sunscreen, warnings and location entry
 
 ## The slices
 
