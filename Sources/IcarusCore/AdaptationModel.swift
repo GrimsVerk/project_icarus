@@ -60,6 +60,10 @@ public enum AdaptationModel {
         tunables: Tunables
     ) -> RegionState {
         var risen = state
+        // Record where the skin stood before this session: calibration divides
+        // a report's evidence by the factor in force when the dose was taken.
+        risen.tanStateAtLastSession = state.tanState
+        risen.factorAtLastSession = 1 + tunables.adaptationGain(skinType.band) * state.tanState
         risen.lastExposure = time
         guard doseFraction.isFinite, doseFraction > 0 else { return risen }
         let multiplier = tunables.riseMultiplier(skinType.band)
@@ -90,10 +94,12 @@ public enum AdaptationModel {
     /// is judged first: news that tolerance has dropped is what the user needs
     /// before they plan, and the rise is still true underneath it.
     ///
-    /// The region is taken as it stands at `now` — which is what `Replay`
-    /// hands out, because the fold's last act is to decay every region to the
-    /// clock (R44). `now` is read for the length of the gap, never to fade the
-    /// tan a second time.
+    /// The region is taken as it stands at `now` — decayed to the clock, which
+    /// is what `Replay` hands out (R44). The gap is measured against the rise
+    /// the factor had achieved BY the last logged session (T5): that
+    /// post-session tan state is recovered by undoing the decay since the last
+    /// exposure, so the share undone is `1 − 0.5^(days / halfLife)` and the
+    /// notice is inclusive at exactly one half-life.
     public static func escalationNotice(
         _ state: RegionState,
         now: Date,
@@ -106,14 +112,15 @@ public enum AdaptationModel {
         let factorNow = 1 + gain * tanNow
         let idleDays = state.lastExposure.map { now.timeIntervalSince($0) / secondsPerDay } ?? 0
         if idleDays > tunables.gapDays {
-            let achieved = state.factorAtLastSession - 1
-            let undone = state.factorAtLastSession - factorNow
+            let decay = pow(0.5, idleDays / tunables.decayHalfLifeDays)
+            let tanAfterLast = decay > 0 ? min(1, tanNow / decay) : tanNow
+            let achieved = gain * tanAfterLast
+            let undone = gain * (tanAfterLast - tanNow)
             if achieved > 0, undone >= fraction * achieved - 1e-9 {
-                let before = state.tanStateAtLastSession
-                return .dropped(fraction: before > 0 ? 1 - tanNow / before : 0)
+                return .dropped(fraction: tanAfterLast > 0 ? 1 - tanNow / tanAfterLast : 0)
             }
         }
-        if factorNow - 1 >= fraction * gain { return .risen(factor: factorNow) }
+        if factorNow - 1 >= fraction * gain - 1e-12 { return .risen(factor: factorNow) }
         return nil
     }
 

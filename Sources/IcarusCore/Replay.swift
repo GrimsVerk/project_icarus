@@ -76,6 +76,7 @@ private struct Fold {
         }
         if Region.allCases.allSatisfy({ state.regions[$0]?.cycleStart == nil }) {
             state.cycleStarts.append(window.start)
+            state.cycleStarts = Array(state.cycleStarts.suffix(2))
         }
         for region in Region.allCases {
             advance(region, session: session, window: window, profile: profileThen, sameDay: sameDay)

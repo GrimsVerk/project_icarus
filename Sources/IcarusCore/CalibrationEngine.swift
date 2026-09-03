@@ -54,7 +54,16 @@ public enum CalibrationEngine {
             ? tolerant(evidence, into: &next)
             : redness(evidence, into: &next)
         if evidence.reclassified { effect = .reclassifiedAsNormal }
-        if let clamped = clamp(&next, tunables: tunables) { effect = clamped }
+        if let clamped = clamp(&next, tunables: tunables) {
+            // A blistering report's correction is the more urgent message (the
+            // pause and Module 7), so it survives the clamp; the value it
+            // reports is the held one.
+            if case let .blisterCorrection(from, _, pauseDays) = effect {
+                effect = .blisterCorrection(from: from, to: next.multiplier, pauseDays: pauseDays)
+            } else {
+                effect = clamped
+            }
+        }
         next.totalReports += 1
         return (next, effect)
     }
