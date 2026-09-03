@@ -1,0 +1,52 @@
+Preparing worktree (new branch 'worker/data-layer-2-tests')
+HEAD is now at 9a833ce Format with the swiftformat the macOS runner uses (0.63)
+=== spawn-worker[data-layer-2-tests] engine=claude branch=worker/data-layer-2-tests base=feat/data-layer (9a833cef6865f27d1b5c555e81dac9881db0ef0e) bypass=0 ===
+=== 2026-09-03T05:23:10Z ===
+Ignoring 2 permissions.allow entries from .claude/settings.json: this workspace has not been trusted. Run Claude Code interactively here once and accept the trust dialog, or set projects["/home/user/project_icarus"].hasTrustDialogAccepted: true in /root/.claude.json.
+Done.
+
+## What I did
+
+I wrote the tests for Slice 2 (location). One new file:
+
+- `Tests/IcarusDataTests/LocationServiceTests.swift`
+
+Committed on branch `worker/data-layer-2-tests`, commit `f1c0c62`, with the trailer `Blind-Tests: data-layer-2`.
+
+## Did it work
+
+Yes, as expected. The tests do **not** compile. That is correct — the code they test does not exist in my tree yet. I checked the build errors: every one is "cannot find `LocationService` / `Place` / `FakePlaceResolver`". No error comes from my own syntax, and no other file is broken.
+
+`swiftformat` and `swiftlint lint --strict` are both clean.
+
+## What the tests cover
+
+**The service (13 tests)**
+- A device fix gives `.device(coordinate)`, and `.coordinate` carries it.
+- The device coordinate measures distance to the cached forecast place (10.01 km, via Core's `distanceKm`).
+- Denied gives `.needsManual(reason: .denied)` and `.coordinate` is nil.
+- Unavailable gives `.needsManual(reason: .unavailable)`, coordinate nil.
+- `useManual` wins over a device fix **and** over a denial; the coordinate is the place's.
+- The manual place holds across later calls; the newest one wins.
+- `clearManual` goes back to the device — or back to `.needsManual(.denied)` if the device is denied.
+
+**The geocoder and the stored place (7 tests)**
+- `resolve("Nice")` returns the fixture place with zone `Europe/Paris`.
+- Two places keep their own zones.
+- All matches come back in table order.
+- A resolved place can be handed to `useManual`.
+- `Place` round-trips through JSON, zone kept; the JSON names the zone identifier.
+
+## Two things you should know
+
+1. **`LocationService` never uses its `resolver`.** The signature block takes a resolver in `init`, but the only public methods are `location`, `useManual` and `clearManual`. So I test `FakePlaceResolver.resolve` directly, which is what the promise text says ("through the fake"). If the coder adds a `resolve` method on the actor, my tests will not cover it. This is the most likely place we disagree at assembly.
+
+2. **JSON zone shape.** The clarification says "encoded by identifier", but that can mean a bare string or Foundation's default `{"identifier": "..."}`. I assert the JSON *contains* the identifier, not its exact shape. Both spellings pass.
+
+Also: `docs/plans/data-layer.md` shows as modified in git. That was already so before I started (the `### Internals` strip). I did not touch it and did not commit it.
+
+## What to do now
+
+Nothing from me. The driver pushes and opens the pull request.
+
+WORK_ON_BRANCH worker/data-layer-2-tests

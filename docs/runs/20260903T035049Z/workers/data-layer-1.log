@@ -1,0 +1,28 @@
+Preparing worktree (new branch 'worker/data-layer-1')
+HEAD is now at 53017d4 Request the pull request
+=== spawn-worker[data-layer-1] engine=claude branch=worker/data-layer-1 base=feat/data-layer (53017d48917b0b0f930fadc8158caccc2e799c0b) bypass=0 ===
+=== 2026-09-03T05:16:22Z ===
+Ignoring 2 permissions.allow entries from .claude/settings.json: this workspace has not been trusted. Run Claude Code interactively here once and accept the trust dialog, or set projects["/home/user/project_icarus"].hasTrustDialogAccepted: true in /root/.claude.json.
+I built Slice 1 of the data layer. Here is what happened.
+
+**What I made**
+- A provider seam: `UVForecastProvider`, `ProviderError`, `ProviderForecast`.
+- `WeatherKitProvider` — real code only on Apple. On Linux it says "not available" by name.
+- `WeatherKitMapping` — turns a recorded WeatherKit answer into a forecast. Pure, so it can be tested here.
+- `FakeForecastProvider` — plays back a saved file. It ships `beach-oslo.json`: 10 days, Europe/Oslo, UVI peak 7.
+- `FileForecastCache` (one JSON file, safe write) and `MemoryForecastCache`.
+- `ForecastService` — fetches at most once an hour per place, refetches after a 10 km move, `force` always fetches, saves what it fetches, and names every failure.
+
+**Did it work**
+- `swift build`: OK.
+- `swift test`: 303 tests, 0 failures.
+- `swiftformat .` and `swiftlint lint --strict`: clean.
+- I also ran my own throwaway check package (outside the repo). All 23 promise checks passed: cadence, 10 km move, force, round trip, named failures, malformed, corrupt cache, mapping count.
+
+**Two things to know**
+- I added `Sendable` to `ForecastCurveError` in IcarusCore. Behaviour is the same. It is in the commit body.
+- I did **not** add a `resources:` line for the test target. That directory does not exist yet, and the line would break the build now. The test author keeps fixtures as string literals, so nothing needs it.
+
+**Committed**, not pushed.
+
+WORK_ON_BRANCH worker/data-layer-1

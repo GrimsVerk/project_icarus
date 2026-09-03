@@ -1,0 +1,29 @@
+Preparing worktree (new branch 'worker/data-layer-4-tests')
+HEAD is now at 9a833ce Format with the swiftformat the macOS runner uses (0.63)
+=== spawn-worker[data-layer-4-tests] engine=claude branch=worker/data-layer-4-tests base=feat/data-layer (9a833cef6865f27d1b5c555e81dac9881db0ef0e) bypass=0 ===
+=== 2026-09-03T05:26:25Z ===
+Ignoring 2 permissions.allow entries from .claude/settings.json: this workspace has not been trusted. Run Claude Code interactively here once and accept the trust dialog, or set projects["/home/user/project_icarus"].hasTrustDialogAccepted: true in /root/.claude.json.
+Done. Here is the short version.
+
+## What I did
+I wrote one test file: `Tests/IcarusDataTests/PromptSchedulerTests.swift`. 24 tests, in 6 groups. I wrote no code under `Sources/`.
+
+## Did it work
+Yes. The tests do not compile, and that is correct. Every error says "cannot find `PromptScheduler`" or a sibling type. The other agent is writing those now. Format and lint are clean (`swiftformat`, `swiftlint --strict`).
+
+## What I covered
+- **Skin check:** one per day, 20 h after the day's last session. Id is `skin-<day.id>`. A later session moves it. Discard cancels it. One day's cancel does not touch another day's.
+- **Lasting colour:** only `reportAdded` schedules it, 4 days after the report. A session alone does not. Discard cancels it too. A later session leaves it where the report put it.
+- **Permission:** `denied` and `notDetermined` schedule nothing. The in-app list is what shows the day.
+- **In-app windows:** skin check due 12 h to 72 h after the day's **last** session, edges included. Lasting colour due 3 to 10 days after the report. Reported days and answered days drop out. Discarded-only days never appear. Results sorted by day.
+- **Timer:** side end, N reapplications, session end, with ids `timer-side` / `timer-reapply-<i>` / `timer-end`. No side end when there is no side. A second `scheduleTimer` replaces the first. `cancelTimer` leaves the skin check alone.
+- **Ids:** round trip for a Europe/Oslo day on a UTC host, both prefixes, and 7 malformed inputs return nil.
+
+## Two spots where we may disagree at assembly
+1. **Reapplication index base.** The contract says `timer-reapply-<i>` but not whether `i` starts at 0 or 1. I did not pick. My test asserts the number in the id matches the number in the `NotificationKind`, and that the ids are distinct. Either base passes.
+2. **A later session and the lasting colour.** Revision 2 said a later session moves "both". Revision 3 anchors the lasting colour to the report time, so I assert it does **not** move. If the coder read it the other way, that one test will disagree.
+
+## What you do now
+Nothing. The driver picks this up.
+
+WORK_ON_BRANCH worker/data-layer-4-tests
