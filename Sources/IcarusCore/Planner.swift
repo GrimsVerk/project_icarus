@@ -1,7 +1,6 @@
 // The planner is one file by the plan's file list: composing the four models
 // into a single typed result, with the provenance bookkeeping that makes the
 // figures honest, is one contract.
-// swiftlint:disable file_length
 
 import Foundation
 
