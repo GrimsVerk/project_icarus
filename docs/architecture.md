@@ -38,7 +38,9 @@ answer.
 | `IcarusCore` / `CalibrationEngine` | One skin report against one day's logged dose: which region it is evidence about, and what it does to that region's tan state and to the person's one sensitivity multiplier. |
 | `IcarusCore` / `Replay` | The fold. The ordered history in, the current derived state and every report's effect out. |
 | `IcarusCore` / `Planner` | The engine's one entry point. A `PlanRequest` in, a `DoseResult` out: the outcome, the budgets it was solved against, the notices, every figure with the constants behind it, and the copy keys in display order. |
-| `IcarusData` | Placeholder. Will own persistence and the forecast cache (M2). |
+| `IcarusData` | The outside world: everything that touches a system service, the network or the disk, behind protocols the engine never sees. Persistence and the forecast cache are still to come (M2). |
+| `IcarusData` / `LocationService` | Where the user is (R2). One actor over a `LocationSource` and a `PlaceResolver`; a manual place, once set, wins over the device. |
+| `IcarusData` / geocoding | `Place` — a name, a coordinate and the zone the day boundaries are read in — plus the resolver that turns typed text into candidate places. `AppleGeocoder` on Apple platforms, `FakePlaceResolver` (a table) everywhere. |
 | `IcarusContent` | Placeholder. Will own generated copy and Learn content (M3). |
 | `IcarusUI` | Placeholder. Will own the SwiftUI surface (M4). Not built on Linux. |
 | `IcarusAds` | Placeholder. Will own the ad banner behind a protocol (M7). Not built on Linux. |
@@ -94,6 +96,36 @@ Dictionaries keyed by `Region` encode as JSON objects keyed `front` / `back` /
 has a string raw value, so the export is readable and stable.
 
 ## Main paths
+
+### Decide where the user is
+
+The engine is told a coordinate; it never asks for one. `LocationService` is
+what answers that question, and it answers it in one of three ways (R2).
+
+1. A manual place, if the user has set one, is the answer — `useManual` pins it
+   and `clearManual` releases it. It wins over the device unconditionally: the
+   user said where they are, and the app does not argue with them.
+2. Otherwise the device source is asked for one reading. A fix becomes the
+   device answer; a denial or a failure is returned **as itself**, so the caller
+   can offer manual entry with the true reason rather than a generic "no
+   location". `LocationAnswer.coordinate` is the coordinate to fetch a forecast
+   for, and is nil exactly when a place is still needed.
+3. Typed text goes through the `PlaceResolver` and comes back as candidate
+   places, each carrying its own time zone — the zone the day boundaries and the
+   forecast for that place are read in. Text the resolver does not know resolves
+   to no candidates, not to an error.
+4. On Apple platforms the source is one CoreLocation request at kilometre
+   accuracy with when-in-use permission: a single fix, never a running manager,
+   and it gives up after ten seconds as unavailable rather than waiting forever.
+   Both the real source and the real geocoder are compiled only where
+   CoreLocation exists; the Linux build and its tests see the protocols, the
+   fakes and the actor.
+
+How far the device has drifted from the place the cached forecast is for is a
+question about two coordinates, answered by `Coordinate.distanceKm(to:)` in the
+engine's own vocabulary: the caller compares this answer's coordinate with the
+cached curve's location. That one distance is what R1's 10 km refetch and R3's
+25 km staleness warning are both measured with.
 
 ### Compute a dose over a window
 
@@ -470,6 +502,13 @@ descriptive suffix would be a script the check never runs.
   key naming a goal; it returns `boundByMelanogenic`, the nearest thing to a
   line about the tanning threshold. When the vitamin D goal lands (M8) both
   goals will want a key of their own.
+- `LocationService.location(now:)` takes a clock it does not use. The parameter
+  is the plan's declared signature, and it is the seam a later rule about how
+  long a fix stays good would need; today the answer depends only on whether a
+  manual place is set and on what the source says.
+- `CoreLocationSource` and `AppleGeocoder` are not exercised by any test: they
+  exist only where CoreLocation does, and the Linux suite runs the fakes. Their
+  first real evidence is the owner's on-device criterion (S8, S9).
 - `.swiftlint.yml` disables `trailing_comma` because SwiftFormat's
   `trailingCommas` rule adds exactly what it removes, and both run in CI; and
   it excludes the short names the design fixes (skin types `i`–`vi`, the
