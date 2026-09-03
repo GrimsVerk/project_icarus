@@ -191,3 +191,14 @@ Stage 5 of the design flow. Each id is cited by the plans' `Rulings:` line.
 - **D-2026-09-03-F6** — Engine and content tests run on a Linux CI job (`core-tests`); macOS keeps the app build. The owner adds `core-tests` to the ruleset after its first green run.
 - **D-2026-09-03-F7** — Copy keys are a Swift enum in Core; text comes from `docs/APP_COPY.md` through a generated JSON; S11 checks both directions. Not string keys.
 - **D-2026-09-03-F8** — The flip timer asks which side is up first, default face up; without the timer, face up.
+
+## 2026-09-03 — Tactical review 1: rulings that touch design text (provisional until the owner lands them)
+
+Four findings in `docs/reviews/design/tactical-1.md` could not be fixed in the
+plans alone. The recommended fix is applied to `docs/DESIGN.md` on the plans
+branch; the owner lands or reverts it with that pull request.
+
+- **D-2026-09-03-T1** — The tan-state rise constant is solved together with the decay the engine applies (τ ≈ 7.2 d), the half-life is labelled `assumption` against Module 6's 4–8 week fade, "near saturation" is the tunable `plateauTanState` (0.75), and the escalation notice fires when the factor has risen by a fraction (0.5) of the type's maximum rise, not 0.10 above 1. Without this the plateau outcomes were unreachable and the notice fired on session two.
+- **D-2026-09-03-T2** — S4's "one-week rise below 25% of the cap rise" becomes 40%: a single-exponential rise that reaches 0.8 in three weeks is at about 32% after five sessions.
+- **D-2026-09-03-T3** — Use case 3 no longer names "SPF 30" and "four times": the SPF ladder with normal application cannot produce all three of the use case's numbers on one curve; the fixture asserts the ladder's answer for its curve and the UVA multiple is named as N.
+- **D-2026-09-03-T4** — An "all exposed" report takes the highest-dose region when the answer is "normal" and the lowest-dose region when it is redness; a report on a day with no logged dose is never calibrated. Closes the §11 open item.

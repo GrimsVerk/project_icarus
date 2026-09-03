@@ -16,6 +16,8 @@ The twelve Learn modules as data, one file each, generated from
 a citation model that keeps every identifier as given; a Learn tab that
 renders markdown with tables and tappable citations; deep links the result
 screen can use. `[VERIFY]` markers and the preamble are never rendered.
+Slice 1 (content only) lands BEFORE `calculator-ui` Slice 2, which needs
+`ModuleIndex`; Slice 2 (views) can follow M3. Revision 2 lands the tactical review.
 
 Non-goals:
 - We do NOT edit, paraphrase, or summarise any Learn text (V5).
@@ -32,11 +34,13 @@ Rulings: D-2026-09-03-F4, F5 (docs/DECISIONS.md); design revision 2 for markers 
 Module files (ruled D-2026-09-03-F4): `scripts/split-learn-content.sh`
 generates `Sources/IcarusContent/Resources/Learn/module-NN.md` from
 `docs/LEARN_CONTENT.md`; the generated files are committed and S7 fails if
-they drift from the source. One source of truth.
+they drift from the source. One source of truth. The script only splits: the
+module files keep `[VERIFY]` verbatim and `LearnModule` strips it at load,
+setting `needsVerification` from what it stripped (no sidecar; tactical #26).
 
 ## Slice 1 — Modules as data, with citations parsed and markers stripped
 
-- **Delivers:** `ModuleIndex.all` lists twelve `LearnModule`s loaded from bundled markdown; each exposes its title, body (markers and preamble stripped), and parsed `Citation`s with the identifier kind the source carries; the split script regenerates the files and S7 proves the text equals the source section after normalisation.
+- **Delivers:** `ModuleIndex.all` lists twelve `LearnModule`s loaded from bundled markdown; each exposes its title, body (markers stripped at load), and parsed `Citation`s with the identifier kind the source carries and `needsVerification` set from the marker the loader stripped; the split script regenerates the files byte-identically and S7 proves the rendered text equals the source section after normalisation. Content only, no views: `calculator-ui` Slice 2 depends on this slice.
 - **Files:** `scripts/split-learn-content.sh`, `Sources/IcarusContent/Resources/Learn/module-01.md` … `module-12.md`, `Sources/IcarusContent/LearnModule.swift`, `Sources/IcarusContent/ModuleIndex.swift`, `Sources/IcarusContent/Citation.swift`, `Tests/IcarusContentTests/ModuleIndexTests.swift`, `Tests/IcarusContentTests/CitationTests.swift`, `acceptance/S7-learn.sh`
 - **Estimate:** ~380 lines
 
@@ -63,7 +67,8 @@ public enum ModuleIndex {
     public static func deepLink(_ id: ModuleID) -> URL          // icarus://learn/<n>
 }
 public enum LearnSource {
-    public static func normalise(_ text: String) -> String      // strips [VERIFY] (with surrounding backticks), the preamble above Module 1, trailing whitespace
+    public static func normalise(_ text: String) -> String      // strips `[VERIFY]` tokens (with surrounding backticks), the preamble above Module 1, trailing whitespace
+    public static func split(_ document: String) throws -> [(ModuleID, String)]   // exactly 12 sections at "^## Module N — "; verbatim, markers kept
 }
 // Promises (S7): all.count == 12; titles match the source headings; for every module, normalise(sourceSection) == module.markdown;
 //  every citation line in the source appears in citations with its identifier kind (Routaboul → .pmid("10066941"); McKinlay → .none; WHO → .url); none dropped;
@@ -73,9 +78,10 @@ public enum LearnSource {
 ### Internals
 
 ```text
-scripts/split-learn-content.sh: awk over docs/LEARN_CONTENT.md: drop everything before "## Module 1"; split at "^## Module "; write module-NN.md with the heading kept; remove `[VERIFY]` tokens; fail if not exactly 12
-Citation parser: for lines under "> **Sources**" starting "> - ": authors up to first ". *"; title between *…*; venue/year after; identifier by regex: https://doi.org/(.+) | PMID (\d+) | ISO \d+ | https?://… ; needsVerification if the line had [VERIFY] in the SOURCE (the script records a sidecar module-NN.verify.json listing citation indexes before stripping)
-acceptance/S7-learn.sh: regenerate into a temp dir with the script, diff against Sources/…/Learn; then `swift test --filter IcarusContentTests`
+scripts/split-learn-content.sh: `swift run split-learn-content docs/LEARN_CONTENT.md Sources/IcarusContent/Resources/Learn` (a tiny executable target calling LearnSource.split) — sections written verbatim with `[VERIFY]` kept; fails if not exactly 12
+LearnModule loader: markdown = normalise(fileText); citations parsed from the file text BEFORE stripping so needsVerification = line contained [VERIFY]
+Citation parser: for lines under "> **Sources**" starting "> - ": authors up to first ". *"; title between *…*; venue/year after; identifier by regex: https://doi.org/(.+) | PMID (\d+) | ISO \d+ | https?://…
+acceptance/S7-learn.sh: regenerate into a temp dir, diff byte-for-byte against Sources/…/Learn; then `swift test --filter IcarusContentTests`
 ```
 
 ## Slice 2 — The Learn tab: list, markdown with tables, tappable citations, deep links
@@ -87,12 +93,14 @@ acceptance/S7-learn.sh: regenerate into a temp dir with the script, diff against
 ### Signatures
 
 ```text
-public struct LearnListView: View { public init(adBanner: AnyView?) }          // the only Learn screen with a banner slot
-public struct ModuleView: View { public init(module: LearnModule) }
+public struct LearnListView: View, ScreenManifest { public init(adBanner: AnyView?) }   // (true, false): the only Learn screen with a banner slot
+public struct ModuleView: View, ScreenManifest { public init(module: LearnModule) }        // (false, false)
+public struct ModuleRenderModel: Sendable, Equatable { public let body: String; public let citations: [Citation]; public init(module: LearnModule) }
+    // body = markdown with the "> **Sources**" block removed; testable without rendering: contains a table for module 4 ("|---" present), and every citation appears exactly once
 public struct CitationRow: View { public init(citation: Citation) }            // Link when identifier has a URL; Text otherwise; never hides a citation
 public enum DeepLink: Sendable, Equatable { case learn(ModuleID); public init?(url: URL); public var url: URL }
 // Package.swift: IcarusUI adds dependency .product("MarkdownUI", package: "swift-markdown-ui") pinned exact 2.4.1
-// Promises (S7, S15): LearnListView renders 12 rows; ModuleView for module 4 renders a table (MarkdownUI Table node present); every citation of module 3 has a row; DeepLink(url: "icarus://learn/6") == .learn(6); ModuleView contains no banner slot
+// Promises (S7, S15): ModuleRenderModel(module 4).body contains a markdown table and no Sources block; ModuleRenderModel(module 3).citations.count == the source's; DeepLink(url: "icarus://learn/6") == .learn(6); ScreenTable rows for LearnListView (true, false) and ModuleView (false, false)
 ```
 
 ### Internals

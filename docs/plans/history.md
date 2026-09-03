@@ -42,8 +42,8 @@ Rulings: D-2026-09-03-F5 (docs/DECISIONS.md); design revision 2 for no banner an
     public func reload(now: Date) async
 }
 public struct DaySummaryRow: Sendable, Equatable, Identifiable { public let id: DayKey; public let sessions: [SessionRecord]; public let report: SkinReport?; public let dosePerRegion: [Region: SED] }
-public struct HistoryView: View { public init(env: AppEnvironment) }      // no banner slot (S15)
-// Promises (S15, UI tests): discarded sessions absent; rows sorted newest first; HistoryView contains no banner slot
+public struct HistoryView: View, ScreenManifest { public init(env: AppEnvironment) }      // (false, true): no banner slot (S15)
+// Promises (S15, model tests): discarded sessions absent; rows sorted newest first; ScreenTable row for HistoryView is (false, true)
 ```
 
 ### Internals
@@ -85,7 +85,7 @@ TrajectoryChart: Chart { ForEach(points) LineMark(x: date, y: cumulativeSED) .fo
 
 ```text
 public struct ExportImportView: View { public init(env: AppEnvironment) }
-// Promises (S10): export produces an ExportFile the M2 import accepts; a corrupt file → error shown, history unchanged
+// Promises (S10): export produces an ExportFile the M2 import accepts; import applies summary.profile and invalidates the store; a corrupt file → error shown, history unchanged
 ```
 
 ### Internals
