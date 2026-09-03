@@ -70,14 +70,27 @@ struct SimulatedUser {
 
         /// The end of the last session. Nothing in the history is later than
         /// `finish`, which is an hour past the last answer.
-        var lastSessionEnd: Date { sessionEnds.last ?? Curves.start }
-        var finish: Date { lastSessionEnd.addingTimeInterval(21 * 3600) }
-        var state: DerivedState { replayed(at: finish) }
-        var multiplier: Double { state.multiplier }
+        var lastSessionEnd: Date {
+            sessionEnds.last ?? Curves.start
+        }
+
+        var finish: Date {
+            lastSessionEnd.addingTimeInterval(21 * 3600)
+        }
+
+        var state: DerivedState {
+            replayed(at: finish)
+        }
+
+        var multiplier: Double {
+            state.multiplier
+        }
 
         /// The front region as it stood when the last session ended — before
         /// any gap that follows it has been decayed away.
-        var lastFront: RegionState { state.regions[.front] ?? RegionState() }
+        var lastFront: RegionState {
+            state.regions[.front] ?? RegionState()
+        }
     }
 
     // MARK: - Running a schedule
@@ -206,7 +219,9 @@ struct SimulatedUser {
 
 extension SimulatedUser {
     /// Consecutive days, one session each.
-    static func daily(_ count: Int) -> [Day] { (0 ..< count).map { Day($0) } }
+    static func daily(_ count: Int) -> [Day] {
+        (0 ..< count).map { Day($0) }
+    }
 
     /// "Regular sessions" as S4 defines them: five a week, Monday to Friday.
     /// The fixtures' first day, 2026-06-15, is a Monday, so offset 4 of every
@@ -217,7 +232,9 @@ extension SimulatedUser {
 
     /// The Friday of every week in a five-a-week schedule: the day the tan
     /// state peaks before the weekend fades it.
-    static func fridays(weeks: Int) -> [Int] { (0 ..< weeks).map { $0 * 7 + 4 } }
+    static func fridays(weeks: Int) -> [Int] {
+        (0 ..< weeks).map { $0 * 7 + 4 }
+    }
 
     /// Five a week, with a "no lasting colour" answer on the given days — the
     /// answers that reach the plateau outcome (R14).

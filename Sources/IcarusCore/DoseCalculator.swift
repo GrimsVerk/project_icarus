@@ -31,7 +31,11 @@ public enum DoseCalculator {
         var high = prefix.count - 1
         while low < high {
             let middle = (low + high) / 2
-            if prefix[middle] >= goal { high = middle } else { low = middle + 1 }
+            if prefix[middle] >= goal {
+                high = middle
+            } else {
+                low = middle + 1
+            }
         }
         guard low >= 1, prefix[low] >= goal - tolerance else { return nil }
 
@@ -158,7 +162,9 @@ public enum DoseCalculator {
                 if let current = best {
                     let shorter = minutes < current.minutes - tolerance
                     let tied = minutes < current.minutes + tolerance && candidate.offNoon < current.offNoon
-                    if shorter || tied { best = candidate }
+                    if shorter || tied {
+                        best = candidate
+                    }
                 } else {
                     best = candidate
                 }

@@ -180,7 +180,9 @@ public enum ExposureModel {
     ) -> [Region: SED] {
         let protection = sunscreen?.effectiveSPF ?? 1
         var out = bare.mapValues { protection > 0 ? $0 / protection : $0 }
-        if coverHeadAndShoulders { out[.headAndShoulders] = 0 }
+        if coverHeadAndShoulders {
+            out[.headAndShoulders] = 0
+        }
         return out
     }
 
@@ -195,7 +197,9 @@ public enum ExposureModel {
             let ratio = target.remaining > 0 ? received / target.remaining : Double.infinity
             // A tie — two sides of a turning body on a flat curve — keeps the
             // earlier region, so the answer never turns on a rounding bit.
-            if let current = best, ratio <= current.ratio * (1 + 1e-9) { continue }
+            if let current = best, ratio <= current.ratio * (1 + 1e-9) {
+                continue
+            }
             best = (region, ratio)
         }
         return best?.region
@@ -209,7 +213,9 @@ public enum ExposureModel {
     /// every region exposed while up and about is spent.
     public static func solve(_ request: ExposureRequest, tunables: Tunables) -> ExposurePlan? {
         guard let window = DoseCalculator.clip(request.window, toStartNoEarlierThan: request.now) else { return nil }
-        if !request.coverHeadAndShoulders, remaining(request, .headAndShoulders) <= 0 { return nil }
+        if !request.coverHeadAndShoulders, remaining(request, .headAndShoulders) <= 0 {
+            return nil
+        }
         let solved: Shape? = switch request.posture {
         case .upAndAbout:
             uprightShape(request, in: window, tunables: tunables)
@@ -258,7 +264,9 @@ private extension ExposureModel {
         var legs: [Leg]
         var fillsWindow: Bool
 
-        var totalMinutes: Double { legs.reduce(0) { $0 + $1.minutes } }
+        var totalMinutes: Double {
+            legs.reduce(0) { $0 + $1.minutes }
+        }
 
         func scaled(by factor: Double) -> Shape {
             Shape(start: start, legs: legs.map { Leg(exposure: $0.exposure, minutes: $0.minutes * factor) },
@@ -302,7 +310,9 @@ private extension ExposureModel {
     static func lyingShape(_ request: ExposureRequest, in window: Window, tunables _: Tunables) -> Shape? {
         let order = sideOrder(request.firstSide)
         let budgets = order.map { remaining(request, torso($0)) }
-        if budgets[0] <= 0, budgets[1] <= 0 { return nil }
+        if budgets[0] <= 0, budgets[1] <= 0 {
+            return nil
+        }
         return bestLyingStart(request, in: window, budgets: budgets, order: order)
             ?? fillingShape(request, in: window, budgets: budgets, order: order)
     }
@@ -343,7 +353,9 @@ private extension ExposureModel {
                     total: total,
                     offNoon: abs(middle.timeIntervalSince(noon))
                 )
-                if best.map({ candidate.beats($0) }) ?? true { best = candidate }
+                if best.map({ candidate.beats($0) }) ?? true {
+                    best = candidate
+                }
             }
             start = start.addingTimeInterval(60)
         }
@@ -391,7 +403,11 @@ private extension ExposureModel {
                 let middle = low.addingTimeInterval(high.timeIntervalSince(low) / 2)
                 let ahead = request.curve.sed(from: window.start, to: middle) / budgets[0]
                 let behind = request.curve.sed(from: middle, to: window.end) / budgets[1]
-                if ahead > behind { high = middle } else { low = middle }
+                if ahead > behind {
+                    high = middle
+                } else {
+                    low = middle
+                }
             }
             flip = low
         }
@@ -418,7 +434,9 @@ private extension ExposureModel {
         var high = 1.0
         for _ in 0 ..< 50 {
             let middle = (low + high) / 2
-            if credit(shape.scaled(by: middle), request, tunables: tunables) > budget { high = middle } else {
+            if credit(shape.scaled(by: middle), request, tunables: tunables) > budget {
+                high = middle
+            } else {
                 low = middle
             }
         }
@@ -550,7 +568,9 @@ private extension ExposureModel {
         case .lying(.faceDown):
             shares = [.front: 0, .back: 1, .headAndShoulders: tunables.shoulderFraction]
         }
-        if coverHeadAndShoulders { shares[.headAndShoulders] = 0 }
+        if coverHeadAndShoulders {
+            shares[.headAndShoulders] = 0
+        }
         return shares
     }
 

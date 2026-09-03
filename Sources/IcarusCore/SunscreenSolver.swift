@@ -231,7 +231,11 @@ public enum SunscreenSolver {
         for _ in 0 ..< bisectionSteps {
             let middle = (low + high) / 2
             let dose = curve.sed(from: window.start, to: window.start.addingTimeInterval(middle))
-            if dose <= allowed { low = middle } else { high = middle }
+            if dose <= allowed {
+                low = middle
+            } else {
+                high = middle
+            }
         }
         return Window(start: window.start, end: window.start.addingTimeInterval(low))
     }

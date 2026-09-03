@@ -120,7 +120,9 @@ public enum AdaptationModel {
                 return .dropped(fraction: tanAfterLast > 0 ? 1 - tanNow / tanAfterLast : 0)
             }
         }
-        if factorNow - 1 >= fraction * gain - 1e-12 { return .risen(factor: factorNow) }
+        if factorNow - 1 >= fraction * gain - 1e-12 {
+            return .risen(factor: factorNow)
+        }
         return nil
     }
 

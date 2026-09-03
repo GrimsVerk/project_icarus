@@ -155,7 +155,9 @@ private struct Fold {
             var regionState = state.regions[region] ?? RegionState()
             switch answer {
             case .no:
-                if regionState.tanState >= plateau { regionState.noColourNearCeiling += 1 }
+                if regionState.tanState >= plateau {
+                    regionState.noColourNearCeiling += 1
+                }
             case .yes, .aLittle:
                 regionState.noColourNearCeiling = 0
             }

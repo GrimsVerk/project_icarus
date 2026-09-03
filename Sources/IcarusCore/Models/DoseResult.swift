@@ -52,7 +52,9 @@ public enum StaleLevel: Sendable, Equatable {
 
     /// True for the level that degrades the recommendation.
     public var reducesTarget: Bool {
-        if case .warn = self { return true }
+        if case .warn = self {
+            return true
+        }
         return false
     }
 }

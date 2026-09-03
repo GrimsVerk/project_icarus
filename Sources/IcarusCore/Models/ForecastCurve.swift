@@ -109,7 +109,9 @@ public struct ForecastCurve: Codable, Sendable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         var noons = [DayKey: Date]()
         for (id, date) in try container.decode([String: Date].self, forKey: .solarNoons) {
-            if let day = DayKey(id: id) { noons[day] = date }
+            if let day = DayKey(id: id) {
+                noons[day] = date
+            }
         }
         try self.init(
             location: container.decode(Coordinate.self, forKey: .location),
@@ -161,7 +163,11 @@ private extension ForecastCurve {
         var high = samples.count - 1
         while high - low > 1 {
             let middle = (low + high) / 2
-            if samples[middle].time <= time { low = middle } else { high = middle }
+            if samples[middle].time <= time {
+                low = middle
+            } else {
+                high = middle
+            }
         }
         let before = samples[low]
         let after = samples[high]

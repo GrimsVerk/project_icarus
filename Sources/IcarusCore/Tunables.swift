@@ -1,3 +1,7 @@
+// swiftlint:disable file_length
+// R30 rules that every tunable constant lives in ONE configuration file, with
+// its basis beside it; splitting this file to satisfy a line count would
+// break that promise, so the rule is off for this file alone.
 import Foundation
 
 /// Where a number came from. A `citation` points at a source the project can
@@ -39,7 +43,7 @@ public struct Tunables: Sendable {
     /// The stored numbers. One basis per number in `provenance`, under the same
     /// key the accessor reports.
     fileprivate struct Storage: Sendable {
-        // dose
+        /// dose
         let uviMinutesPerSED = 66.7
         // target
         let calibrationReports = 3
@@ -147,7 +151,9 @@ public struct Tunables: Sendable {
 
 public extension Tunables {
     /// UVI·minutes per SED. 1 SED = 100 J/m²; 1 UVI = 25 mW/m².
-    var uviMinutesPerSED: Double { read("uviMinutesPerSED", storage.uviMinutesPerSED) }
+    var uviMinutesPerSED: Double {
+        read("uviMinutesPerSED", storage.uviMinutesPerSED)
+    }
 
     /// The unadapted minimal erythemal dose for a skin type, in SED.
     func medBaselineSED(_ type: SkinType) -> SED {
@@ -166,11 +172,18 @@ public extension Tunables {
 
     /// Skin reports needed before the selected ceiling is honoured, and before
     /// the aggressive ceiling unlocks.
-    var calibrationReports: Int { read("calibrationReports", storage.calibrationReports) }
-    var aggressiveUnlockReports: Int { read("aggressiveUnlockReports", storage.aggressiveUnlockReports) }
+    var calibrationReports: Int {
+        read("calibrationReports", storage.calibrationReports)
+    }
+
+    var aggressiveUnlockReports: Int {
+        read("aggressiveUnlockReports", storage.aggressiveUnlockReports)
+    }
 
     /// Half-width of the uncertainty band before any report.
-    var uncertaintyBandAtZero: Double { read("uncertaintyBandAtZero", storage.uncertaintyBandAtZero) }
+    var uncertaintyBandAtZero: Double {
+        read("uncertaintyBandAtZero", storage.uncertaintyBandAtZero)
+    }
 }
 
 // MARK: - Posture and adaptation
@@ -178,8 +191,13 @@ public extension Tunables {
 public extension Tunables {
     /// Share of a lying session's time each torso side gets, and the share of
     /// the face-down dose that head and shoulders are credited with.
-    var frontBackFraction: Double { read("frontBackFraction", storage.frontBackFraction) }
-    var shoulderFraction: Double { read("shoulderFraction", storage.shoulderFraction) }
+    var frontBackFraction: Double {
+        read("frontBackFraction", storage.frontBackFraction)
+    }
+
+    var shoulderFraction: Double {
+        read("shoulderFraction", storage.shoulderFraction)
+    }
 
     /// Relative difference between the two sides above which both are shown.
     var sideDifferenceForTwoFigures: Double {
@@ -187,7 +205,9 @@ public extension Tunables {
     }
 
     /// Leaky-integrator time constant of the tan-state rise, in days.
-    var riseTimeConstantDays: Double { read("riseTimeConstantDays", storage.riseTimeConstantDays) }
+    var riseTimeConstantDays: Double {
+        read("riseTimeConstantDays", storage.riseTimeConstantDays)
+    }
 
     /// Band multiplier on the rise.
     func riseMultiplier(_ band: SkinBand) -> Double {
@@ -195,27 +215,44 @@ public extension Tunables {
     }
 
     /// Half-life of the tan-state decay, in days.
-    var decayHalfLifeDays: Double { read("decayHalfLifeDays", storage.decayHalfLifeDays) }
+    var decayHalfLifeDays: Double {
+        read("decayHalfLifeDays", storage.decayHalfLifeDays)
+    }
+
     /// Maximum rise of the adaptation factor at full tan state.
     func adaptationGain(_ band: SkinBand) -> Double {
         read("adaptationGain.\(band.rawValue)", storage.adaptationGain(band))
     }
 
     /// Tan state at or above which the plateau outcomes can be reached.
-    var plateauTanState: Double { read("plateauTanState", storage.plateauTanState) }
+    var plateauTanState: Double {
+        read("plateauTanState", storage.plateauTanState)
+    }
 
     /// Share of a tolerant surprise credited to tan state before the multiplier.
-    var tolerantCredit: Double { read("tolerantCredit", storage.tolerantCredit) }
+    var tolerantCredit: Double {
+        read("tolerantCredit", storage.tolerantCredit)
+    }
 
     /// Fraction of the available rise at which the escalation notices fire.
-    var escalationNoticeFraction: Double { read("escalationNoticeFraction", storage.escalationNoticeFraction) }
+    var escalationNoticeFraction: Double {
+        read("escalationNoticeFraction", storage.escalationNoticeFraction)
+    }
 
     /// A gap longer than this many days ends the tan cycle (R14).
-    var gapDays: Double { read("gapDays", storage.gapDays) }
+    var gapDays: Double {
+        read("gapDays", storage.gapDays)
+    }
+
     /// Consecutive "no lasting colour" answers near the ceiling before the
     /// plateau outcome is reported, and what the target drops to when it is.
-    var ceilingNoColourCount: Int { read("ceilingNoColourCount", storage.ceilingNoColourCount) }
-    var maintenanceFraction: Double { read("maintenanceFraction", storage.maintenanceFraction) }
+    var ceilingNoColourCount: Int {
+        read("ceilingNoColourCount", storage.ceilingNoColourCount)
+    }
+
+    var maintenanceFraction: Double {
+        read("maintenanceFraction", storage.maintenanceFraction)
+    }
 
     /// Share of a region's target a session must have delivered for a
     /// lasting-colour answer to count for that region.
@@ -233,7 +270,9 @@ public extension Tunables {
     }
 
     /// Band edges of the inverse mapping, used by the simulated reporter.
-    var reporterBandEdges: [Double] { read("reporterBandEdges", storage.reporterBandEdges) }
+    var reporterBandEdges: [Double] {
+        read("reporterBandEdges", storage.reporterBandEdges)
+    }
 
     /// The answer a truthful reporter gives for a dose-over-threshold ratio:
     /// the first edge strictly greater than the ratio names the answer, and a
@@ -246,16 +285,36 @@ public extension Tunables {
         return .blistered
     }
 
-    // How fast the learned multiplier moves, how far it may go, and how much a
-    // burn, a confounded report or a blister count for.
+    /// How fast the learned multiplier moves, how far it may go, and how much a
+    /// burn, a confounded report or a blister count for.
     /// Confidence half-life of the learned multiplier, in reports.
-    var k: Double { read("k", storage.k) }
-    var nCap: Int { read("nCap", storage.nCap) }
-    var burnWeight: Double { read("burnWeight", storage.burnWeight) }
-    var multiplierClamp: ClosedRange<Double> { read("multiplierClamp", storage.multiplierClamp) }
-    var confoundedDiscount: Double { read("confoundedDiscount", storage.confoundedDiscount) }
-    var blisterProtectiveFactor: Double { read("blisterProtectiveFactor", storage.blisterProtectiveFactor) }
-    var blisterPauseDays: Int { read("blisterPauseDays", storage.blisterPauseDays) }
+    var k: Double {
+        read("k", storage.k)
+    }
+
+    var nCap: Int {
+        read("nCap", storage.nCap)
+    }
+
+    var burnWeight: Double {
+        read("burnWeight", storage.burnWeight)
+    }
+
+    var multiplierClamp: ClosedRange<Double> {
+        read("multiplierClamp", storage.multiplierClamp)
+    }
+
+    var confoundedDiscount: Double {
+        read("confoundedDiscount", storage.confoundedDiscount)
+    }
+
+    var blisterProtectiveFactor: Double {
+        read("blisterProtectiveFactor", storage.blisterProtectiveFactor)
+    }
+
+    var blisterPauseDays: Int {
+        read("blisterPauseDays", storage.blisterPauseDays)
+    }
 }
 
 // MARK: - Sunscreen, staleness and prompts
@@ -263,39 +322,76 @@ public extension Tunables {
 public extension Tunables {
     /// Applied density assumed of a real user, in mg/cm² — what people put on,
     /// not what the label was measured at.
-    var densityDefault: Double { read("densityDefault", storage.densityDefault) }
+    var densityDefault: Double {
+        read("densityDefault", storage.densityDefault)
+    }
 
     /// Labels the engine is willing to prescribe, lowest first.
-    var spfLadder: [Int] { read("spfLadder", storage.spfLadder) }
+    var spfLadder: [Int] {
+        read("spfLadder", storage.spfLadder)
+    }
 
     /// The highest label a user can realistically apply as directed.
-    var realisticMaxSPF: Int { read("realisticMaxSPF", storage.realisticMaxSPF) }
+    var realisticMaxSPF: Int {
+        read("realisticMaxSPF", storage.realisticMaxSPF)
+    }
 
     var reapplicationIntervalHours: Double {
         read("reapplicationIntervalHours", storage.reapplicationIntervalHours)
     }
 
     // Staleness: a forecast this old degrades the recommendation, never refuses it.
-    var staleHeadsUpHours: Double { read("staleHeadsUpHours", storage.staleHeadsUpHours) }
-    var staleWarnHours: Double { read("staleWarnHours", storage.staleWarnHours) }
-    var staleRangeWiden: Double { read("staleRangeWiden", storage.staleRangeWiden) }
-    var staleReduction: Double { read("staleReduction", storage.staleReduction) }
-    var staleDistanceKm: Double { read("staleDistanceKm", storage.staleDistanceKm) }
+    var staleHeadsUpHours: Double {
+        read("staleHeadsUpHours", storage.staleHeadsUpHours)
+    }
 
-    // Fetching and how far ahead the engine may look.
-    var fetchMinIntervalHours: Double { read("fetchMinIntervalHours", storage.fetchMinIntervalHours) }
-    var fetchMoveKm: Double { read("fetchMoveKm", storage.fetchMoveKm) }
-    var forecastHorizonDays: Int { read("forecastHorizonDays", storage.forecastHorizonDays) }
+    var staleWarnHours: Double {
+        read("staleWarnHours", storage.staleWarnHours)
+    }
+
+    var staleRangeWiden: Double {
+        read("staleRangeWiden", storage.staleRangeWiden)
+    }
+
+    var staleReduction: Double {
+        read("staleReduction", storage.staleReduction)
+    }
+
+    var staleDistanceKm: Double {
+        read("staleDistanceKm", storage.staleDistanceKm)
+    }
+
+    /// Fetching and how far ahead the engine may look.
+    var fetchMinIntervalHours: Double {
+        read("fetchMinIntervalHours", storage.fetchMinIntervalHours)
+    }
+
+    var fetchMoveKm: Double {
+        read("fetchMoveKm", storage.fetchMoveKm)
+    }
+
+    var forecastHorizonDays: Int {
+        read("forecastHorizonDays", storage.forecastHorizonDays)
+    }
 
     /// Share of the target a window must be able to deliver to be worth going out for.
-    var viabilityFraction: Double { read("viabilityFraction", storage.viabilityFraction) }
+    var viabilityFraction: Double {
+        read("viabilityFraction", storage.viabilityFraction)
+    }
 
     /// Hours from solar noon past which the dose is called UVA-heavy.
-    var uvaHeavyHoursFromNoon: Double { read("uvaHeavyHoursFromNoon", storage.uvaHeavyHoursFromNoon) }
+    var uvaHeavyHoursFromNoon: Double {
+        read("uvaHeavyHoursFromNoon", storage.uvaHeavyHoursFromNoon)
+    }
 
-    // When the app asks about the skin, and how long each answer stays offered.
-    var skinCheckDelayHours: Double { read("skinCheckDelayHours", storage.skinCheckDelayHours) }
-    var lastingColourDelayDays: Double { read("lastingColourDelayDays", storage.lastingColourDelayDays) }
+    /// When the app asks about the skin, and how long each answer stays offered.
+    var skinCheckDelayHours: Double {
+        read("skinCheckDelayHours", storage.skinCheckDelayHours)
+    }
+
+    var lastingColourDelayDays: Double {
+        read("lastingColourDelayDays", storage.lastingColourDelayDays)
+    }
 
     var inAppSkinCheckWindowHours: ClosedRange<Double> {
         read("inAppSkinCheckWindowHours", storage.inAppSkinCheckWindowHours)
@@ -316,7 +412,9 @@ public extension Tunables {
     /// is an estimate.
     static var assumptionKeys: Set<String> {
         Set(provenance.compactMap { pair -> String? in
-            if case .assumption = pair.value { return pair.key }
+            if case .assumption = pair.value {
+                return pair.key
+            }
             return nil
         })
     }
@@ -396,5 +494,7 @@ private extension Tunables {
 
 private extension SkinType {
     /// The case name, which is the roman numeral: "i", "ii", … "vi".
-    var keyName: String { String(describing: self) }
+    var keyName: String {
+        String(describing: self)
+    }
 }

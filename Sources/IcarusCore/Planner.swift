@@ -84,7 +84,9 @@ public enum Planner {
             return context.finish(.windowPassed)
         }
         context.observe(window)
-        if let weak = context.weakWindowOutcome() { return context.finish(weak) }
+        if let weak = context.weakWindowOutcome() {
+            return context.finish(weak)
+        }
         guard let solved = context.solve() else {
             return context.finish(.budgetSpent(context.mostSpentRegion))
         }
@@ -116,7 +118,9 @@ public enum Planner {
         if hours + tolerance >= warn || far || deviceLocation == nil {
             return .warn(hours: hours, farFromCache: far)
         }
-        if hours + tolerance >= headsUp { return .headsUp(hours: hours) }
+        if hours + tolerance >= headsUp {
+            return .headsUp(hours: hours)
+        }
         return .fresh
     }
 
@@ -223,12 +227,16 @@ private struct Context {
     var attenuationRegion: Region?
     var uvaHeavy = false
 
-    var thinMargin: Bool { request.profile.skinType.band == .fair }
+    var thinMargin: Bool {
+        request.profile.skinType.band == .fair
+    }
 
     /// The region the window pushes hardest, or — when nothing is exposed or
     /// the window has not been looked at yet — the front, which is exposed in
     /// every posture.
-    var focusRegion: Region { attenuationRegion ?? .front }
+    var focusRegion: Region {
+        attenuationRegion ?? .front
+    }
 
     /// True when today is over for every region.
     var everyBudgetSpent: Bool {
@@ -405,7 +413,9 @@ private extension Context {
     /// its own headline; otherwise the sunscreen leads only when the user has
     /// said they will stay out and there is a realistic product to name.
     func headline(_ plan: ExposurePlan, sunscreen: SunscreenOutcome) -> Headline {
-        if plan.fillsWindow { return .wholeWindowFits }
+        if plan.fillsWindow {
+            return .wholeWindowFits
+        }
         let overshoot = (wholeWindowRaw[focusRegion] ?? 0) > (targets[focusRegion]?.remaining ?? 0)
         guard overshoot, request.intent == .stayWholeWindow, case .prescribe = sunscreen else {
             return .bareSubWindow
@@ -460,7 +470,9 @@ private extension Context {
     /// value depended on (R30).
     func figures(outcome: Outcome, plan: ExposurePlan?) -> [Figure] {
         var out = [Figure]()
-        if let plan { out += planFigures(plan) }
+        if let plan {
+            out += planFigures(plan)
+        }
         if case let .tooWeak(shortfall, _) = outcome {
             out.append(Figure(
                 key: .shortfall, region: attenuationRegion, value: shortfall, unit: .sed,
@@ -597,10 +609,18 @@ private extension Context {
     /// What follows from the skin type and from how much the app has learned.
     func skinKeys(_ notices: Notices) -> [CopyKey] {
         var keys = [CopyKey]()
-        if notices.thinMargin { keys.append(.thinMargin) }
-        if notices.fairSkinPreCalibration { keys.append(.fairSkinPreCalibration) }
-        if notices.conservativeForced { keys.append(.conservativeUntilCalibrated) }
-        if notices.aggressiveRefused { keys.append(.aggressiveLocked) }
+        if notices.thinMargin {
+            keys.append(.thinMargin)
+        }
+        if notices.fairSkinPreCalibration {
+            keys.append(.fairSkinPreCalibration)
+        }
+        if notices.conservativeForced {
+            keys.append(.conservativeUntilCalibrated)
+        }
+        if notices.aggressiveRefused {
+            keys.append(.aggressiveLocked)
+        }
         return keys
     }
 
@@ -617,10 +637,16 @@ private extension Context {
         case .underDosed: keys.append(.underDosed)
         case nil: break
         }
-        if notices.maintenanceApplied { keys.append(.maintenance) }
+        if notices.maintenanceApplied {
+            keys.append(.maintenance)
+        }
         keys += staleKeys(notices.stale)
-        if notices.uvaHeavy { keys.append(.uvaHeavy) }
-        if notices.cloudCaveat { keys.append(.cloudCaveat) }
+        if notices.uvaHeavy {
+            keys.append(.uvaHeavy)
+        }
+        if notices.cloudCaveat {
+            keys.append(.cloudCaveat)
+        }
         return keys
     }
 
@@ -637,10 +663,14 @@ private extension Context {
     /// warnings the solve produced.
     func planKeys(_ plan: ExposurePlan) -> [CopyKey] {
         var keys = [CopyKey]()
-        if plan.extraMinutesIfCovered.values.contains(where: { $0 > 0 }) { keys.append(.coverToRunLonger) }
+        if plan.extraMinutesIfCovered.values.contains(where: { $0 > 0 }) {
+            keys.append(.coverToRunLonger)
+        }
         if request.posture == .lyingTurning {
             keys.append(.whichSideFirst)
-            if plan.sides.contains(where: { $0.window.minutes <= 0 }) { keys.append(.oneSideSpent) }
+            if plan.sides.contains(where: { $0.window.minutes <= 0 }) {
+                keys.append(.oneSideSpent)
+            }
         }
         for warning in plan.warnings {
             switch warning {

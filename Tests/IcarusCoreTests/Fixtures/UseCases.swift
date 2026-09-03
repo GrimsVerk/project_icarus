@@ -13,7 +13,9 @@ import XCTest
 /// fetch time a use case needs. Nothing here reads the wall clock.
 enum PlannerFixture {
     /// The day every fixture happens on.
-    static var day: DayKey { DayKey(Curves.date(2026, 6, 15), timeZone: Curves.zone) }
+    static var day: DayKey {
+        DayKey(Curves.date(2026, 6, 15), timeZone: Curves.zone)
+    }
 
     static func at(_ hour: Int, _ minute: Int = 0) -> Date {
         Curves.date(2026, 6, 15, hour, minute)
@@ -511,9 +513,9 @@ final class UseCaseTests: XCTestCase {
         let original = NSTimeZone.default
         defer { NSTimeZone.default = original }
         for fixture in try UseCases.all() {
-            NSTimeZone.default = TimeZone(identifier: "UTC")!
+            NSTimeZone.default = try XCTUnwrap(TimeZone(identifier: "UTC"))
             let utc = Planner.plan(fixture.request, tunables: .current)
-            NSTimeZone.default = TimeZone(identifier: "Europe/Oslo")!
+            NSTimeZone.default = try XCTUnwrap(TimeZone(identifier: "Europe/Oslo"))
             let oslo = Planner.plan(fixture.request, tunables: .current)
             XCTAssertEqual(utc, oslo, fixture.name)
         }

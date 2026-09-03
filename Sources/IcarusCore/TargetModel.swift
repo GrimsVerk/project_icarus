@@ -102,7 +102,9 @@ public protocol TargetGoal: Sendable {
 public struct TanningGoal: TargetGoal {
     public init() {}
 
-    public var copyKey: CopyKey { .boundByMelanogenic }
+    public var copyKey: CopyKey {
+        .boundByMelanogenic
+    }
 
     // swiftlint:disable function_parameter_count
     public func target(

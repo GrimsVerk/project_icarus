@@ -41,7 +41,9 @@ private enum TargetFixture {
     }
 
     /// Calibrated, with a redness report in the cycle: every ceiling is honoured.
-    static var calibrated: DerivedState { state(reports: 5, redness: 1) }
+    static var calibrated: DerivedState {
+        state(reports: 5, redness: 1)
+    }
 }
 
 /// R6: `target = min(MED_personal × melanogenicFraction, MED_personal) × scale`.
