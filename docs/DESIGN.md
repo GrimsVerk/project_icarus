@@ -141,15 +141,17 @@ history, and clock.
 
 3. **The long weekend.** A calibrated type II user has three hours on a beach
    and marks that they will stay the whole time. The raw dose would far exceed
-   their target, so the headline is what to wear for the three hours: "SPF 30,
-   applied normally", with reapplication times the timer will alert at, the
-   line that the same tanning dose over about four times the minutes carries
-   about four times the UVA, and links to Modules 3 and 8. Beside it, the
-   bare-skin alternative: the best 40 minutes per side, no sunscreen, and shade
-   for the rest. If they tap "I don't have that SPF" and pick "SPF 15, I can
-   apply it thickly", the app re-solves: thick SPF 15 is not enough for three
-   hours, so it gives the minutes SPF 15 does cover, shade for the rest, and
-   cover for head and shoulders. The two routes are never shown as equivalent.
+   their target, so the headline is what to wear for the three hours: the
+   lowest product on the ladder whose normal application covers the dose
+   (for the fixture's beach curve, "SPF 20, applied normally"), with
+   reapplication times the timer will alert at, the line that the same tanning
+   dose over N times the minutes carries about N times the UVA with N named,
+   and links to Modules 3 and 8. Beside it, the bare-skin alternative: the
+   best minutes per side, no sunscreen, and shade for the rest. If they tap
+   "I don't have that SPF" and pick "SPF 15, applied normally", the app
+   re-solves with exactly that: not enough for three hours, so it gives the
+   minutes SPF 15 does cover, shade for the rest, and cover for head and
+   shoulders. The two routes are never shown as equivalent.
 
 4. **Two sessions in a day.** The same user goes out again in the afternoon.
    The recommendation is solved against what is left of each region's budget:
@@ -332,17 +334,22 @@ Adaptation
   target dose at the time, so a session at the target advances tanState
   equally for every skin type and scale setting; the type-dependent rise
   multiplier is applied on top (default 1.5× for IV–VI). The rise time
-  constant is in Tunables, set so that daily sessions at the standard target
-  reach tanState 0.8 in about three weeks for types I–III and never faster
+  constant is in Tunables, solved together with the decay below so that daily
+  sessions at the standard target reach tanState 0.8 in about three weeks for
+  types I–III under the same update rule the engine runs, and never faster
   than the two-to-three-week course in Module 6. It decays toward zero with a
-  half-life of 3.0 weeks (tunable), the fast end of the cited 3–4 week range,
-  because the thickening component decays faster than pigment (Module 6).
+  half-life of 3.0 weeks (tunable, labelled `assumption`: Module 6 gives a
+  four-to-eight-week fade, and the fast end is chosen so post-gap doses err
+  shorter, V2). "Near saturation" is a tunable line, `plateauTanState`
+  (default 0.75), set below the tan state daily sessions reach under this rule
+  so the plateau outcomes are reachable in use.
   `adaptationFactor = 1 + adaptationGain(skinType) × tanState`, with gain
   capped so the total increase is at most about 2.25× for types I–III and
   about 3× for types IV–VI (tunable). — *Evidenced by:* S4
 - **R13** — The escalation message shows when the limiting region's
-  adaptation factor exceeds `1 + escalationNoticeFraction` (tunable, default
-  0.10); it says the threshold has risen, shows the limiting region's
+  adaptation factor has risen by at least `escalationNoticeFraction` (tunable,
+  default 0.5) of that skin type's maximum rise, so it appears weeks in, not on
+  the second session; it says the threshold has risen, shows the limiting region's
   cycle-to-date cumulative dose in SED beside it in the same type size as the
   recommendation, and links to Learn Module 6. The gap message shows when a
   gap of more than two weeks (tunable) has reduced that factor by at least the
@@ -359,9 +366,10 @@ Adaptation
   lasting-colour prompt returns "no" repeatedly (tunable count), the
   recommendation drops to a maintenance dose (`maintenanceFraction`, default
   0.7 of the current target, tunable) and stays there until a later "yes" or
-  "a little". With a redness bound for that region in the current cycle the
-  copy says the user has likely reached their biological maximum and that
-  more buys damage without colour. Without that bound the copy says the app
+  "a little". "Near saturation" means `tanState ≥ plateauTanState` (R12).
+  With a redness bound for that region in the current cycle the copy says the
+  user has likely reached their biological maximum and that more buys damage
+  without colour. Without that bound the copy says the app
   has not yet seen the skin react, so it cannot tell whether the dose is too
   low or the skin is done, and that at this tan state a maintenance dose
   keeps what they have while more has not produced colour; it never asserts a
@@ -474,7 +482,11 @@ Logging and calibration
   the delivered dose. Redness reports map to an implied dose-to-threshold
   ratio (tunable table; defaults faint pink 1.0, clearly pink 1.5, red and
   sore 2.5, blistered 4.0) and are attributed to the multiplier, which
-  persists. Q2 reclassifies: redness that appeared within about an hour and
+  persists. A report on "all exposed" takes the highest-dose region as its
+  evidence when the answer is "normal" (the strongest one-sided bound) and the
+  lowest-dose region that received dose when the answer is redness (the
+  tightest bound on the threshold). A report on a day with no logged dose is
+  recorded and never calibrated. Q2 reclassifies: redness that appeared within about an hour and
   had faded by evening is immediate pigment darkening, not erythema; the
   report is calibrated as "normal" and the confirmation says so with a link to
   Module 2. The implied threshold is divided by the adaptation factor in force
@@ -1057,10 +1069,8 @@ both in. Nothing writes state directly.
 - **"Up and about" and shoulder fractions** are geometric approximations,
   labelled `assumption`, and every figure that depends on them is labelled an
   estimate.
-- **Per-region reports.** A user who reports "red and sore" on "all exposed"
-  gives one data point for three regions with different doses. The
-  calibration uses the region with the highest dose as the evidence; this is a
-  choice to review at the tactical stage.
+- **Per-region reports.** Settled at the tactical review (R21): "normal" on
+  "all exposed" takes the highest-dose region, redness the lowest.
 - **WeatherKit in development.** Real WeatherKit calls need signing and the
   developer membership. Until then, all development and CI use the fake
   provider; the first live test is an owner criterion (S8, S9). The actual
@@ -1197,9 +1207,10 @@ the owner's to judge.
   "regular sessions" means five sessions per week at the standard scale for a
   type II, stated in the acceptance script: six weeks raises the adaptation
   factor, saturates below the cap for the skin type, lengthens the recommended
-  dose, and escalation after one week is below 25% of the eventual cap; the
-  escalation message appears when the factor passes the notice line and not
-  before, and carries the cycle total; a four-week gap after that makes the
+  dose, and escalation after one week is below 40% of the eventual cap (the
+  single-exponential rise cannot satisfy a 25% bound and still reach 0.8 in
+  three weeks); the escalation message appears when the factor passes the
+  notice line and not before, and carries the cycle total; a four-week gap after that makes the
   next recommendation materially smaller in dose (at least 25%) than the
   pre-gap one and produces the tolerance-dropped message with the amount, and
   the message is the same whether the post-gap window is at noon or in the
