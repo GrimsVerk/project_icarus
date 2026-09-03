@@ -257,9 +257,16 @@ final class CalibrationBlisterTests: XCTestCase {
     }
 
     func testTheCorrectionIsTheProtectiveFactor() throws {
+        // A blister at 2.5 SED on a type II at multiplier 1.0 implies a
+        // threshold of 2.5 / 4.0 SED, so an implied multiplier of 0.25; the
+        // protective factor cuts that further, and the clamp holds the result
+        // at its floor (R21).
         let (updated, _) = try Calib.apply(SessionFixture.report(.blistered, on: Calib.day),
                                            dose: 2.5, state: Calib.state())
-        XCTAssertEqual(updated.multiplier, 1.0 * Calib.tunables.blisterProtectiveFactor, accuracy: 1e-9)
+        let implied = 2.5 / (2.5 * 1.0 * Calib.tunables.impliedRatio(.blistered))
+        let corrected = max(Calib.tunables.multiplierClamp.lowerBound,
+                            implied * Calib.tunables.blisterProtectiveFactor)
+        XCTAssertEqual(updated.multiplier, corrected, accuracy: 1e-9)
     }
 
     func testBlisteringCorrectsPastTheConfidenceCapToo() throws {

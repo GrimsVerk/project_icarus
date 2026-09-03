@@ -156,8 +156,12 @@ final class AdaptationTolerantCreditTests: XCTestCase {
 
 /// The escalation notice and the gap notice (R13, D-2026-09-03-T1, T5).
 final class AdaptationNoticeTests: XCTestCase {
+    /// The fixture's `tanState` is the tan state as of the last session; the
+    /// notice reads a region as Replay hands it out — decayed to `now` (R44) —
+    /// so the region is faded to the clock first.
     private func notice(_ region: RegionState) -> EscalationNotice? {
-        AdaptationModel.escalationNotice(region, now: Adapt.now, skinType: .ii, tunables: Adapt.tunables)
+        let faded = AdaptationModel.decayed(region, to: Adapt.now, tunables: Adapt.tunables)
+        return AdaptationModel.escalationNotice(faded, now: Adapt.now, skinType: .ii, tunables: Adapt.tunables)
     }
 
     func testTheEscalationNoticeFiresAtHalfTheMaximumRise() {
