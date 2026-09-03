@@ -112,7 +112,12 @@ answer.
 | `IcarusUI` / `LastingColourModel` | One day's lasting-colour answer, as state: the day it is about, how the question was reached, and the answer once given. Submitting writes the answer against that day's existing report at the answer's own time, days after the report's; a day with no report is refused by the store. It decides nothing about the calibration. |
 | `IcarusUI` / `LastingColourFlow` | The question itself: one page, the day it is about, and the three answers — yes, a little, no. Answering closes the flow. No banner, no figure, no MED or SED. No approved copy names the question or its answers, so the page shows the day as a date and the answers through `PromptWords`; the missing keys are a gap for the owner. |
 | `IcarusUI` / `PromptWords` | An enum case as the words a picker shows — a mechanical camel-case split of the case name. The answer options R20 names have no approved copy key, so the flow shows the data the enum carries rather than inventing a sentence (R42). |
-| `App/` | The iOS app shell. Depends only on `IcarusUI`. `ProjectIcarusApp` builds the live environment; `RootTabs` is the two-tab shell with the foreground hook and the deep-link hook, and its Calculator tab owns the one `CalculatorModel` the entry and result screens share. It holds no logic and no copy, and it never names the ad provider: `AppEnvironment.banner(width:)` hands it a view. |
+| `IcarusUI` / `HistoryModel`, `DaySummaryRow` | The session log as data. `reload(now:)` reads the whole history from the store, keeps the sessions whose state is `logged`, groups them by the day they belong to, attaches that day's skin report when there is one, and sums each day's stored per-region dose. Days come back newest first and the sessions inside a day newest first. A discarded session and a planned one are both absent: the log is what happened. It derives nothing — the doses are the ones the records already carry (R22) — and `days` is empty until `reload` has run. |
+| `IcarusUI` / `HistoryView` | The History screen: one section per day, headed by the date, holding one row per logged session, then that day's totals per region, then the answer the user gave about their skin when they gave one. No banner and figures throughout, which is the `ScreenTable` row `acceptance/S15.sh` checks. Reached from the Calculator's toolbar and opened over it. |
+| `IcarusUI` / `SessionRow` | One logged session in the list: the window actually faced, the posture, the sunscreen confirmed at logging, and the stored dose per region through `FigureView`. Tapping it opens the detail. |
+| `IcarusUI` / `SessionDetailView` | One session's stored record, recomputing nothing: the day, the window, the posture, the cover flag, the intent, the sunscreen and the ceiling that was in force; then what the user was shown at the time — the adaptation factor and target per region, beside the dose that was stored (R22); then the forecast it was planned from — the place as coordinates, when it was fetched, the strongest hour on the stored curve, and the curve's zone. |
+| `IcarusUI` / `HistoryFormat` | How the History screens turn record data into short strings: a date and a clock time in the day's own zone, a coordinate as two numbers, a sunscreen pair as its label and application, a stored number to one decimal, and a case name split into words by the prompts' own splitter. All of it is data, so none of it goes through `AppCopy` (R42). |
+| `App/` | The iOS app shell. Depends only on `IcarusUI`. `ProjectIcarusApp` builds the live environment; `RootTabs` is the two-tab shell with the foreground hook and the deep-link hook, and its Calculator tab owns the one `CalculatorModel` the entry and result screens share and carries the toolbar item that opens History over it. It holds no logic and no copy, and it never names the ad provider: `AppEnvironment.banner(width:)` hands it a view. |
 
 Two things follow from the layout and are deliberate. `IcarusCore` depends on
 nothing, so the engine is testable on Linux and in CI without a simulator. And
@@ -902,8 +907,38 @@ descriptive suffix would be a script the check never runs.
 2. `cancelTimer` cancels the same prefix. Stopping the timer therefore takes no
    record of what was pending.
 
+### Read back the session log
+
+1. The clock symbol in the Calculator's toolbar opens `HistoryView` over the
+   Calculator (R24). History is not a third tab: the record is what the user
+   already did, not a third thing they do.
+2. The screen appears and asks `HistoryModel.reload(now:)` once. The model reads
+   the whole history from `HistoryStore`, drops every session that is not
+   `logged`, and groups the rest by `DayKey` — the day the record itself names,
+   in the zone it was decided in.
+3. Each day gets that day's `SkinReport` when one exists, and the sum of its
+   sessions' stored per-region doses. Nothing is replayed: the numbers on screen
+   are the numbers the user acted on (R22).
+4. Days sort newest first, and so do the sessions inside a day. A store that
+   cannot be read leaves an empty list rather than a stale one.
+5. A row shows the window faced, the posture, the sunscreen confirmed, and each
+   region's dose through `FigureView`. Tapping it pushes `SessionDetailView`,
+   which adds the factors and targets the user was shown, and the forecast the
+   plan came from — place, fetch time, peak UVI, zone.
+6. No heading on either screen is copy: no approved key names a column, so the
+   screens show dates, clock times, stored numbers and case names as words.
+
 ## Known rough edges
 
+- The History toolbar item is attached in `RootTabs`, outside the navigation
+  stack `CalculatorEntryView` owns, because the entry screen is another slice's
+  file. A toolbar declared outside its stack may not draw; nothing on Linux can
+  see either way, so this needs a look on a simulator, and the fix — if it is
+  needed — is one modifier moved inside that screen.
+- A session's factors and targets are shown under the figure keys closest to
+  their units, `uvaMultiple` and `rangeUpper`, because `FigureKey` has no case
+  for either. The label carries the meaning; the key does not. A case per stored
+  display figure is the tidy fix.
 - The skin check's answer options — Q1's five, Q2's four, the four regions and
   the five confounders — have no copy key. `docs/APP_COPY.md` carries the
   questions but not the answers, so the pickers show the enum case names split
