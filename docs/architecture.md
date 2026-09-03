@@ -113,9 +113,10 @@ answer.
 | `IcarusUI` / `LastingColourFlow` | The question itself: one page, the day it is about, and the three answers — yes, a little, no. Answering closes the flow. No banner, no figure, no MED or SED. No approved copy names the question or its answers, so the page shows the day as a date and the answers through `PromptWords`; the missing keys are a gap for the owner. |
 | `IcarusUI` / `PromptWords` | An enum case as the words a picker shows — a mechanical camel-case split of the case name. The answer options R20 names have no approved copy key, so the flow shows the data the enum carries rather than inventing a sentence (R42). |
 | `IcarusUI` / `HistoryModel`, `DaySummaryRow` | The session log as data. `reload(now:)` reads the whole history from the store, keeps the sessions whose state is `logged`, groups them by the day they belong to, attaches that day's skin report when there is one, and sums each day's stored per-region dose. Days come back newest first and the sessions inside a day newest first. A discarded session and a planned one are both absent: the log is what happened. It derives nothing — the doses are the ones the records already carry (R22) — and `days` is empty until `reload` has run. |
-| `IcarusUI` / `HistoryView` | The History screen: one section per day, headed by the date, holding one row per logged session, then that day's totals per region, then the answer the user gave about their skin when they gave one. No banner and figures throughout, which is the `ScreenTable` row `acceptance/S15.sh` checks. Reached from the Calculator's toolbar and opened over it. |
+| `IcarusUI` / `HistoryView` | The History screen: one section per day, headed by the date, holding one row per logged session, then that day's totals per region, then the answer the user gave about their skin when they gave one. No banner and figures throughout, which is the `ScreenTable` row `acceptance/S15.sh` checks. Reached from the Calculator's toolbar and opened over it, and its own toolbar carries the export and import actions. |
 | `IcarusUI` / `SessionRow` | One logged session in the list: the window actually faced, the posture, the sunscreen confirmed at logging, and the stored dose per region through `FigureView`. Tapping it opens the detail. |
 | `IcarusUI` / `SessionDetailView` | One session's stored record, recomputing nothing: the day, the window, the posture, the cover flag, the intent, the sunscreen and the ceiling that was in force; then what the user was shown at the time — the adaptation factor and target per region, beside the dose that was stored (R22); then the forecast it was planned from — the place as coordinates, when it was fetched, the strongest hour on the stored curve, and the curve's zone. |
+| `IcarusUI` / `ExportImportModel`, `ExportImportView` | History's own two record actions (R25). The model writes the whole record, the profile and the constant set to a temporary JSON file through `ExportService.export` and answers with its URL; it reads a picked file back through `ExportService.import`, saves the profile the file carried, drops the store's replay memo, and keeps the summary. An import that throws changes nothing — the service validates every record before writing any — and the model keeps the error instead of a summary. The view is the pair of toolbar buttons: a `ShareLink` over the exported file, and a `.json` file importer whose answer is an alert reading `importApplied` with the counts filled in, or `importFailed`. No approved key names either action, so each button is its system symbol alone. |
 | `IcarusUI` / `HistoryFormat` | How the History screens turn record data into short strings: a date and a clock time in the day's own zone, a coordinate as two numbers, a sunscreen pair as its label and application, a stored number to one decimal, and a case name split into words by the prompts' own splitter. All of it is data, so none of it goes through `AppCopy` (R42). |
 | `App/` | The iOS app shell. Depends only on `IcarusUI`. `ProjectIcarusApp` builds the live environment; `RootTabs` is the two-tab shell with the foreground hook and the deep-link hook, and its Calculator tab owns the one `CalculatorModel` the entry and result screens share and carries the toolbar item that opens History over it. It holds no logic and no copy, and it never names the ad provider: `AppEnvironment.banner(width:)` hands it a view. |
 
@@ -957,6 +958,33 @@ descriptive suffix would be a script the check never runs.
 8. The chart is one accessibility element. It reads that title and then, per
    region, the region's own words and the last cumulative dose — the numbers a
    VoiceOver user is asking for when they ask what the chart says.
+
+### Take the record out, and put one back
+
+1. History's toolbar carries `ExportImportView`. When the screen appears the
+   model writes the export once, so the share sheet has a file the moment the
+   user asks for it; until it is written the symbol is there and does nothing.
+2. The export is `ExportService.export` over the whole store, the profile, and
+   the constant set, written into the temporary directory under a name stamped
+   with the instant it was taken. Before onboarding has saved a profile the file
+   records the conservative starting profile — the one the app was replaying
+   under — rather than refusing to export.
+3. Import opens the system file picker restricted to JSON. The chosen file may
+   live outside the sandbox, so the model takes the security-scoped grant for
+   the read alone and gives it straight back.
+4. `ExportService.import` decodes, refuses a format version this build does not
+   write, validates every record, and only then replaces the history whole. So a
+   corrupt file writes nothing at all.
+5. On success the model saves the profile the file carried — a record replayed
+   under a different profile is not the record that was exported — drops the
+   store's replay memo so every screen recomputes, and keeps the summary. The
+   export is then rewritten, because the record on disk is a different record.
+6. The user is answered either way: `importApplied` with the session and report
+   counts filled in, or `importFailed`, which says in the owner's words that
+   nothing was changed. A failure the picker itself reports is answered the same
+   way, since it is the same thing to say.
+7. The file the export writes is the file the import accepts: one format, one
+   version, both sides of `ExportService` (S10).
 
 ## Known rough edges
 
