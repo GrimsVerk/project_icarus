@@ -33,6 +33,11 @@
         @Published public private(set) var state = DerivedState()
         @Published public private(set) var history = History()
 
+        /// Weekly and cycle-to-date dose per region, as the store computed them
+        /// at the last refresh (R24). Nothing here is stored: the store sums the
+        /// logged record every time it is asked.
+        @Published public private(set) var totals = Totals(week: [:], cycle: [:])
+
         public init(env: AppEnvironment) {
             self.env = env
             ceiling = env.profile.load()?.ceiling ?? AppEnvironment.startingProfile.ceiling
@@ -45,6 +50,7 @@
             let now = env.clock()
             state = await (try? env.history.state(now: now)) ?? DerivedState()
             history = await (try? env.history.history()) ?? History()
+            totals = await (try? env.history.totals(now: now)) ?? Totals(week: [:], cycle: [:])
         }
 
         // MARK: - What the screen says
