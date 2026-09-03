@@ -11,17 +11,14 @@ format: pseudocode
 
 ## Summary
 
-The first screens a person sees: onboarding with Module 1 and the app's own
-skin-type table and quiz, the inputs-only calculator, the result that shows
-every figure with its provenance, the flip timer as the session clock driven
-by the Planner, and Settings. All copy comes from `docs/APP_COPY.md` through
-IcarusContent; views hold no literal text; every screen declares its slots.
-The environment lives in IcarusUI so package models can take it. Depends on
-`learn-tab` Slice 1 (content, deep links) and Slice 2 (`ModuleView`).
-Revision 3 lands the second tactical pass.
+Onboarding, the inputs-only calculator, a result that shows every figure with
+its provenance, the flip timer driven by the Planner, and Settings. Copy comes
+from `docs/APP_COPY.md` through IcarusContent; every screen declares its
+slots; the environment lives in IcarusUI. Depends on `learn-tab` Slices 1
+and 2. Revision 3 lands the second tactical pass.
 
 Non-goals:
-- We do NOT ship real ads or the consent flow (M7); the protocol and the no-op live here, the AdMob provider in M7.
+- We do NOT ship real ads or the consent flow (M7); the protocol and no-op live here.
 - We do NOT build History screens (M6) or the prompts (M5).
 - We do NOT write copy in views; a copy-bearing call site with a literal fails S11.
 

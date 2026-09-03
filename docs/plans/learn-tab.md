@@ -11,26 +11,21 @@ format: pseudocode
 
 ## Summary
 
-The twelve Learn modules as data, one file each, generated from
-`docs/LEARN_CONTENT.md` by a script so the document stays the single source;
-a citation model that keeps every identifier as given; a Learn tab that
-renders markdown with tables and tappable citations; deep links the result
-screen can use. `[VERIFY]` markers and the preamble are never rendered.
-Slice 1 (content, deep links, the split executable) lands BEFORE
-`calculator-ui` Slice 1; Slice 2 (views, `ModuleView`) lands BEFORE
-`calculator-ui` Slice 2, which renders Module 1 with it. The MarkdownUI
-dependency is approved in `docs/DECISIONS.md` (D-2026-09-03-DEP1) before
-Slice 2's branch. Revision 3 lands the second tactical pass.
+The twelve Learn modules as data, generated from `docs/LEARN_CONTENT.md` so
+the document stays the single source; citations keep every identifier as
+given; a Learn tab with tables and tappable citations; deep links. Slice 1
+(content, deep links) lands before `calculator-ui` Slice 1; Slice 2 (views)
+before `calculator-ui` Slice 2. Revision 3 lands the second tactical pass.
 
 Non-goals:
 - We do NOT edit, paraphrase, or summarise any Learn text (V5).
-- We do NOT verify the citations here; S13 is the owner's, with the report in `docs/reviews/citations.md`.
+- We do NOT verify the citations here; S13 is the owner's, reported in `docs/reviews/citations.md`.
 - We do NOT track reading progress.
 
 Owner costs:
 - S13: check every `[VERIFY]` and addendum-flagged citation before release.
 
-Rulings: D-2026-09-03-F4, F5 (docs/DECISIONS.md); design revision 2 for markers and identifiers
+Rulings: D-2026-09-03-F4, F5, DEP1 (docs/DECISIONS.md); design revision 2 for markers and identifiers
 
 ## The slices
 
