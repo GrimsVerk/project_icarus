@@ -16,8 +16,11 @@ arithmetic over a forecast curve — and, on top of it, the budget and the
 solver (what each region may take today, and the session that fits inside
 it), the sunscreen answer, the loop that learns (the history folded into
 derived state, session by session and report by report), and the `Planner`
-that composes all of them into one typed result. The other four targets are
-placeholders.
+that composes all of them into one typed result.
+
+`IcarusData` is the M2 layer around it: the `data-layer` plan's Slice 3 adds the
+history store, its persistence seam, and the JSON export and import. The other
+three targets are placeholders.
 
 `Planner.plan` is the engine's only entry point. Everything above it — the
 data layer, the UI, the notifications — asks it one question and reads one
@@ -38,7 +41,10 @@ answer.
 | `IcarusCore` / `CalibrationEngine` | One skin report against one day's logged dose: which region it is evidence about, and what it does to that region's tan state and to the person's one sensitivity multiplier. |
 | `IcarusCore` / `Replay` | The fold. The ordered history in, the current derived state and every report's effect out. |
 | `IcarusCore` / `Planner` | The engine's one entry point. A `PlanRequest` in, a `DoseResult` out: the outcome, the budgets it was solved against, the notices, every figure with the constants behind it, and the copy keys in display order. |
-| `IcarusData` | Placeholder. Will own persistence and the forecast cache (M2). |
+| `IcarusData` | Everything that touches the disk or the outside world, behind protocols the engine never sees. Imports `IcarusCore` and Foundation; Apple frameworks sit behind `#if canImport(...)`. |
+| `IcarusData` / `HistoryPersistence` | The one seam under the history: load the whole record, replace it whole, upsert one session or one report. `MemoryPersistence` is the reference implementation and what Linux runs; `SwiftDataPersistence` is the same contract over a SwiftData container, built only where SwiftData exists. |
+| `IcarusData` / `HistoryStore` | The one way in and out of the history: it stores planned sessions, logs them, discards them, records reports and lasting colour, and answers with the replayed state and the weekly and cycle totals. Nothing derived is stored. |
+| `IcarusData` / `ExportService` | The export file (version 1), the atomic import, and the recomputation that proves a session record is enough on its own. |
 | `IcarusContent` | Placeholder. Will own generated copy and Learn content (M3). |
 | `IcarusUI` | Placeholder. Will own the SwiftUI surface (M4). Not built on Linux. |
 | `IcarusAds` | Placeholder. Will own the ad banner behind a protocol (M7). Not built on Linux. |
@@ -371,6 +377,52 @@ it does.
    app has learned. It is clamped at both ends, and hitting a clamp is the cue
    to ask the user to revisit their skin type.
 
+### Plan, log and learn from one session
+
+1. The result screen has an answer, so the caller stores a planned session with
+   `upsertPlanned`. It carries the pair the result prescribed and the intervals
+   it proposed. Replanning the same window passes the old id as `replacing`: the
+   superseded record leaves the history, and the new one's id comes back.
+2. The user goes out. `log` writes what was actually faced — the sub-intervals,
+   the sunscreen confirmed, the per-region dose after sunscreen and cover, and
+   the factors and targets that were on screen — and moves the session to
+   *logged*. The timer's stop calls the same method again on the same session,
+   which is how stopping early shortens the stored record rather than adding a
+   second one. A discarded session refuses to be logged.
+3. A planned session nobody logged is discarded either one at a time, or in bulk
+   by `discardPlanned(before:)`, which takes every planned session whose in-app
+   skin-check window closed before the cutoff.
+4. The day after, `addReport` records one skin report — a second report for the
+   same day is refused — and answers with what that report did, taken from the
+   replay that follows the write, never from a stored number. Days later,
+   `setLastingColour` writes the answer against that report at the instant it
+   was given; a day with no report refuses it.
+5. Anything that reads state calls `state(now:)`, which replays the whole
+   history under the current profile and constants. `totals(now:)` is the
+   History screen's pair: the week is the logged doses whose actual window ended
+   in the last seven days, and the cycle is each region's doses since its tan
+   cycle opened, with the cycle start taken from that same replay.
+
+### Export the history and import it back
+
+1. `ExportService.export` asks the store for the whole history and writes one
+   JSON file: the format version, the constants version the store replays under,
+   the profile, every session with its stored curve, every report, and the
+   instant it was written. Dates are ISO 8601 and keys are sorted, so the same
+   history exports to the same bytes.
+2. `ExportService.import` decodes the file, refuses a format version it does not
+   know, and validates every record — intervals that run forwards and do not
+   overlap, no negative dose, and a stored curve that rebuilds. Only then does it
+   replace the store's history in one atomic write. A file that fails any check
+   leaves the store exactly as it was.
+3. The summary reports what landed and the profile the file carried, because the
+   importing app must ask about that profile rather than assume its own.
+4. `ExportService.reproduce` recomputes a session's per-region dose from the
+   record alone: each faced interval's dose over the stored curve, summed, then
+   attenuated by the sunscreen and the cover. It needs no derived state, which
+   is what makes an exported session checkable — a session stopped before its
+   flip reproduces the doses it stored.
+
 ## State and storage
 
 `Profile` is what the user told the app; `DerivedState` is everything else the
@@ -379,11 +431,28 @@ the person, the report counts, per-region tan state and dose, and the tan-cycle
 starts. `DerivedState.initial` is a user the engine knows nothing about, and
 `Replay.replay` is how a real one is built.
 
-Nothing here persists anything. `SessionRecord` and `SkinReport` are the record
-types the history is made of, and `History.ordered()` puts them in one stream —
-logged sessions at the end of what was actually faced, reports when they were
-answered, and a lasting-colour answer at its own timestamp rather than at its
-report's.
+Nothing in `IcarusCore` persists anything. `SessionRecord` and `SkinReport` are
+the record types the history is made of, and `History.ordered()` puts them in
+one stream — logged sessions at the end of what was actually faced, reports when
+they were answered, and a lasting-colour answer at its own timestamp rather than
+at its report's.
+
+`HistoryStore` is where the record actually lives. It is an actor over a
+`HistoryPersistence`, so only one caller at a time changes the history, and it
+holds exactly one derived thing: a memo of the replayed state, keyed by the
+history itself, the constants version, the day `now` falls in (in the zone the
+history was recorded in) and the profile. Any write drops the memo, and so does
+`invalidate()`, which is what a profile change calls. A different day, a
+different profile or a different constant set is a different key, so the answer
+is recomputed rather than reused — the state is never a stored number.
+
+`MemoryPersistence` is a value type whose records live in a locked box shared by
+every copy, so handing it to the actor does not fork the history in two.
+`SwiftDataPersistence` keeps one row per record, each holding the record as its
+own JSON with the day and the state mirrored into columns for the day queries;
+the JSON is the same external shape the export uses, so the two can never drift
+apart. It opens a context per call and saves once, which is what makes
+`replaceAll` all-or-nothing.
 
 ## The success criteria that are scripts
 
