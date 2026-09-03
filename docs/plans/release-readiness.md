@@ -31,23 +31,16 @@ Rulings: D-2026-09-03-F1 (docs/DECISIONS.md); design revisions 1 and 3 for ads a
 ## Slice 1 — The AdMob provider, non-personalised, with regional consent
 
 - **Delivers:** `AdMobBannerProvider` conforms to `AdBannerProvider`, sets the non-personalised flag before any request, runs Google's consent flow once where the region requires it and serves limited ads on refusal, and is injected in release builds only; the no-op stays in tests and previews; S15's recorded-request assertion passes.
-- **Files:** `Sources/IcarusAds/AdBannerProvider.swift`, `Sources/IcarusAds/NoAdsProvider.swift`, `Sources/IcarusAds/AdMobBannerProvider.swift`, `Sources/IcarusAds/ConsentFlow.swift`, `Tests/IcarusAdsTests/AdMobConfigurationTests.swift`, `Package.swift`, `App/AppEnvironment.swift`, `acceptance/S15-ads.sh`
+- **Files:** `Sources/IcarusAds/AdMobBannerProvider.swift`, `Sources/IcarusAds/ConsentFlow.swift`, `Tests/IcarusAdsTests/AdMobConfigurationTests.swift`, `Package.swift`, `App/ProjectIcarusApp.swift`, `acceptance/S15-ads.sh`
 - **Estimate:** ~360 lines
 
 ### Signatures
 
 ```text
-public protocol AdBannerProvider: Sendable {
-    func prepare(region: ConsentRegion) async -> AdReadiness       // runs consent if required; idempotent
-    @MainActor func banner(width: CGFloat) -> AnyView?              // nil for NoAdsProvider
-    var requestConfiguration: AdRequestConfiguration { get }       // inspectable: nonPersonalised == true always
-}
-public enum ConsentRegion: Sendable, Equatable { case requiresConsent, none }
-public enum AdReadiness: Sendable, Equatable { case ready, limited, unavailable }
-public struct AdRequestConfiguration: Sendable, Equatable { public let nonPersonalised: Bool; public let consentShown: Bool }
-public struct NoAdsProvider: AdBannerProvider { public init() }
+// AdBannerProvider, ConsentRegion, AdReadiness, AdRequestConfiguration and NoAdsProvider are declared in calculator-ui Slice 1 (IcarusAds); this slice adds the SDK-backed conformer
 public final class AdMobBannerProvider: AdBannerProvider { public init(adUnitID: String) }   // Google Mobile Ads SDK + UMP behind `#if canImport(GoogleMobileAds)`
-// Package.swift: IcarusAds adds the Google Mobile Ads SPM dependency pinned exact; IcarusUI depends on IcarusAds for the protocol only
+// Package.swift: IcarusAds adds the Google Mobile Ads SPM dependency pinned exact, under the #if !os(Linux) block (approved D-2026-09-03-DEP2)
+// App/ProjectIcarusApp: the live AppEnvironment gets AdMobBannerProvider(adUnitID) instead of NoAdsProvider in release builds
 // Promises (S15): requestConfiguration.nonPersonalised == true before the first banner(); prepare(.requiresConsent) shows the consent flow once and .limited on refusal; NoAdsProvider.banner == nil; no GoogleMobileAds import outside Sources/IcarusAds
 ```
 
@@ -63,7 +56,7 @@ acceptance/S15-ads.sh: `swift test --filter IcarusAdsTests` + grep for GoogleMob
 ## Slice 2 — Live WeatherKit, entitlement, attribution, privacy policy
 
 - **Delivers:** The app target carries the WeatherKit capability and the attribution view with Apple's logo and legal link findable from every tab; the privacy policy link in Settings opens the owner's page; the live fetch on a signed device matches the built-in Weather app for the same hour and the returned horizon is recorded in Tunables (S8 owner part).
-- **Files:** `project.yml`, `App/ProjectIcarus.entitlements`, `Sources/IcarusUI/Settings/PrivacyPolicyLink.swift`, `App/AppEnvironment.swift`, `Sources/IcarusCore/Tunables.swift`, `docs/reviews/citations.md`
+- **Files:** `project.yml`, `App/ProjectIcarus.entitlements`, `Sources/IcarusUI/Settings/PrivacyPolicyLink.swift`, `Sources/IcarusCore/Tunables.swift`, `docs/reviews/citations.md`
 - **Estimate:** ~140 lines
 
 ### Signatures
@@ -79,7 +72,7 @@ public struct PrivacyPolicyLink: View { public init(url: URL) }
 ### Internals
 
 ```text
-AppEnvironment.live: swap NoAdsProvider for AdMobBannerProvider(adUnitID); PrivacyPolicyLink(url: the owner's page) wired into Settings › About; AttributionView (M3) gets the Apple asset and the legal link URL here
+PrivacyPolicyLink(url: the owner's page) wired into Settings › About; AttributionView (M3) receives the legal link URL here; Tunables.forecastHorizonDays confirmed from the live fetch
 ```
 
 ## Slice 3 — Accessibility, copy pass, TestFlight, listing
