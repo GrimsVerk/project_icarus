@@ -7,9 +7,10 @@
 
     /// Settings (R7, R21, R25, R29, R44).
     ///
-    /// Seven things in one list: how close to the tanning dose to plan, what the
+    /// Eight things in one list: how close to the tanning dose to plan, what the
     /// app has learned about the skin and how to override or reset it, how many
-    /// session days were never reported, the weather attribution, the medical
+    /// session days were never reported, the weekly and cycle-to-date dose per
+    /// region (R24), the weather attribution, the medical
     /// disclaimer, the privacy row the ad consent will reach in M7, and the
     /// record itself — export, import, delete.
     ///
@@ -39,6 +40,7 @@
                 Section {
                     Text(AppCopy.text(.unreportedDays, args: ["count": String(model.unreportedDays)]))
                 }
+                TotalsView(totals: model.totals)
                 recordSection
                 Section {
                     AttributionView(legalURL: nil)
