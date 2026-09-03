@@ -104,6 +104,12 @@ answer.
 | `IcarusUI` / `ManualLocationSheet` | "Change place": typed text through a `PlaceResolver` — Apple's geocoder on a device — and the chosen place pinned on the location service, which then refetches and recomputes. |
 | `IcarusAds` | The ad banner behind a protocol (R40); the only package that will import the SDK. Not built on Linux. |
 | `IcarusAds` / `AdBannerProvider`, `NoAdsProvider` | The whole surface the app has on advertising: prepare for a region (which is where the consent flow will live), a banner view for a width or nil, and the flags every request carries. `NoAdsProvider` shows nothing, asks for nothing, and reports non-personalised — it is what previews, tests, CI and the app itself use until M7. |
+| `IcarusUI` / `SkinCheckModel` | One day's skin check, as state: the sessions still to account for, Q1, Q2, the region and the confounders, and the one report they become. "Yes" on a session sums the confirmed intervals through `ExposureModel` and logs the attenuated dose; "no" discards it. `canSubmit` holds only with something logged that day, Q1 answered, and Q2 answered whenever Q1 named redness. Submitting writes the report, has the store say what it did to the calibration, and schedules the lasting-colour question. `confirmationKey(for:)` maps that effect to the line the user is shown. |
+| `IcarusUI` / `SkinCheckFlow` | The day-after check in R20's order: the unaccounted sessions, then how the skin looks, when the colour showed up, which region, and anything unusual — then the confirmation line. A day with nothing logged is a dead end that records nothing. No banner, no figure, no MED or SED. |
+| `IcarusUI` / `DidYouDoThisView`, `IntervalEditor` | One planned session's question. "Yes" asks what was worn — the prescribed pair, another product, or none — and then offers the planned times to correct before the session is logged; "no" discards it. The editor moves a start or an end and never lets one cross the other. A session with no prescription is never offered "as prescribed". |
+| `IcarusUI` / `NotificationRouting`, `RoutedPromptView` | A tapped notification's identifier turned into a question: `PromptScheduler` reads the day back out of it and the prefix says which question. An identifier the app did not build routes to the in-app card instead, so a tap never opens the wrong day. |
+| `IcarusUI` / `DuePromptsCard` | What is due right now, in the app: the scheduler's `dueInApp` as rows, each opening its flow, re-read when one closes. The fallback for a notification that was never allowed or never answered. |
+| `IcarusUI` / `PromptWords` | An enum case as the words a picker shows — a mechanical camel-case split of the case name. The answer options R20 names have no approved copy key, so the flow shows the data the enum carries rather than inventing a sentence (R42). |
 | `App/` | The iOS app shell. Depends only on `IcarusUI`. `ProjectIcarusApp` builds the live environment; `RootTabs` is the two-tab shell with the foreground hook and the deep-link hook, and its Calculator tab owns the one `CalculatorModel` the entry and result screens share. It holds no logic and no copy, and it never names the ad provider: `AppEnvironment.banner(width:)` hands it a view. |
 
 Two things follow from the layout and are deliberate. `IcarusCore` depends on
@@ -822,6 +828,35 @@ descriptive suffix would be a script the check never runs.
    whatever zone the host is in. That is how a tapped notification knows which
    day it is asking about.
 
+### Answer the day-after skin check
+
+1. The user taps the notification, or a row on the in-app card. The shell knows
+   only the identifier: `NotificationRouting` turns it into the day and the
+   question, and anything it does not recognise opens the card instead.
+2. `SkinCheckModel` reads the day out of the store: which sessions are still
+   planned, and whether anything on the day is logged already.
+3. Each still-planned session is asked about in turn. "Yes" asks what was worn,
+   then offers the planned intervals to correct; the dose is the sum over those
+   intervals through `ExposureModel.dose`, attenuated once by the pair confirmed
+   and by the cover, and the store logs it with the factors and targets the
+   session was planned under. "No" discards the session. Either way it leaves
+   the list.
+4. With nothing left planned, a day that has something logged goes on to Q1; a
+   day that has nothing says so and records nothing at all — there is no dose
+   for the report to be evidence about (D-2026-09-03-T4).
+5. Q1 is the five answers; Q2 is asked only after one that names redness, and a
+   report is not submittable without it. Then the region, which defaults to "all
+   exposed", and the confounders, any number of them.
+6. Submitting writes one `SkinReport` for the day. The store folds it into the
+   replay and answers with the `CalibrationEffect` that report produced; a
+   second report for the same day is refused and shown the "already reported"
+   line. Recording it also schedules the lasting-colour question, four days
+   after this answer.
+7. The confirmation is the line the effect chose: the clamp asks the user to
+   revisit their skin type, a blister correction suggests the pause and names
+   its length, immediate darkening explains itself, a day with no dose says so,
+   and everything else is "report saved".
+
 ### When the system will not alert
 
 1. Every schedule asks the port for authorization first. Anything but `granted`
@@ -851,6 +886,12 @@ descriptive suffix would be a script the check never runs.
 
 ## Known rough edges
 
+- The skin check's answer options — Q1's five, Q2's four, the four regions and
+  the five confounders — have no copy key. `docs/APP_COPY.md` carries the
+  questions but not the answers, so the pickers show the enum case names split
+  into words. That is data rather than an invented sentence, but the words the
+  user reads are not words the owner approved: the keys are a gap in the plan
+  for the owner to close.
 - A `Planner.plan` call solves the session twice over: once to learn which
   constants the solve reads and once for the answer. It is bounded — the worst
   case measured here, a ten-hour lying window on a cached curve, is about 13 ms
