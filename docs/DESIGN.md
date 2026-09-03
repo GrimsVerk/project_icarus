@@ -352,9 +352,9 @@ Adaptation
   the second session; it says the threshold has risen, shows the limiting region's
   cycle-to-date cumulative dose in SED beside it in the same type size as the
   recommendation, and links to Learn Module 6. The gap message shows when a
-  gap of more than two weeks (tunable) has reduced that factor by at least the
-  same fraction from its value at the last logged session; it says tolerance
-  has dropped and by how much. Both messages speak of tolerance and dose,
+  gap of more than two weeks (tunable) has undone at least that same fraction
+  of the rise the factor had achieved by the last logged session, inclusive at
+  the half-life boundary; it says tolerance has dropped and by how much. Both messages speak of tolerance and dose,
   never of minutes, so they stay true when today's window differs from the
   last one. "Season" in this document means the current tan cycle; History
   may also show the calendar year, labelled. — *Evidenced by:* S4, S6
@@ -366,7 +366,8 @@ Adaptation
   lasting-colour prompt returns "no" repeatedly (tunable count), the
   recommendation drops to a maintenance dose (`maintenanceFraction`, default
   0.7 of the current target, tunable) and stays there until a later "yes" or
-  "a little". "Near saturation" means `tanState ≥ plateauTanState` (R12).
+  "a little"; the outcome persists on that count, never on the tan state
+  re-read at plan time, so it does not flicker with a weekend's decay. "Near saturation" means `tanState ≥ plateauTanState` (R12).
   With a redness bound for that region in the current cycle the copy says the
   user has likely reached their biological maximum and that more buys damage
   without colour. Without that bound the copy says the app
@@ -1207,9 +1208,9 @@ the owner's to judge.
   "regular sessions" means five sessions per week at the standard scale for a
   type II, stated in the acceptance script: six weeks raises the adaptation
   factor, saturates below the cap for the skin type, lengthens the recommended
-  dose, and escalation after one week is below 40% of the eventual cap (the
-  single-exponential rise cannot satisfy a 25% bound and still reach 0.8 in
-  three weeks); the escalation message appears when the factor passes the
+  dose, and escalation after one week is below 50% of the eventual cap (the
+  rise solved with the decay reaches 0.47 of the cap after five sessions and
+  cannot satisfy a tighter bound and still reach 0.8 in three weeks); the escalation message appears when the factor passes the
   notice line and not before, and carries the cycle total; a four-week gap after that makes the
   next recommendation materially smaller in dose (at least 25%) than the
   pre-gap one and produces the tolerance-dropped message with the amount, and
