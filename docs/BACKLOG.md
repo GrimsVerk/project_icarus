@@ -73,3 +73,6 @@ _(nothing yet)_
 _(nothing yet — filed by `/plan` when a design leaves a question open; format:_
 _`BL-<n>` — the question, the proposed default, HIGH or LOW risk, one line on_
 _why that class, and `— filed by: plan`.)_
+
+- **BL-2** — The skin-check and lasting-colour flows show answer options (Q1's five answers, Q2's four timings, the region names, the five confounders, yes / a little / no) and the Learn tab needs a title, but `docs/APP_COPY.md` has no keys for them; the M5 and M4 views show the enum names split into words as data. Proposed default: the owner adds those keys to `docs/APP_COPY.md` (S17) and Core's `CopyKey` list, then a one-slice plan wires them. **LOW**: wording only, no schema; the views change one call each. — filed by: coder (the M5 orchestrator, at assembly)
+
