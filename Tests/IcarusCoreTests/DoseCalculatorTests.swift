@@ -90,7 +90,7 @@ final class StoredCurveTests: XCTestCase {
         let curve = try Curves.ramp()
         let day = curve.day(Curves.date(2026, 6, 15, 12))
         let stored = curve.stored(for: day)
-        XCTAssertEqual(stored.timeZoneID, "UTC")
+        XCTAssertEqual(stored.timeZoneID, Curves.zone.identifier)
         XCTAssertEqual(stored.location, Curves.location)
         XCTAssertEqual(stored.solarNoon, Curves.date(2026, 6, 15, 12))
     }
