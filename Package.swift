@@ -14,7 +14,10 @@ var products: [Product] = [
 var targets: [Target] = [
     .target(name: "IcarusCore"),
     .target(name: "IcarusContent", resources: [.copy("Resources")]),
-    .target(name: "IcarusData", dependencies: ["IcarusCore"]),
+    .target(name: "IcarusData", dependencies: ["IcarusCore"], resources: [.copy("Resources")]),
+    // The Learn module files are generated from docs/LEARN_CONTENT.md by this
+    // executable (D-2026-09-03-F4). It is Linux-safe, so it is always built.
+    .executableTarget(name: "split-learn-content", dependencies: ["IcarusContent"]),
     .testTarget(name: "IcarusCoreTests", dependencies: ["IcarusCore"]),
     .testTarget(name: "IcarusContentTests", dependencies: ["IcarusContent"]),
     .testTarget(name: "IcarusDataTests", dependencies: ["IcarusData"]),

@@ -16,8 +16,18 @@ arithmetic over a forecast curve — and, on top of it, the budget and the
 solver (what each region may take today, and the session that fits inside
 it), the sunscreen answer, the loop that learns (the history folded into
 derived state, session by session and report by report), and the `Planner`
-that composes all of them into one typed result. The other four targets are
-placeholders.
+that composes all of them into one typed result.
+
+As of Slice 1 of the `data-layer` plan, `IcarusData` exists too: the forecast
+side of it. It fetches a forecast through a provider protocol — WeatherKit on
+Apple platforms, a fake that replays a recorded answer everywhere — keeps the
+last good curve in one file, refetches only at the ruled cadence, and names
+every failure it meets.
+`IcarusData` is the M2 layer around it: the `data-layer` plan's Slice 3 adds the
+history store, its persistence seam, and the JSON export and import. As of Slice
+1 of the `learn-tab` plan, `IcarusContent` carries the Learn text as data: the
+twelve modules, their citations, and the `icarus://learn/<n>` deep links.
+`IcarusUI` and `IcarusAds` are still placeholders.
 
 `Planner.plan` is the engine's only entry point. Everything above it — the
 data layer, the UI, the notifications — asks it one question and reads one
@@ -38,8 +48,27 @@ answer.
 | `IcarusCore` / `CalibrationEngine` | One skin report against one day's logged dose: which region it is evidence about, and what it does to that region's tan state and to the person's one sensitivity multiplier. |
 | `IcarusCore` / `Replay` | The fold. The ordered history in, the current derived state and every report's effect out. |
 | `IcarusCore` / `Planner` | The engine's one entry point. A `PlanRequest` in, a `DoseResult` out: the outcome, the budgets it was solved against, the notices, every figure with the constants behind it, and the copy keys in display order. |
-| `IcarusData` | Placeholder. Will own persistence and the forecast cache (M2). |
+| `IcarusData` | Everything that touches the outside world or the disk, behind protocols the engine never sees: the forecast provider and cache, location, the history store and its persistence, export and import, and the prompts. Imports `IcarusCore` and Foundation; Apple frameworks sit behind `#if canImport(...)`. |
+| `IcarusData` / `UVForecastProvider` | The seam a forecast comes through: hourly UVI, solar noon per day, the place's time zone, and the horizon asked for. Its failures are named — unavailable, unauthorized, network. |
+| `IcarusData` / `WeatherKitProvider` | The live source, built only where WeatherKit is. It maps its answer into the recorded response shape first, so the mapping is one pure function tested on every platform; the place's zone comes from a reverse geocode, cached per coordinate. |
+| `IcarusData` / `FakeForecastProvider` | Replays a recorded answer, with an optional delay, a forced failure, or a deliberately malformed answer. Ships the `beach-oslo` fixture, so the whole engine runs end to end with no network. |
+| `IcarusData` / `ForecastCacheStore` | One forecast, kept, with the name of the provider it came from. `FileForecastCache` is a JSON file written by temp-and-rename; `MemoryForecastCache` is the same thing without a disk. |
+| `IcarusData` / `ForecastService` | The one way into a forecast: the cadence, the cache, and the named failure. Answers `.fresh`, `.cached` with the reason, or `.none` with the failure. |
+| `IcarusData` / `LocationService` | Where the user is (R2). One actor over a `LocationSource` and a `PlaceResolver`; a manual place, once set, wins over the device. |
+| `IcarusData` / geocoding | `Place` — a name, a coordinate and the zone the day boundaries are read in — plus the resolver that turns typed text into candidate places. `AppleGeocoder` on Apple platforms, `FakePlaceResolver` (a table) everywhere. |
+| `IcarusData` / `HistoryPersistence` | The one seam under the history: load the whole record, replace it whole, upsert one session or one report. `MemoryPersistence` is the reference implementation and what Linux runs; `SwiftDataPersistence` is the same contract over a SwiftData container, built only where SwiftData exists. |
+| `IcarusData` / `HistoryStore` | The one way in and out of the history: it stores planned sessions, logs them, discards them, records reports and lasting colour, and answers with the replayed state and the weekly and cycle totals. Nothing derived is stored. |
+| `IcarusData` / `ExportService` | The export file (version 1), the atomic import, and the recomputation that proves a session record is enough on its own. |
+| `IcarusData` / `PromptScheduler` | Every prompt the app makes: the skin check about a day's sessions, the lasting-colour question about a report, the flip timer's alerts, and the in-app fallback for anything the system never delivered. |
+| `IcarusData` / `NotificationPort` | The system notification centre, as the only four things this layer needs from it. `FakeNotificationPort` records; `UserNotificationAdapter` is the real one, and exists only where `UserNotifications` does. |
 | `IcarusContent` | Placeholder. Will own generated copy and Learn content (M3). |
+| `IcarusContent` | The text the app shows, as data. Imports Foundation only. Owns the twelve Learn modules, their citations, and the app's deep links; generated copy is still to come (M3). |
+| `IcarusContent` / `LearnSource` | Reading `docs/LEARN_CONTENT.md`. `split` cuts it into its twelve sections verbatim, markers kept; `normalise` removes exactly the build annotations — every `[VERIFY]` token with its backticks, the preamble above Module 1 — and trailing whitespace. Nothing else is ever changed: no text is edited, paraphrased or summarised. |
+| `IcarusContent` / `LearnModule` | One module: its id (1...12, a `ModuleID`), its heading title, its body with the markers stripped, and its citations. Built from the text of one bundled file. |
+| `IcarusContent` / `Citation` | One `> - ` line of a `> **Sources**` block: authors, title, venue, year, the identifier the source carries (`doi`, `pmid`, `iso`, `url` or none) and `needsVerification`. `link` resolves a DOI through doi.org and a PMID through PubMed; an ISO number and a citation with no identifier have no link and render as text. |
+| `IcarusContent` / `ModuleIndex` | The twelve modules, loaded once from `Bundle.module` at `Resources/Learn/module-NN.md`, plus lookup by id and the deep link for a module. |
+| `IcarusContent` / `DeepLink` | `icarus://learn/<n>` in both directions, as pure value work, so the app's router (M3) maps a URL to a screen without reaching further into the content layer. |
+| `split-learn-content` | The executable that generates the module files from the document. Linux-safe, so it is always built. `scripts/split-learn-content.sh` is the one command that runs it. |
 | `IcarusUI` | Placeholder. Will own the SwiftUI surface (M4). Not built on Linux. |
 | `IcarusAds` | Placeholder. Will own the ad banner behind a protocol (M7). Not built on Linux. |
 | `App/` | The iOS app shell. Depends only on `IcarusUI`. |
@@ -51,8 +80,14 @@ manifest, so a Linux build sees exactly Core, Content and Data.
 
 ## Data flow
 
-The engine is given data; it never fetches any.
+The engine is given data; it never fetches any. `IcarusData` is what gives it.
 
+- A coordinate and a clock --> `ForecastService.current` --(a `ForecastResult`)-->
+  the caller. Inside: the cache is read, and either answers as it stands or a
+  provider is asked; a good answer becomes a `ForecastCurve` and is saved.
+- A provider --(`ProviderForecast`: hourly samples, solar noon per day, the
+  place's zone)--> `ForecastService` --(`ForecastCurve`)--> the engine. The
+  curve is the only forecast shape that leaves the data layer.
 - A caller supplies hourly UVI samples, a place, a time zone and a fetch time
   → `ForecastCurve`, which integrates them once into a one-minute prefix
   integral of SED. Every later dose question is two lookups and a subtraction.
@@ -94,6 +129,81 @@ Dictionaries keyed by `Region` encode as JSON objects keyed `front` / `back` /
 has a string raw value, so the export is readable and stable.
 
 ## Main paths
+
+### Get a forecast for a place
+
+1. `ForecastService.current(for:now:)` reads the cache first. A cache that
+   cannot be read is not an error here: it is treated as no cache, and the
+   fetch goes ahead.
+2. The cached curve answers as it stands when it is **both** less than
+   `fetchMinIntervalHours` (one hour) old **and** within `fetchMoveKm` (10 km)
+   of the place asked about. The answer says why: `.cached(curve,
+   .withinInterval)`. `force: true` skips this test entirely.
+3. Otherwise the provider is asked for `forecastHorizonDays` days. Its answer
+   becomes a `ForecastCurve` built at `now`, with the place's own time zone, and
+   is saved to the cache before it is returned as `.fresh`.
+4. Every failure is named and none is flattened into "offline". A provider that
+   refuses is `.provider`; an answer no curve can be built from — too few
+   samples, samples out of order — is `.malformed`, never reported as a provider
+   failure, because the two send the user to different remedies.
+5. A failed fetch with a cache present answers `.cached(curve,
+   .providerFailed(failure))`: the last good forecast, with the reason attached.
+   With no cache it answers `.none(failure)`.
+6. `cached()` is the read-only door. It never fetches, and answers whatever is
+   on disk whatever its age; a cache that is empty or unreadable is
+   `.none(.cacheUnreadable(reason))`.
+
+### Record a forecast, and read it back after a relaunch
+
+1. A save encodes the curve and the provider's name, writes a temporary file
+   beside the target, and renames it over the old one. A save cut off halfway
+   leaves the previous forecast whole rather than a half-written one.
+2. Dates are ISO 8601 in both directions. The round trip keeps the place, the
+   fetch time, the horizon, every sample, and the solar noon of every day.
+3. A file that decodes into nothing usable throws, which is what turns
+   `cached()` into a named `.cacheUnreadable` rather than a silent empty.
+
+### Replay a recorded WeatherKit answer
+
+1. The recorded shape is `hours`, `days`, and a time-zone identifier — what
+   WeatherKit actually gives, written down. The live provider maps its answer
+   into that shape and then through the same function the fixtures use, so the
+   part that can be wrong is exercised on Linux with no framework present.
+2. The mapping keeps the hours in order as UVI doubles, keys each day's solar
+   noon by the day it falls on **in the forecast's own zone**, and fails with a
+   named `unavailable("time zone")` on an identifier it does not know.
+3. `FakeForecastProvider.fixture(named:)` loads such a file from the target's
+   own resources. `beach-oslo` is ten days from 2026-06-15, hourly, a daytime
+   hump peaking at UVI 7, solar noon at 11:15 UTC each day, Europe/Oslo.
+### Decide where the user is
+
+The engine is told a coordinate; it never asks for one. `LocationService` is
+what answers that question, and it answers it in one of three ways (R2).
+
+1. A manual place, if the user has set one, is the answer — `useManual` pins it
+   and `clearManual` releases it. It wins over the device unconditionally: the
+   user said where they are, and the app does not argue with them.
+2. Otherwise the device source is asked for one reading. A fix becomes the
+   device answer; a denial or a failure is returned **as itself**, so the caller
+   can offer manual entry with the true reason rather than a generic "no
+   location". `LocationAnswer.coordinate` is the coordinate to fetch a forecast
+   for, and is nil exactly when a place is still needed.
+3. Typed text goes through the `PlaceResolver` and comes back as candidate
+   places, each carrying its own time zone — the zone the day boundaries and the
+   forecast for that place are read in. Text the resolver does not know resolves
+   to no candidates, not to an error.
+4. On Apple platforms the source is one CoreLocation request at kilometre
+   accuracy with when-in-use permission: a single fix, never a running manager,
+   and it gives up after ten seconds as unavailable rather than waiting forever.
+   Both the real source and the real geocoder are compiled only where
+   CoreLocation exists; the Linux build and its tests see the protocols, the
+   fakes and the actor.
+
+How far the device has drifted from the place the cached forecast is for is a
+question about two coordinates, answered by `Coordinate.distanceKm(to:)` in the
+engine's own vocabulary: the caller compares this answer's coordinate with the
+cached curve's location. That one distance is what R1's 10 km refetch and R3's
+25 km staleness warning are both measured with.
 
 ### Compute a dose over a window
 
@@ -371,6 +481,72 @@ it does.
    app has learned. It is clamped at both ends, and hitting a clamp is the cue
    to ask the user to revisit their skin type.
 
+### Plan, log and learn from one session
+
+1. The result screen has an answer, so the caller stores a planned session with
+   `upsertPlanned`. It carries the pair the result prescribed and the intervals
+   it proposed. Replanning the same window passes the old id as `replacing`: the
+   superseded record leaves the history, and the new one's id comes back.
+2. The user goes out. `log` writes what was actually faced — the sub-intervals,
+   the sunscreen confirmed, the per-region dose after sunscreen and cover, and
+   the factors and targets that were on screen — and moves the session to
+   *logged*. The timer's stop calls the same method again on the same session,
+   which is how stopping early shortens the stored record rather than adding a
+   second one. A discarded session refuses to be logged.
+3. A planned session nobody logged is discarded either one at a time, or in bulk
+   by `discardPlanned(before:)`, which takes every planned session whose in-app
+   skin-check window closed before the cutoff.
+4. The day after, `addReport` records one skin report — a second report for the
+   same day is refused — and answers with what that report did, taken from the
+   replay that follows the write, never from a stored number. Days later,
+   `setLastingColour` writes the answer against that report at the instant it
+   was given; a day with no report refuses it.
+5. Anything that reads state calls `state(now:)`, which replays the whole
+   history under the current profile and constants. `totals(now:)` is the
+   History screen's pair: the week is the logged doses whose actual window ended
+   in the last seven days, and the cycle is each region's doses since its tan
+   cycle opened, with the cycle start taken from that same replay.
+
+### Export the history and import it back
+
+1. `ExportService.export` asks the store for the whole history and writes one
+   JSON file: the format version, the constants version the store replays under,
+   the profile, every session with its stored curve, every report, and the
+   instant it was written. Dates are ISO 8601 and keys are sorted, so the same
+   history exports to the same bytes.
+2. `ExportService.import` decodes the file, refuses a format version it does not
+   know, and validates every record — intervals that run forwards and do not
+   overlap, no negative dose, and a stored curve that rebuilds. Only then does it
+   replace the store's history in one atomic write. A file that fails any check
+   leaves the store exactly as it was.
+3. The summary reports what landed and the profile the file carried, because the
+   importing app must ask about that profile rather than assume its own.
+4. `ExportService.reproduce` recomputes a session's per-region dose from the
+   record alone: each faced interval's dose over the stored curve, summed, then
+   attenuated by the sunscreen and the cover. It needs no derived state, which
+   is what makes an exported session checkable — a session stopped before its
+   flip reproduces the doses it stored.
+
+### Read a Learn module
+
+`docs/LEARN_CONTENT.md` is the only place the Learn text is written. The
+generator splits it into `Sources/IcarusContent/Resources/Learn/module-NN.md`,
+one file per module, verbatim — `[VERIFY]` markers included — and those files
+are committed (D-2026-09-03-F4). Nothing hand-splits them.
+
+At load, `ModuleIndex` reads all twelve files from the bundle once. For each
+file it takes the heading text after the em dash as the title, parses the
+citations from the file text **before** anything is stripped — so a citation
+knows it carried a `[VERIFY]` marker without a sidecar file to keep in step —
+and then normalises the text into the body the app renders. A citation keeps the
+identifier the source gave it and only that one; a citation with no identifier
+is still listed, as text.
+
+Drift is what `acceptance/S7.sh` catches: it regenerates the files into a
+temporary directory and diffs them byte for byte against the committed ones, so
+an edit to the document that was never regenerated, or an edit to a module file
+that was never made in the document, fails before it ships.
+
 ## State and storage
 
 `Profile` is what the user told the app; `DerivedState` is everything else the
@@ -379,11 +555,33 @@ the person, the report counts, per-region tan state and dose, and the tan-cycle
 starts. `DerivedState.initial` is a user the engine knows nothing about, and
 `Replay.replay` is how a real one is built.
 
-Nothing here persists anything. `SessionRecord` and `SkinReport` are the record
+Nothing in `IcarusCore` persists anything. Two things are stored, both by
+`IcarusData`: the forecast — one `CachedForecast`, a curve and the provider's
+name, in `forecast.json` in whatever directory the caller gives
+`FileForecastCache` — and the history, through `HistoryPersistence` (SwiftData
+on Apple platforms, memory everywhere else), described below.
+
+`SessionRecord` and `SkinReport` are the record
 types the history is made of, and `History.ordered()` puts them in one stream —
 logged sessions at the end of what was actually faced, reports when they were
 answered, and a lasting-colour answer at its own timestamp rather than at its
 report's.
+`HistoryStore` is where the record actually lives. It is an actor over a
+`HistoryPersistence`, so only one caller at a time changes the history, and it
+holds exactly one derived thing: a memo of the replayed state, keyed by the
+history itself, the constants version, the day `now` falls in (in the zone the
+history was recorded in) and the profile. Any write drops the memo, and so does
+`invalidate()`, which is what a profile change calls. A different day, a
+different profile or a different constant set is a different key, so the answer
+is recomputed rather than reused — the state is never a stored number.
+
+`MemoryPersistence` is a value type whose records live in a locked box shared by
+every copy, so handing it to the actor does not fork the history in two.
+`SwiftDataPersistence` keeps one row per record, each holding the record as its
+own JSON with the day and the state mirrored into columns for the day queries;
+the JSON is the same external shape the export uses, so the two can never drift
+apart. It opens a context per call and saves once, which is what makes
+`replaceAll` all-or-nothing.
 
 ## The success criteria that are scripts
 
@@ -395,18 +593,68 @@ fixtures" must not read like "every fixture passed". Both take class-name
 prefixes rather than exact names, because the classes are split by subject and
 the fixtures are written blind.
 
+`acceptance/S7.sh` proves the Learn content twice over: the committed module
+files are regenerated and diffed byte for byte against the document, then the
+`IcarusContentTests` suite runs against the bundled files.
+
 The file names are `S<n>.sh` exactly: `.github/scripts/acceptance-criteria.sh`
 matches a criterion id to `acceptance/S<n>.sh` and runs nothing else, so a
 descriptive suffix would be a script the check never runs.
 
+### Ask about a day's skin, once
+
+1. The store tells `PromptScheduler` that a day's planned-or-logged sessions
+   changed, and gives it the end of the last of them. The scheduler never counts
+   sessions itself and never reads the history for this.
+2. The identifier is the day: `"skin-" + day.id`. So the scheduler cancels that
+   identifier and schedules one alert at the last session's end plus
+   `skinCheckDelayHours` (20 h). A later session on the same day simply moves the
+   same alert; there is only ever one per day, and no bookkeeping to lose.
+3. `lastSessionEnd` of nil means the day's last session was discarded. Both of
+   the day's questions — the skin check and the lasting colour — are cancelled.
+4. A report about the day is the only thing that schedules the lasting-colour
+   question, at the answer's time plus `lastingColourDelayDays` (4 d), under
+   `"colour-" + day.id`. It is asked days after the answer, not after the
+   session, so a report given late moves it. Adding the report does not cancel
+   the day's skin check.
+5. `PromptScheduler.day(fromNotificationID:)` reads either identifier back to the
+   day it is about, because `DayKey.id` carries its own time zone and round-trips
+   whatever zone the host is in. That is how a tapped notification knows which
+   day it is asking about.
+
+### When the system will not alert
+
+1. Every schedule asks the port for authorization first. Anything but `granted`
+   drops the request rather than pretending it is pending. Cancelling is
+   unconditional.
+2. `dueInApp(history:now:)` is then what surfaces the question. It is a pure
+   read of the history against the clock, so it also covers a prompt that fired
+   and went unanswered.
+3. A day with a planned or logged session and no report is due for the skin
+   check while now sits inside `inAppSkinCheckWindowHours` (12 h to 72 h) after
+   that day's last session — the actual end when the session was logged, the
+   planned end when it was not.
+4. A report with no lasting-colour answer is due for that question while now
+   sits inside `inAppLastingColourWindowDays` (3 d to 10 d) after the answer.
+5. At most one question per day comes back, ordered by day, so the launch path
+   asks them in a stable order.
+
+### Alert through a flip timer
+
+1. `scheduleTimer` replaces the whole set: it cancels everything under
+   `"timer-"`, then schedules the first side's end (`"timer-side"`, absent for a
+   standing session), one alert per reapplication time
+   (`"timer-reapply-<index>"`, from zero), and the session's end
+   (`"timer-end"`).
+2. `cancelTimer` cancels the same prefix. Stopping the timer therefore takes no
+   record of what was pending.
+
 ## Known rough edges
 
-- A `Planner.plan` call solves the session twice over: once to learn which
-  constants the solve reads and once for the answer. It is bounded — the worst
-  case measured here, a ten-hour lying window on a cached curve, is about 13 ms
-  in a debug build against the 100 ms R38 allows — but it is a doubling, and the
-  reason for it is the sink-replacing shape of `Tunables.recording(_:)` rather
-  than anything the planner wants.
+- A `Planner.plan` call solves each step once, through a `Tunables` copy that
+  reports every constant it reads both to the caller's observer and to the
+  planner's own bookkeeping (`Tunables.alsoRecording`), so provenance costs
+  no second solve.
 - The UVA-heavy threshold is read for a notice, not for a number, so its key is
   folded into the headline figure. That makes the headline an estimate on
   grounds it did not quite use. The alternative — dropping the key — would break
@@ -470,6 +718,45 @@ descriptive suffix would be a script the check never runs.
   key naming a goal; it returns `boundByMelanogenic`, the nearest thing to a
   line about the tanning threshold. When the vitamin D goal lands (M8) both
   goals will want a key of their own.
+- A fetch that succeeds but whose cache write fails still answers `.fresh`. The
+  forecast in hand is worth more than the record of it, and the next call simply
+  fetches again.
+- When the cache is unreadable **and** the provider fails, `current()` reports
+  the provider's failure, not the cache's. The cache failure is still reachable:
+  `cached()` names it.
+- `MemoryForecastCache` is a value type holding a locked box, so every copy of
+  one shares the same forecast. That is what makes it usable as a stand-in for a
+  file, and it is not what a value type usually means.
+- `WeatherKitProvider` exists on Linux too, and every call there fails with
+  `unavailable("WeatherKit is not available on this platform")`. The engine is
+  built against the protocol, so the type must exist to be named; the live path
+  cannot be run or verified until the entitlement lands (M7).
+- The fixture bundle is declared as `.copy("Resources")` on `IcarusData`, so the
+  fixture's path inside the bundle is `Resources/Fixtures/<name>.json`. The test
+  target declares no resources of its own; a test needing a fixture either loads
+  `beach-oslo` through the provider or carries its own JSON as a literal.
+- `ForecastCurveError` gained `Sendable` in `IcarusCore` so `ForecastFailure`
+  can carry it across an actor boundary. Its cases and meaning are unchanged.
+- `LocationService.location(now:)` takes a clock it does not use. The parameter
+  is the plan's declared signature, and it is the seam a later rule about how
+  long a fix stays good would need; today the answer depends only on whether a
+  manual place is set and on what the source says.
+- `CoreLocationSource` and `AppleGeocoder` are not exercised by any test: they
+  exist only where CoreLocation does, and the Linux suite runs the fakes. Their
+  first real evidence is the owner's on-device criterion (S8, S9).
+- The notification words in `UserNotificationAdapter` are plain English written
+  in place, not resolved copy: the content layer is M3. The skin check carries
+  its `CopyKey` in the request's `userInfo` so the copy can be swapped without
+  changing the identifiers; the other kinds have no key in the closed `CopyKey`
+  list, so they carry none.
+- `PromptScheduler` asks the port for authorization on every schedule rather
+  than caching it. That is one extra hop per alert, and it is deliberate: the
+  user can revoke permission between two sessions, and a cached "granted" would
+  schedule alerts that never arrive while the in-app fallback stayed quiet.
+- Cancelling is a prefix match, and a day's identifier is a whole `DayKey.id`.
+  No other identifier can extend one, because a time-zone name is never a prefix
+  of another time-zone name in the same position — but it is a prefix match, not
+  an exact one, and that is the assumption it rests on.
 - `.swiftlint.yml` disables `trailing_comma` because SwiftFormat's
   `trailingCommas` rule adds exactly what it removes, and both run in CI; and
   it excludes the short names the design fixes (skin types `i`–`vi`, the
