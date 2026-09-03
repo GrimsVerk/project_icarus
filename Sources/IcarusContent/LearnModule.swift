@@ -33,18 +33,6 @@ public struct ModuleID: RawRepresentable, Hashable, Codable, Sendable {
     }
 }
 
-extension ModuleID: ExpressibleByIntegerLiteral {
-    /// Literals are for call sites that know the number is a real module — a
-    /// deep link to module 6, say. An out-of-range literal is a programming
-    /// error and traps; parsed input goes through `init?` instead.
-    public init(integerLiteral value: Int) {
-        guard let id = ModuleID(rawValue: value) else {
-            preconditionFailure("module id \(value) is outside 1...12")
-        }
-        self = id
-    }
-}
-
 extension ModuleID: CustomStringConvertible {
     public var description: String {
         String(rawValue)
