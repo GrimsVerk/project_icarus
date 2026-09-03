@@ -229,8 +229,11 @@ final class PlaceResolutionTests: XCTestCase {
 
     func testTheEncodedPlaceNamesItsZoneByIdentifier() throws {
         let data = try JSONEncoder().encode(Fixed.nice)
-        let json = try XCTUnwrap(String(data: data, encoding: .utf8))
-        XCTAssertTrue(json.contains("Europe/Paris"), "expected the zone identifier in \(json)")
-        XCTAssertTrue(json.contains("Nice"), "expected the place name in \(json)")
+        // Read the JSON back as JSON: Foundation escapes "/" as "\/" in the
+        // raw text, so a substring match on the identifier would fail while
+        // the encoded value is exactly right.
+        let object = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
+        XCTAssertEqual(object["timeZone"] as? String, "Europe/Paris", "expected the zone identifier in \(object)")
+        XCTAssertEqual(object["name"] as? String, "Nice", "expected the place name in \(object)")
     }
 }
