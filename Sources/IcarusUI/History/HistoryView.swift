@@ -56,6 +56,14 @@
                         }
                     }
                 }
+                // The record's own two actions: take it out, or put one back
+                // (R25). They sit here rather than only in Settings, because
+                // this is the screen the record is on.
+                .toolbar {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        ExportImportView(env: env)
+                    }
+                }
             }
             .task {
                 await model.reload(now: env.clock())
