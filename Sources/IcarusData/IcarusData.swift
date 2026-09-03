@@ -1,2 +1,4 @@
-/// Placeholder for the persistence and forecast-cache target (M2).
+/// The persistence and forecast namespace (M2). The layer's work is in
+/// `ForecastService` and the types around it; this stays as the target's named
+/// entry point.
 public enum IcarusData {}
