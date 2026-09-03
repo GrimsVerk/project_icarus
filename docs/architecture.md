@@ -10,10 +10,11 @@ The app is one Swift package (`Package.swift`) plus a thin app shell in `App/`.
 The package holds five library targets; `project.yml` builds the iOS app from
 the shell and the package's UI product.
 
-As of Slice 1 of the `core-engine` plan, only the engine's foundation exists:
-the shared value types, the constants table, and dose arithmetic over a forecast
-curve. Slice 4 adds the sunscreen answer on top of that foundation. The other
-four targets are placeholders.
+As of Slices 1, 2 and 4 of the `core-engine` plan, the engine has its
+foundation — the shared value types, the constants table, and dose
+arithmetic over a forecast curve — and, on top of it, the budget and the
+solver (what each region may take today, and the session that fits inside
+it) and the sunscreen answer. The other four targets are placeholders.
 
 ## Components
 
@@ -24,6 +25,8 @@ four targets are placeholders.
 | `IcarusCore` / `Tunables` | Every tunable constant, each readable only through an accessor that reports its key, plus one basis (citation or assumption) per number. |
 | `IcarusCore` / `DoseCalculator` | Dose arithmetic against the clock: how long a target takes, the best block of a window, viability, the next viable window, the UVA-heavy flag, and the "window has passed" clip. |
 | `IcarusCore` / `SunscreenSolver` | The sunscreen answer: what to wear for the whole window, the UVA multiple, the reapplication times, and the re-solve with whatever the user actually has. |
+| `IcarusCore` / `TargetModel` | What one region may take today: the two thresholds, the scale actually applied, the uncertainty range, and what is left after earlier sessions. `TargetGoal` is the seam a second goal slots into. |
+| `IcarusCore` / `ExposureModel` | The posture geometry — who gets what dose lying down or up and about — the one attenuation function, and the solver that turns a window into a session. |
 | `IcarusData` | Placeholder. Will own persistence and the forecast cache (M2). |
 | `IcarusContent` | Placeholder. Will own generated copy and Learn content (M3). |
 | `IcarusUI` | Placeholder. Will own the SwiftUI surface (M4). Not built on Linux. |
@@ -48,6 +51,14 @@ The engine is given data; it never fetches any.
 - The whole window's raw dose and the remaining budget of the hardest-pushed
   region --> `SunscreenSolver` --(a label and application, or an honest
   "shorten the window")--> the result. The solver is pure and holds no state.
+- `DoseCalculator` --(minutes, windows, flags)--> `ExposureModel`.
+- A profile and a replayed `DerivedState` --(per region)--> `TargetModel`, which
+  answers one `RegionTarget` per region: the budget, the range around it, and
+  the two thresholds behind both.
+- Those targets, a window, a posture and the clock --> `ExposureModel.solve`,
+  which answers one `ExposurePlan`: the stretches to spend outside, what each
+  region takes from each, which region limited the session, and how much longer
+  it could run with the head and shoulders covered.
 - `Tunables` --(constants, and the key of every constant read)--> everything.
   A `Tunables` created with `recording(_:)` reports each read to a sink; a
   `Figure` carries the set of keys its number came from, and is marked an
@@ -143,8 +154,60 @@ The engine tells the user what to wear; it never asks what they have (R15).
    because dose from the start only ever grows. The rest of the window is
    shade, head and shoulders are covered, and the reapplication times fall
    inside the covered part only.
+### Work out what one region may take today
+
+1. The region's replayed state gives its tan state, which gives the adaptation
+   factor `1 + gain(band) × tanState`. That factor, the baseline for the skin
+   type and the sensitivity multiplier — the manual one when the user set it,
+   the learned one otherwise — multiply into the personal burn line.
+2. The dose that tans is a static fraction of that line, per skin band. The
+   target is the lower of the two, scaled by the ceiling — so the selector moves
+   the number for every skin type, and no setting ever plans past the line.
+3. The scale is not always the one the user picked. Below the calibration count
+   the number sits at the conservative scale; an aggressive selection that has
+   not unlocked falls back to standard. The target says which happened, so the
+   result can explain itself.
+4. A stale forecast shortens the target by a fixed fraction and widens the
+   range around it.
+5. The range is centred on the target. Its lower edge narrows with any report,
+   its upper edge only with redness reports, and its upper edge is clipped at
+   the personal burn line — the app never draws a range past it, and it records
+   that it clipped.
+6. What is left for today is the target minus what the region already took.
+
+### Turn a window into a session
+
+1. The window is clipped to now. Head and shoulders uncovered with nothing left
+   is no session at all, and neither is a lying session with both torso sides
+   spent or a standing one with every exposed region spent.
+2. Up and about, every region is exposed at once, so the whole session is one
+   block. The tightest budget fixes the bare dose the block may deliver, and the
+   shortest block that delivers it is the answer — the same search the dose
+   calculator uses, so ties go to the block nearest solar noon.
+3. Lying down, the two sides run consecutively from one start. Each side runs
+   exactly as long as its own torso region's budget allows, and a side whose
+   budget is spent runs not at all. Start minutes are searched across the
+   window; the start whose two sides finish soonest wins, ties by solar noon.
+4. Head and shoulders take the face-up dose in full plus a share of the
+   face-down dose, so they can overrun while both torso sides are still within
+   budget. Both sides then shrink by one scalar, found by bisection, until that
+   credit fits (D-2026-09-03-F2) — never by solving a linear programme.
+5. A window that cannot reach any budget is planned in full rather than as zero
+   minutes, and says so. Lying down, the flip time is then placed where both
+   sides get the same fraction of their budgets.
+6. The plan is solved a second time with the head and shoulders covered, and
+   the difference is how much longer each stretch could run that way.
+7. Warnings compare today's total — what the region already took plus what the
+   whole entered window would add — against the target and the burn line, and
+   only when the user has said they mean to stay out for it.
 
 ## State and storage
+
+`Profile` is what the user told the app; `DerivedState` is everything else the
+engine knows, and it is derived, never stored — one sensitivity multiplier for
+the person, the report counts, per-region tan state and dose, and the tan-cycle
+starts. `DerivedState.initial` is a user the engine knows nothing about. Folding
+the history into it is Slice 3; until then a caller supplies it.
 
 Nothing here persists anything. `SessionRecord` and `SkinReport` are the record
 types the history is made of, and `History.ordered()` puts them in one stream —
@@ -169,6 +232,16 @@ report's. Replaying that stream into derived state is Slice 3.
   `swiftlint:disable:this function_parameter_count`: their parameter lists are
   the plan's declared signatures, which a blind test author writes against, so
   they are not ours to shorten. The rule stays on everywhere else.
+- The lying-down start search is a one-minute scan, like the best-block search,
+  and each candidate costs two binary searches over the prefix integral. A whole
+  day's window solves in well under a millisecond, but it is still a scan.
+- `ExposureModel.solve` calls itself once, with the head and shoulders covered,
+  to answer "how much longer if I cover up?". The recursion stops there because
+  the covered solve returns no such answer of its own.
+- `TanningGoal.copyKey` has to be one of the closed `CopyKey` list, which has no
+  key naming a goal; it returns `boundByMelanogenic`, the nearest thing to a
+  line about the tanning threshold. When the vitamin D goal lands (M8) both
+  goals will want a key of their own.
 - `.swiftlint.yml` disables `trailing_comma` because SwiftFormat's
   `trailingCommas` rule adds exactly what it removes, and both run in CI; and
   it excludes the short names the design fixes (skin types `i`–`vi`, the
