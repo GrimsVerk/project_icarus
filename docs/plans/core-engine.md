@@ -379,8 +379,9 @@ public enum AdaptationModel {
     public static func creditTolerant(_ s: RegionState, excess: Double, tunables:) -> (RegionState, unabsorbed: Double)
     public static func escalationNotice(_ s: RegionState, now: Date, skinType:, tunables:) -> EscalationNotice?
         // .risen(factor) when factor(now) − 1 ≥ escalationNoticeFraction × gain(band)
-        // .dropped(fraction) when now − lastExposure > gapDays and (factorAtLastSession − factor(now)) ≥ escalationNoticeFraction × (factorAtLastSession − 1) − 1e-9;
-        //   fraction = 1 − tanState(now)/tanStateAtLastSession   (relative to the rise achieved; inclusive at the half-life boundary)
+        // .dropped(fraction) when now − lastExposure > gapDays and the decay since the last exposure has undone ≥ escalationNoticeFraction of the rise the factor had achieved BY that session (T5):
+        //   tanAfterLast = tanState(now) / 0.5^(days/halfLife) (the state Replay hands out is decayed to now, R44), fraction = 1 − tanState(now)/tanAfterLast — inclusive at the half-life boundary.
+        //   factorAtLastSession / tanStateAtLastSession stay the PRE-session values calibration divides by
     public static func plateauOutcome(_ s: RegionState, tunables:) -> PlateauOutcome?
         // noColourNearCeiling ≥ ceilingNoColourCount → rednessBoundInCycle ? .ceiling : .underDosed; nil otherwise
         // (the count only ever increments while tanState ≥ plateauTanState at the answer; resets on yes / aLittle and when the cycle ends) — sticky across a weekend's decay
@@ -510,14 +511,14 @@ public enum SunscreenSolver {
 ```text
 outcome: effective(label) = pow(Double(label), densityDefault / 2); first label in spfLadder with effective ≥ attenuation and label ≤ realisticMaxSPF
 reapplicationTimes: start + k × reapplicationIntervalHours while < end
-alternative(have): have.effectiveSPF ≥ attenuation → whole window (.alternativeThickEnough iff have.application == .thick else .alternativeWholeWindow)
+alternative(have): have.effectiveSPF ≥ attenuation → whole window (.alternativeThickEnough iff have.application == .thick else .alternativeWholeWindow); else if have is not thick and SunscreenChoice(have.spfLabel, .thick).effectiveSPF ≥ attenuation → whole window with the thick pair, .alternativeThickEnough (R15, S2: "thicker application of what they have if it is enough")
   else coveredWindow = longest prefix with sed(start, t)/have.effectiveSPF ≤ budget (bisection on the prefix integral); shade for the rest; cover H&S; reapply inside the covered window
 ```
 
 ## Slice 5 — The Planner: one typed result, the fixtures, and the performance bound
 
 - **Delivers:** `Planner.plan` composes everything into one `DoseResult`, solving once on maintained targets: outcome type with copy key, headline and second answer per R15 with the headline reverting to the bare sub-window when nothing realistic covers the window, overshoot and the sunscreen budget judged on the region the whole window pushes hardest, the R17 edge cases against the remaining budget with `noViableWindow` actually produced, a `noLocation` forecast failure, the R3 stale levels, the R13 notices with the cycle total, the plateau outcomes with maintenance applied before the solve, the R43 thin-margin key, per-figure provenance recorded through the Tunables spy, and the use-case fixtures 1–6, 8, 9 (S18) pass. The S14 performance test passes.
-- **Files:** `Sources/IcarusCore/Planner.swift`, `Sources/IcarusCore/Models/DoseResult.swift`, `Tests/IcarusCoreTests/PlannerTests.swift`, `Tests/IcarusCoreTests/PerformanceTests.swift`, `Tests/IcarusCoreTests/Fixtures/UseCases.swift`, `acceptance/S18-usecases.sh`, `acceptance/S1-core.sh`
+- **Files:** `Sources/IcarusCore/Planner.swift`, `Sources/IcarusCore/Models/DoseResult.swift`, `Tests/IcarusCoreTests/PlannerTests.swift`, `Tests/IcarusCoreTests/PerformanceTests.swift`, `Tests/IcarusCoreTests/Fixtures/UseCases.swift`, `acceptance/S18.sh`, `acceptance/S1.sh`
 - **Estimate:** ~600 lines
 
 ### Signatures
@@ -590,7 +591,7 @@ Planner.plan(req):
   notices: escalation = escalationNotice(regions[plan.limitingRegion], now); plateau = plateau[limiting] ?? first non-nil; thinMargin / fairSkinPreCalibration / conservativeForced / aggressiveRefused / cloudCaveat / uvaHeavy as before
   figures via builders that declare `reads`; every Tunables access goes through the request's tunables (recording in tests)
   copyKeys in display order
-acceptance/S1-core.sh: `swift test --filter 'IcarusCoreTests.(DoseCalculator|Tunables|DayKey|TargetModel)'` and prints the provenance table
-acceptance/S18-usecases.sh: `TZ=UTC swift test --filter UseCaseTests && TZ=Europe/Oslo swift test --filter UseCaseTests`
+acceptance/S1.sh (the check runs only `S<n>.sh`): `swift test --filter 'IcarusCoreTests.(DoseCalculator|Tunables|DayKey|TargetModel)'` and prints the provenance table
+acceptance/S18.sh: `TZ=UTC swift test --filter UseCaseTests && TZ=Europe/Oslo swift test --filter UseCaseTests`
 PerformanceTests: 100 × Planner.plan; 200-record Replay
 ```

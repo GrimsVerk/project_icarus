@@ -47,6 +47,10 @@ public protocol UVForecastProvider: Sendable {
 public enum ProviderError: Error, Sendable, Equatable { case unavailable(String), unauthorized, network(String) }
 public struct ProviderForecast: Codable, Sendable { public let hourly: [HourlyUVI]; public let solarNoon: [DayKey: Date]; public let timeZone: TimeZone; public let horizonDays: Int }
 public struct WeatherKitProvider: UVForecastProvider { public init() }      // location's zone from a reverse geocode, cached per coordinate
+public struct WeatherKitHourlyResponse: Codable, Sendable { public let hours: [WeatherKitHour]; public let days: [WeatherKitDay]; public let timeZoneIdentifier: String }   // the recorded shape the mapping test and the fake's fixtures share
+public struct WeatherKitHour: Codable, Sendable { public let date: Date; public let uvIndex: Int }
+public struct WeatherKitDay: Codable, Sendable { public let date: Date; public let solarNoon: Date? }
+public enum WeatherKitMapping { public static func forecast(from: WeatherKitHourlyResponse, horizonDays: Int) throws(ProviderError) -> ProviderForecast }
 public struct FakeForecastProvider: UVForecastProvider {
     public init(fixture: ProviderForecast, delay: Duration = .zero, failing: ProviderError? = nil, malformed: Bool = false)
     public static func fixture(named: String) throws -> ProviderForecast
@@ -65,7 +69,7 @@ public actor ForecastService {
     public func current(for location: Coordinate, now: Date, force: Bool = false) async -> ForecastResult
     public func cached() -> ForecastResult     // never fetches
 }
-// Promises (S8): as revision 2 — cadence, named failures, malformed never reported as provider, corrupt cache → current() still fetches and cached() → .none(.cacheUnreadable), round-trip, fixture mapping
+// Promises (S8): two calls 30 min apart, same place → one provider call; a 10.1 km move → a second call; force → a call; provider failing → .cached(curve, .providerFailed(f)) if a cache exists, else .none(f); malformed never reported as provider; corrupt cache → current() still fetches and cached() → .none(.cacheUnreadable); round-trip through FileForecastCache preserves location, fetchedAt, horizonEnd, every sample, solarNoon per day; the recorded WeatherKit fixture → the curve the engine expects (hourly count == 24 × horizonDays, solarNoon per day present)
 ```
 
 ### Internals
