@@ -152,6 +152,16 @@ public actor PromptScheduler {
         self.tunables = tunables
     }
 
+    /// Whether the system will let us alert the user at all.
+    ///
+    /// Scheduling already answers this for itself — a request is dropped rather
+    /// than pretended — but the flip timer has to say so *before* it starts
+    /// (R11), so it asks here rather than reaching past the scheduler for a port
+    /// of its own.
+    public func authorization() async -> NotificationAuthorization {
+        await port.authorization()
+    }
+
     /// The day's planned-or-logged sessions changed. `lastSessionEnd` is the end
     /// of the last of them, or nil when the last one was discarded and the day
     /// has no session left — which cancels the day's questions, both of them.
