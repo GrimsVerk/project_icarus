@@ -22,11 +22,12 @@ As of Slice 1 of the `data-layer` plan, `IcarusData` exists too: the forecast
 side of it. It fetches a forecast through a provider protocol — WeatherKit on
 Apple platforms, a fake that replays a recorded answer everywhere — keeps the
 last good curve in one file, refetches only at the ruled cadence, and names
-every failure it meets. `IcarusContent`, `IcarusUI` and `IcarusAds` are still
-placeholders.
+every failure it meets.
 `IcarusData` is the M2 layer around it: the `data-layer` plan's Slice 3 adds the
-history store, its persistence seam, and the JSON export and import. The other
-three targets are placeholders.
+history store, its persistence seam, and the JSON export and import. As of Slice
+1 of the `learn-tab` plan, `IcarusContent` carries the Learn text as data: the
+twelve modules, their citations, and the `icarus://learn/<n>` deep links.
+`IcarusUI` and `IcarusAds` are still placeholders.
 
 `Planner.plan` is the engine's only entry point. Everything above it — the
 data layer, the UI, the notifications — asks it one question and reads one
@@ -60,7 +61,13 @@ answer.
 | `IcarusData` / `HistoryPersistence` | The one seam under the history: load the whole record, replace it whole, upsert one session or one report. `MemoryPersistence` is the reference implementation and what Linux runs; `SwiftDataPersistence` is the same contract over a SwiftData container, built only where SwiftData exists. |
 | `IcarusData` / `HistoryStore` | The one way in and out of the history: it stores planned sessions, logs them, discards them, records reports and lasting colour, and answers with the replayed state and the weekly and cycle totals. Nothing derived is stored. |
 | `IcarusData` / `ExportService` | The export file (version 1), the atomic import, and the recomputation that proves a session record is enough on its own. |
-| `IcarusContent` | Placeholder. Will own generated copy and Learn content (M3). |
+| `IcarusContent` | The text the app shows, as data. Imports Foundation only. Owns the twelve Learn modules, their citations, and the app's deep links; generated copy is still to come (M3). |
+| `IcarusContent` / `LearnSource` | Reading `docs/LEARN_CONTENT.md`. `split` cuts it into its twelve sections verbatim, markers kept; `normalise` removes exactly the build annotations — every `[VERIFY]` token with its backticks, the preamble above Module 1 — and trailing whitespace. Nothing else is ever changed: no text is edited, paraphrased or summarised. |
+| `IcarusContent` / `LearnModule` | One module: its id (1...12, a `ModuleID`), its heading title, its body with the markers stripped, and its citations. Built from the text of one bundled file. |
+| `IcarusContent` / `Citation` | One `> - ` line of a `> **Sources**` block: authors, title, venue, year, the identifier the source carries (`doi`, `pmid`, `iso`, `url` or none) and `needsVerification`. `link` resolves a DOI through doi.org and a PMID through PubMed; an ISO number and a citation with no identifier have no link and render as text. |
+| `IcarusContent` / `ModuleIndex` | The twelve modules, loaded once from `Bundle.module` at `Resources/Learn/module-NN.md`, plus lookup by id and the deep link for a module. |
+| `IcarusContent` / `DeepLink` | `icarus://learn/<n>` in both directions, as pure value work, so the app's router (M3) maps a URL to a screen without reaching further into the content layer. |
+| `split-learn-content` | The executable that generates the module files from the document. Linux-safe, so it is always built. `scripts/split-learn-content.sh` is the one command that runs it. |
 | `IcarusUI` | Placeholder. Will own the SwiftUI surface (M4). Not built on Linux. |
 | `IcarusAds` | Placeholder. Will own the ad banner behind a protocol (M7). Not built on Linux. |
 | `App/` | The iOS app shell. Depends only on `IcarusUI`. |
@@ -519,6 +526,26 @@ it does.
    is what makes an exported session checkable — a session stopped before its
    flip reproduces the doses it stored.
 
+### Read a Learn module
+
+`docs/LEARN_CONTENT.md` is the only place the Learn text is written. The
+generator splits it into `Sources/IcarusContent/Resources/Learn/module-NN.md`,
+one file per module, verbatim — `[VERIFY]` markers included — and those files
+are committed (D-2026-09-03-F4). Nothing hand-splits them.
+
+At load, `ModuleIndex` reads all twelve files from the bundle once. For each
+file it takes the heading text after the em dash as the title, parses the
+citations from the file text **before** anything is stripped — so a citation
+knows it carried a `[VERIFY]` marker without a sidecar file to keep in step —
+and then normalises the text into the body the app renders. A citation keeps the
+identifier the source gave it and only that one; a citation with no identifier
+is still listed, as text.
+
+Drift is what `acceptance/S7.sh` catches: it regenerates the files into a
+temporary directory and diffs them byte for byte against the committed ones, so
+an edit to the document that was never regenerated, or an edit to a module file
+that was never made in the document, fails before it ships.
+
 ## State and storage
 
 `Profile` is what the user told the app; `DerivedState` is everything else the
@@ -569,6 +596,10 @@ filter matched nothing — `swift test` exits 0 on an empty selection, and "no
 fixtures" must not read like "every fixture passed". Both take class-name
 prefixes rather than exact names, because the classes are split by subject and
 the fixtures are written blind.
+
+`acceptance/S7.sh` proves the Learn content twice over: the committed module
+files are regenerated and diffed byte for byte against the document, then the
+`IcarusContentTests` suite runs against the bundled files.
 
 The file names are `S<n>.sh` exactly: `.github/scripts/acceptance-criteria.sh`
 matches a criterion id to `acceptance/S<n>.sh` and runs nothing else, so a
