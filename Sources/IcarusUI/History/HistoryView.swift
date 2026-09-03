@@ -20,8 +20,8 @@
     /// not invent one (R42), so what the screen shows is the data: dates, clock
     /// times, stored numbers, and the record's own case names as words.
     public struct HistoryView: View, ScreenManifest {
-        public static let hasBannerSlot = false
-        public static let showsFigures = true
+        public nonisolated static let hasBannerSlot = false
+        public nonisolated static let showsFigures = true
 
         @StateObject private var model: HistoryModel
         @StateObject private var trajectory: TrajectoryModel
