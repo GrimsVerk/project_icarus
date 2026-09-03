@@ -97,7 +97,7 @@ answer.
 | `IcarusUI` / `OnboardingFlow` | First launch in four pages — Module 1, the disclaimer, the skin-type table, the two permissions — with back and forward controls that are symbols only, because no approved copy names them. Advancing is gated per page. No banner, no figure (R39). |
 | `IcarusUI` / `DisclaimerView`, `SkinTypePicker`, `QuizView` | The three middle pages. The disclaimer is the approved `disclaimer` copy used as the acknowledgement toggle's own label. The picker lists the six `SkinTypeTable` rows, name and description, with a checkmark on the chosen one and the questionnaire behind a toolbar symbol. The quiz is ten `FitzpatrickQuiz` questions, each a picker over its own answers. |
 | `IcarusUI` / `CalculatorModel` | The Calculator's state and its four actions. It holds the four inputs — window, posture, cover, "staying the whole window" — assembles the one `PlanRequest` both the result and the flip timer plan from, computes a result, keeps exactly one planned session for it, refreshes the forecast on demand, re-solves the sunscreen alternative, and logs the session on "I did this". No arithmetic of its own: it carries values between the engine, the history store and the prompt scheduler. |
-| `IcarusUI` / `CalculatorEntryView` | The entry screen: the window, the posture, the two toggles, a compute button and the ad slot. No figure at all (R39), and no question about sunscreen (R15). Its controls carry system images because no approved copy key names an input. |
+| `IcarusUI` / `CalculatorEntryView` | The entry screen: the window, the posture, the two toggles, a compute button and the ad slot, with the due-prompts card above the inputs so an unanswered question is asked on the next launch (R20). No figure at all (R39), and no question about sunscreen (R15). Its controls carry system images because no approved copy key names an input. |
 | `IcarusUI` / `ResultView`, `ResultCopy` | The whole answer for one window. The forecast line — place, "change place", "refresh" — renders outside the outcome, so it is there even when there is no number. `ResultCopy` turns the result's `copyKeys` into lines, resolving each through `AppCopy` and filling its `{arguments}` from the same result's own numbers; it drops the two warning lines unless the user marked that they will stay. |
 | `IcarusUI` / `FigureView` | One number with its label and, when the engine says the number rests on an assumed constant, the estimate badge whose VoiceOver label names those assumptions. Every figure the app shows goes through it, and only the Result screen uses it. |
 | `IcarusUI` / `SunscreenAlternativeSheet` | "I don't have that SPF": the SPF ladder and the three applications, the engine's re-solve for the pair chosen, and the confirmation that makes the logged dose that pair's rather than the raw window's. |
@@ -108,7 +108,9 @@ answer.
 | `IcarusUI` / `SkinCheckFlow` | The day-after check in R20's order: the unaccounted sessions, then how the skin looks, when the colour showed up, which region, and anything unusual — then the confirmation line. A day with nothing logged is a dead end that records nothing. No banner, no figure, no MED or SED. |
 | `IcarusUI` / `DidYouDoThisView`, `IntervalEditor` | One planned session's question. "Yes" asks what was worn — the prescribed pair, another product, or none — and then offers the planned times to correct before the session is logged; "no" discards it. The editor moves a start or an end and never lets one cross the other. A session with no prescription is never offered "as prescribed". |
 | `IcarusUI` / `NotificationRouting`, `RoutedPromptView` | A tapped notification's identifier turned into a question: `PromptScheduler` reads the day back out of it and the prefix says which question. An identifier the app did not build routes to the in-app card instead, so a tap never opens the wrong day. |
-| `IcarusUI` / `DuePromptsCard` | What is due right now, in the app: the scheduler's `dueInApp` as rows, each opening its flow, re-read when one closes. The fallback for a notification that was never allowed or never answered. |
+| `IcarusUI` / `DuePromptsCard` | What is due right now, in the app: the scheduler's `dueInApp` as rows, each opening its flow — the skin check or the lasting-colour question — re-read when one closes, so an answered question leaves the card. The fallback for a notification that was never allowed or never answered, and it sits above the inputs on the Calculator entry screen. |
+| `IcarusUI` / `LastingColourModel` | One day's lasting-colour answer, as state: the day it is about, how the question was reached, and the answer once given. Submitting writes the answer against that day's existing report at the answer's own time, days after the report's; a day with no report is refused by the store. It decides nothing about the calibration. |
+| `IcarusUI` / `LastingColourFlow` | The question itself: one page, the day it is about, and the three answers — yes, a little, no. Answering closes the flow. No banner, no figure, no MED or SED. No approved copy names the question or its answers, so the page shows the day as a date and the answers through `PromptWords`; the missing keys are a gap for the owner. |
 | `IcarusUI` / `PromptWords` | An enum case as the words a picker shows — a mechanical camel-case split of the case name. The answer options R20 names have no approved copy key, so the flow shows the data the enum carries rather than inventing a sentence (R42). |
 | `App/` | The iOS app shell. Depends only on `IcarusUI`. `ProjectIcarusApp` builds the live environment; `RootTabs` is the two-tab shell with the foreground hook and the deep-link hook, and its Calculator tab owns the one `CalculatorModel` the entry and result screens share. It holds no logic and no copy, and it never names the ad provider: `AppEnvironment.banner(width:)` hands it a view. |
 
@@ -856,6 +858,22 @@ descriptive suffix would be a script the check never runs.
    revisit their skin type, a blister correction suggests the pause and names
    its length, immediate darkening explains itself, a day with no dose says so,
    and everything else is "report saved".
+
+### Answer the lasting-colour question
+
+1. The question is due four days after a report, by notification, or from the
+   in-app card inside its own window. Either way the identifier or the row names
+   one day — the day the report is about, never the day the question is asked.
+2. `LastingColourModel` carries that day and nothing else it has to load: the
+   report already exists, because a report is the only thing that makes this
+   question due.
+3. The user answers yes, a little, or no. The store attaches the answer to that
+   day's report and stamps it with the moment it was given, which is days after
+   the report's own timestamp and is what the replay reads (R14).
+4. A day whose report is gone is refused by the store, nothing is written, and
+   the page stays open — there is no approved line to explain it with.
+5. The flow then closes, the card re-reads what is due, and the answered day is
+   no longer a row on it.
 
 ### When the system will not alert
 
