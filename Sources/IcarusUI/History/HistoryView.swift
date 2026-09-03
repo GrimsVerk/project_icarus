@@ -24,6 +24,7 @@
         public static let showsFigures = true
 
         @StateObject private var model: HistoryModel
+        @StateObject private var trajectory: TrajectoryModel
         private let env: AppEnvironment
 
         /// On the main actor because the model it builds is: the screen owns one
@@ -32,12 +33,18 @@
         @MainActor
         public init(env: AppEnvironment) {
             _model = StateObject(wrappedValue: HistoryModel(env: env))
+            _trajectory = StateObject(wrappedValue: TrajectoryModel(env: env))
             self.env = env
         }
 
         public var body: some View {
             NavigationStack {
                 List {
+                    // The dose-trajectory chart sits above the log (R24): a record
+                    // of dose per cycle, never a claim about colour.
+                    Section {
+                        TrajectoryChart(points: trajectory.points)
+                    }
                     ForEach(model.days) { day in
                         Section {
                             sessions(of: day)
@@ -50,7 +57,10 @@
                     }
                 }
             }
-            .task { await model.reload(now: env.clock()) }
+            .task {
+                await model.reload(now: env.clock())
+                await trajectory.reload(now: env.clock())
+            }
         }
 
         // MARK: - One day
