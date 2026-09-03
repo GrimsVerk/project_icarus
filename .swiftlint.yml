@@ -13,8 +13,13 @@ identifier_name:
   # types are roman numerals, a lasting-colour answer is yes/aLittle/no, and `k`
   # is the calibration constant by that name throughout the design.
   # `id` is SwiftLint's own default exclusion; setting this list replaces it.
+  # `to` and `n` are the plan's declared labels too: `multiplierMoved(from:to:)`,
+  # `blisterCorrection(from:to:)` and `weight(n:isBurn:)` are written blind by
+  # the test author from the Signatures block, so they are not ours to rename.
   excluded:
     - id
+    - to
+    - n
     - i
     - ii
     - iv

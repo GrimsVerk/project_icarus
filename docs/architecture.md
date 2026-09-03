@@ -10,11 +10,13 @@ The app is one Swift package (`Package.swift`) plus a thin app shell in `App/`.
 The package holds five library targets; `project.yml` builds the iOS app from
 the shell and the package's UI product.
 
-As of Slices 1, 2 and 4 of the `core-engine` plan, the engine has its
+As of Slices 1, 2, 3 and 4 of the `core-engine` plan, the engine has its
 foundation — the shared value types, the constants table, and dose
 arithmetic over a forecast curve — and, on top of it, the budget and the
 solver (what each region may take today, and the session that fits inside
-it) and the sunscreen answer. The other four targets are placeholders.
+it), the sunscreen answer, and the loop that learns: the history folded into
+derived state, session by session and report by report. The other four
+targets are placeholders.
 
 ## Components
 
@@ -27,6 +29,9 @@ it) and the sunscreen answer. The other four targets are placeholders.
 | `IcarusCore` / `SunscreenSolver` | The sunscreen answer: what to wear for the whole window, the UVA multiple, the reapplication times, and the re-solve with whatever the user actually has. |
 | `IcarusCore` / `TargetModel` | What one region may take today: the two thresholds, the scale actually applied, the uncertainty range, and what is left after earlier sessions. `TargetGoal` is the seam a second goal slots into. |
 | `IcarusCore` / `ExposureModel` | The posture geometry — who gets what dose lying down or up and about — the one attenuation function, and the solver that turns a window into a session. |
+| `IcarusCore` / `AdaptationModel` | How a region's tan state moves: up with the share of its target a session delivered, down with elapsed time, and what the two together are worth telling the user — the escalation and gap notices, and the plateau outcome. |
+| `IcarusCore` / `CalibrationEngine` | One skin report against one day's logged dose: which region it is evidence about, and what it does to that region's tan state and to the person's one sensitivity multiplier. |
+| `IcarusCore` / `Replay` | The fold. The ordered history in, the current derived state and every report's effect out. |
 | `IcarusData` | Placeholder. Will own persistence and the forecast cache (M2). |
 | `IcarusContent` | Placeholder. Will own generated copy and Learn content (M3). |
 | `IcarusUI` | Placeholder. Will own the SwiftUI surface (M4). Not built on Linux. |
@@ -63,6 +68,9 @@ The engine is given data; it never fetches any.
   A `Tunables` created with `recording(_:)` reports each read to a sink; a
   `Figure` carries the set of keys its number came from, and is marked an
   estimate when any of them is an assumption.
+- A `History` --(one ordered stream of events)--> `Replay` --(a `DerivedState`
+  and one effect per report)--> the target model, which closes the loop: what
+  the app learned is what it plans with next.
 - `ForecastCurve` --(one day's samples)--> `StoredCurve`, the external form kept
   inside a session record and inside the export. `StoredCurve.curve()` rebuilds
   a curve that answers the same dose questions.
@@ -201,19 +209,105 @@ The engine tells the user what to wear; it never asks what they have (R15).
    whole entered window would add — against the target and the burn line, and
    only when the user has said they mean to stay out for it.
 
+### Replay the history into state
+
+The history is the record; everything the engine knows about the user is
+recomputed from it under today's constants (R44). One pass, in time order.
+
+1. `History.ordered()` puts the record into one stream: a logged session at the
+   end of what was actually faced, a report when it was answered, and a
+   lasting-colour answer at its own timestamp, days later. A session never
+   logged, or logged with nothing faced, is not in the stream at all.
+2. A **session** first fades every region to the moment it ended. If that fade
+   closed the last tan cycle for every region, this session opens a new one, and
+   its start is remembered — the last two cycle starts are the window the report
+   count is taken over.
+3. Each region then records the adaptation factor and tan state it had *before*
+   this session, because that is what a report about this session is evidence
+   about, and what the gap notice measures the drop from.
+4. The target for the region is recomputed here, under the ceiling and the
+   manual override **that session was planned with** and the state as it stood
+   at that moment — never under today's settings. That is what makes changing
+   the ceiling leave the replayed tan state alone. The dose itself is never
+   recomputed: it is what the session stored, because the forecast is not part
+   of the replay.
+5. The region rises by the share of that target the session delivered. Today's
+   dose accumulates within a day and is replaced, not carried, on a new one.
+6. A **report** goes through the calibration engine and its effect is kept
+   against the report's id, so the app can always say what an answer changed.
+   The report count is then re-taken over the two-cycle window.
+7. A **lasting-colour** answer counts for every region that took at least its
+   share of its target that day. "No" builds the plateau count while the region
+   is near saturation; "yes" or "a little" clears it.
+8. Finally every region fades to the clock, and today's dose is zeroed when the
+   day the fold ended on is over.
+
+### Move the tan state
+
+Each event is one decay and one rise in closed form (D-2026-09-03-F3), never a
+day-by-day loop, so a year of history costs no more per session than a week of
+it does.
+
+1. The fade is a half-life on elapsed time. A gap longer than the tunable two
+   weeks also ends the tan cycle: the cycle's start, its redness bound, its
+   cumulative dose and its plateau count all go.
+2. The rise is a leaky integrator toward saturation, driven by the **share of
+   the region's target** the session delivered rather than by the dose, so a
+   session at the target advances every skin type and every ceiling setting
+   equally. The band's rise multiplier is applied on top.
+3. The escalation notice fires when the factor has risen by half the maximum
+   rise the skin type has available. The gap notice fires when a gap longer than
+   two weeks has undone half the rise actually achieved, and says what share is
+   gone. A gap is judged first: news that tolerance has dropped is what the user
+   needs before they plan.
+4. The plateau outcome hangs on the count of "no lasting colour" answers, never
+   on the tan state re-read at plan time, so it does not flicker with a
+   weekend's decay. With a redness bound in the current cycle it is the ceiling
+   outcome; without one, the app cannot tell a finished skin from an under-dosed
+   one, and says so.
+
+### Learn from one skin report
+
+1. The report's evidence is one region. A named region is itself. "All exposed"
+   takes the strongest bound the answer supports: the highest-dose region when
+   the skin stayed normal, the lowest-dose region that took any dose when it
+   reddened. A day with no logged dose is evidence about nothing, and the report
+   is recorded without being calibrated.
+2. Redness that showed within an hour and had faded by evening is immediate
+   pigment darkening, not erythema. It is calibrated as "normal", and the effect
+   says so.
+3. A **normal** answer is one-sided: it says only that the threshold lies above
+   what was delivered. At or below the estimate it confirms and changes nothing.
+   Above it, the excess is credited to the region's tan state first, and only
+   the part saturation cannot absorb reaches the multiplier — never above the
+   dose actually tolerated.
+4. A **redness** answer maps to an implied dose-to-threshold ratio, divided by
+   the adaptation factor in force before the session, and moves the multiplier
+   by the confidence weight. The weight falls with the number of reports in the
+   current and previous cycle, floors at the cap, and doubles for a burn. It
+   bounds the region for the cycle — every region that took dose that day, for
+   an "all exposed" report.
+5. A confounded report counts for a quarter of itself. A blistering report also
+   pulls the multiplier under a protective fraction of what it implied, whatever
+   the count, and asks for a pause.
+6. The multiplier always moves **from itself**, even when a manual override was
+   what the session was planned with, so an override never becomes the thing the
+   app has learned. It is clamped at both ends, and hitting a clamp is the cue
+   to ask the user to revisit their skin type.
+
 ## State and storage
 
 `Profile` is what the user told the app; `DerivedState` is everything else the
 engine knows, and it is derived, never stored — one sensitivity multiplier for
 the person, the report counts, per-region tan state and dose, and the tan-cycle
-starts. `DerivedState.initial` is a user the engine knows nothing about. Folding
-the history into it is Slice 3; until then a caller supplies it.
+starts. `DerivedState.initial` is a user the engine knows nothing about, and
+`Replay.replay` is how a real one is built.
 
 Nothing here persists anything. `SessionRecord` and `SkinReport` are the record
 types the history is made of, and `History.ordered()` puts them in one stream —
 logged sessions at the end of what was actually faced, reports when they were
 answered, and a lasting-colour answer at its own timestamp rather than at its
-report's. Replaying that stream into derived state is Slice 3.
+report's.
 
 ## Known rough edges
 
@@ -225,9 +319,33 @@ report's. Replaying that stream into derived state is Slice 3.
 - The best-block search is a one-minute scan with a one-second refinement, not
   a solver. It is fast enough for a day-long window and easy to reason about,
   but it is a scan, and a much longer window would cost proportionally more.
-- `SessionRecord`, `SkinReport` and `History` live in `Models/Reports.swift`
-  because Slice 1 declares every shared type; the adaptation and calibration
-  logic that folds them into state arrives in Slice 3.
+- `SessionRecord` and `SkinReport` live in `Models/Reports.swift` because Slice
+  1 declares every shared type; `History` was moved out to `Models/History.swift`
+  in Slice 3, unchanged, because that is the file the plan gives the fold.
+- `AdaptationModel.escalationNotice` reads the region **as it stands**, and uses
+  `now` only to measure the length of the gap. That is right for the state
+  `Replay` hands out, which the fold has already faded to the clock; fading it a
+  second time inside the notice would double-count the gap. A caller with a
+  region state from some earlier moment must decay it first.
+- The gap notice measures the drop against `factorAtLastSession` and
+  `tanStateAtLastSession`, which are the values from *before* the last session
+  advanced them — the meaning Slice 1 declared, and the one the calibration
+  rule needs. A state built by the fold therefore reaches the notice line a day
+  or so later than a state whose "at last session" values were the post-session
+  ones: after six weeks of five-a-week sessions the notice appears at a gap of
+  about 22 days rather than exactly one half-life. The four-week gap S4 is a
+  release blocker on fires with a drop of 0.59.
+- The plan's promise list expects no notice at all after a 13-day gap. With the
+  rise the current constants produce, the factor is still 0.64 above baseline
+  there — more than the half of the maximum rise the escalation line asks for —
+  so the escalation notice is what comes back. The two rules are simply both
+  true at that point; the gap rule is the one that does not fire.
+- The separation simulation at a true adaptation gain of 0.7× settles the
+  learned multiplier near 0.87, a little further from 1.0 than S3's 0.10 bound,
+  because a "faint pink" answer implies the threshold *is* the delivered dose
+  and the standard scale plans at 0.9 of it, so the equilibrium sits just under
+  0.9. The error is in the safe direction — shorter sessions — but it is a
+  property of the constants, not of the code.
 - `SunscreenSolver.outcome` and `.alternative` carry an inline
   `swiftlint:disable:this function_parameter_count`: their parameter lists are
   the plan's declared signatures, which a blind test author writes against, so
