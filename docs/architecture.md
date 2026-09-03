@@ -57,20 +57,17 @@ answer.
 | `IcarusCore` / `CalibrationEngine` | One skin report against one day's logged dose: which region it is evidence about, and what it does to that region's tan state and to the person's one sensitivity multiplier. |
 | `IcarusCore` / `Replay` | The fold. The ordered history in, the current derived state and every report's effect out. |
 | `IcarusCore` / `Planner` | The engine's one entry point. A `PlanRequest` in, a `DoseResult` out: the outcome, the budgets it was solved against, the notices, every figure with the constants behind it, and the copy keys in display order. |
-| `IcarusData` | Everything that touches the network or the disk, behind protocols the engine never sees. Persistence and the prompts are still to come (M2, slices 2–4). |
+| `IcarusData` | Everything that touches the outside world or the disk, behind protocols the engine never sees: the forecast provider and cache, location, the history store and its persistence, export and import, and the prompts. Imports `IcarusCore` and Foundation; Apple frameworks sit behind `#if canImport(...)`. |
 | `IcarusData` / `UVForecastProvider` | The seam a forecast comes through: hourly UVI, solar noon per day, the place's time zone, and the horizon asked for. Its failures are named — unavailable, unauthorized, network. |
 | `IcarusData` / `WeatherKitProvider` | The live source, built only where WeatherKit is. It maps its answer into the recorded response shape first, so the mapping is one pure function tested on every platform; the place's zone comes from a reverse geocode, cached per coordinate. |
 | `IcarusData` / `FakeForecastProvider` | Replays a recorded answer, with an optional delay, a forced failure, or a deliberately malformed answer. Ships the `beach-oslo` fixture, so the whole engine runs end to end with no network. |
 | `IcarusData` / `ForecastCacheStore` | One forecast, kept, with the name of the provider it came from. `FileForecastCache` is a JSON file written by temp-and-rename; `MemoryForecastCache` is the same thing without a disk. |
 | `IcarusData` / `ForecastService` | The one way into a forecast: the cadence, the cache, and the named failure. Answers `.fresh`, `.cached` with the reason, or `.none` with the failure. |
-| `IcarusData` | The outside world: everything that touches a system service, the network or the disk, behind protocols the engine never sees. Persistence and the forecast cache are still to come (M2). |
 | `IcarusData` / `LocationService` | Where the user is (R2). One actor over a `LocationSource` and a `PlaceResolver`; a manual place, once set, wins over the device. |
 | `IcarusData` / geocoding | `Place` — a name, a coordinate and the zone the day boundaries are read in — plus the resolver that turns typed text into candidate places. `AppleGeocoder` on Apple platforms, `FakePlaceResolver` (a table) everywhere. |
-| `IcarusData` | Everything that touches the disk or the outside world, behind protocols the engine never sees. Imports `IcarusCore` and Foundation; Apple frameworks sit behind `#if canImport(...)`. |
 | `IcarusData` / `HistoryPersistence` | The one seam under the history: load the whole record, replace it whole, upsert one session or one report. `MemoryPersistence` is the reference implementation and what Linux runs; `SwiftDataPersistence` is the same contract over a SwiftData container, built only where SwiftData exists. |
 | `IcarusData` / `HistoryStore` | The one way in and out of the history: it stores planned sessions, logs them, discards them, records reports and lasting colour, and answers with the replayed state and the weekly and cycle totals. Nothing derived is stored. |
 | `IcarusData` / `ExportService` | The export file (version 1), the atomic import, and the recomputation that proves a session record is enough on its own. |
-| `IcarusData` | Everything that touches the outside world or the disk, behind protocols the engine never sees: persistence, the forecast cache (M2), and the prompts. |
 | `IcarusData` / `PromptScheduler` | Every prompt the app makes: the skin check about a day's sessions, the lasting-colour question about a report, the flip timer's alerts, and the in-app fallback for anything the system never delivered. |
 | `IcarusData` / `NotificationPort` | The system notification centre, as the only four things this layer needs from it. `FakeNotificationPort` records; `UserNotificationAdapter` is the real one, and exists only where `UserNotifications` does. |
 | `IcarusContent` | Placeholder. Will own generated copy and Learn content (M3). |
@@ -642,10 +639,11 @@ the person, the report counts, per-region tan state and dose, and the tan-cycle
 starts. `DerivedState.initial` is a user the engine knows nothing about, and
 `Replay.replay` is how a real one is built.
 
-Nothing in `IcarusCore` persists anything. The only thing stored so far is the
-forecast: one `CachedForecast` — a curve and the provider's name — in
-`forecast.json`, in whatever directory the caller gives `FileForecastCache`. The
-history still lives only in memory (slice 3).
+Nothing in `IcarusCore` persists anything. Two things are stored, both by
+`IcarusData`: the forecast — one `CachedForecast`, a curve and the provider's
+name, in `forecast.json` in whatever directory the caller gives
+`FileForecastCache` — and the history, through `HistoryPersistence` (SwiftData
+on Apple platforms, memory everywhere else), described below.
 
 `SessionRecord` and `SkinReport` are the record
 types the history is made of, and `History.ordered()` puts them in one stream —

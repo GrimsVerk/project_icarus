@@ -1,0 +1,28 @@
+Preparing worktree (new branch 'worker/learn-tab-2')
+HEAD is now at a6efb46 Merge calculator-ui slice 1: app copy as data, the ad protocol, the profile store, the manifest and the environment
+=== spawn-worker[learn-tab-2] engine=claude branch=worker/learn-tab-2 base=feat/learn-tab-2 (a6efb465e197ea86a1c686ba909d4fdc67bf9f63) bypass=0 ===
+=== 2026-09-03T05:55:03Z ===
+Ignoring 2 permissions.allow entries from .claude/settings.json: this workspace has not been trusted. Run Claude Code interactively here once and accept the trust dialog, or set projects["/home/user/project_icarus"].hasTrustDialogAccepted: true in /root/.claude.json.
+Done. Here is what I did.
+
+**Made 4 new files** in `Sources/IcarusUI/Learn/`:
+- `LearnListView.swift` — the Learn tab. Lists the 12 modules. Has the ad banner slot.
+- `ModuleView.swift` — one module. Text first, then citation rows.
+- `ModuleRenderModel.swift` — cuts the `> **Sources**` block out of the text. Keeps tables and other quote blocks. Also holds the `.icarus` markdown theme.
+- `CitationRow.swift` — a tap link when the source has a DOI, PMID or URL. Plain text when it does not. Never hides a citation.
+
+**Changed 3 files:**
+- `Package.swift` — added `swift-markdown-ui` 2.4.1, inside the `#if !os(Linux)` block.
+- `Sources/IcarusContent/Citation.swift` — `Citation` is now `Hashable`. The list needs it.
+- `docs/architecture.md` — wrote what now exists.
+
+**Did it work?**
+- `swift build` and `swift test`: green (457 tests, 0 failures).
+- `acceptance/S7.sh`, `S11.sh`, `S15.sh`: pass.
+- `swiftformat` and `swiftlint --strict`: clean.
+- `swift package describe` on Linux still shows no dependencies.
+- I could **not** compile the UI code. Linux has no SwiftUI. I wrote it with care against the iOS 18 SDK and MarkdownUI 2.4.1, but a macOS build is the first real check.
+
+**What now:** nothing for you here. The driver pushes and opens the pull request.
+
+WORK_ON_BRANCH worker/learn-tab-2
