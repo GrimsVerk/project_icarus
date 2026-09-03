@@ -12,7 +12,9 @@ enum Curves {
     static let zone = TimeZone(identifier: "UTC")!
 
     /// Midnight UTC on the fixtures' first day.
-    static var start: Date { date(2026, 6, 15) }
+    static var start: Date {
+        date(2026, 6, 15)
+    }
 
     /// A fixed instant in the fixtures' UTC calendar. Never derived from `Date()`.
     static func date(_ year: Int, _ month: Int, _ day: Int, _ hour: Int = 0, _ minute: Int = 0) -> Date {

@@ -53,7 +53,9 @@ public enum CalibrationEngine {
         var effect = evidence.answer == .normal
             ? tolerant(evidence, into: &next)
             : redness(evidence, into: &next)
-        if evidence.reclassified { effect = .reclassifiedAsNormal }
+        if evidence.reclassified {
+            effect = .reclassifiedAsNormal
+        }
         if let clamped = clamp(&next, tunables: tunables) {
             // A blistering report's correction is the more urgent message (the
             // pause and Module 7), so it survives the clamp; the value it
@@ -84,7 +86,9 @@ public enum CalibrationEngine {
         case .allExposed:
             let ordered = exposed.sorted { lhs, rhs in
                 let left = doses[lhs] ?? 0, right = doses[rhs] ?? 0
-                if left != right { return left < right }
+                if left != right {
+                    return left < right
+                }
                 return index(of: lhs) < index(of: rhs)
             }
             return report.answer == .normal ? ordered.last : ordered.first

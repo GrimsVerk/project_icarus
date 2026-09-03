@@ -26,7 +26,9 @@ private func outcome(
 private extension SunscreenOutcome {
     /// The advice a prescription carries, or nil for the other two outcomes.
     var advice: SunscreenAdvice? {
-        if case let .prescribe(advice) = self { return advice }
+        if case let .prescribe(advice) = self {
+            return advice
+        }
         return nil
     }
 }

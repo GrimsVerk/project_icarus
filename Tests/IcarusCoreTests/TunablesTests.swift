@@ -204,7 +204,9 @@ final class TunablesProvenanceTests: XCTestCase {
 
     func testAssumptionKeysAreExactlyTheKeysWhoseBasisIsAnAssumption() {
         let assumed = Tunables.provenance.compactMap { key, basis -> String? in
-            if case .assumption = basis { return key }
+            if case .assumption = basis {
+                return key
+            }
             return nil
         }
         XCTAssertFalse(assumed.isEmpty)

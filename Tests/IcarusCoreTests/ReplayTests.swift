@@ -37,7 +37,9 @@ private enum Fold {
         return (replayed.state, replayed.effects)
     }
 
-    static func front(_ state: DerivedState) -> RegionState { state.regions[.front] ?? RegionState() }
+    static func front(_ state: DerivedState) -> RegionState {
+        state.regions[.front] ?? RegionState()
+    }
 
     static func factor(_ state: DerivedState) -> Double {
         TanningGoal.adaptationFactor(front(state), skinType: .ii, tunables: tunables)
@@ -146,7 +148,9 @@ final class ReplayFoldTests: XCTestCase {
 }
 
 private extension Fold {
-    static func finishOf(_ report: SkinReport) -> Date { report.reportedAt.addingTimeInterval(3600) }
+    static func finishOf(_ report: SkinReport) -> Date {
+        report.reportedAt.addingTimeInterval(3600)
+    }
 }
 
 /// R44: the replay recomputes every historical target from the record, so what
@@ -194,7 +198,9 @@ final class ReplayCalibrationSimulationTests: XCTestCase {
 
     private func withAnswer(_ answer: SkinAnswer?, atReport index: Int) throws -> Double {
         var days = SimulatedUser.daily(20)
-        if let answer { days[index - 1] = SimulatedUser.Day(index - 1, answer: answer) }
+        if let answer {
+            days[index - 1] = SimulatedUser.Day(index - 1, answer: answer)
+        }
         return try Fold.user(trueMultiplier: 0.75).run(days, from: Fold.start).multiplier
     }
 
@@ -313,8 +319,13 @@ final class ReplayPlateauTests: XCTestCase {
         return try Fold.user(trueMultiplier: trueMultiplier).run(days, from: Fold.start)
     }
 
-    private var lateFridays: [Int] { Array(SimulatedUser.fridays(weeks: 8).suffix(3)) }
-    private var earlyFridays: [Int] { Array(SimulatedUser.fridays(weeks: 8).prefix(3)) }
+    private var lateFridays: [Int] {
+        Array(SimulatedUser.fridays(weeks: 8).suffix(3))
+    }
+
+    private var earlyFridays: [Int] {
+        Array(SimulatedUser.fridays(weeks: 8).prefix(3))
+    }
 
     func testEightWeeksOfRegularSessionsReachThePlateauTanState() throws {
         let run = try eightWeeks(noColourOn: [])
