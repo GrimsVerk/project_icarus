@@ -10,7 +10,8 @@ import SwiftUI
 /// placeholder sentence, because a user-visible sentence would have to be a
 /// `CopyKey` the owner approved (R42) and no key stands for "not built yet". The
 /// tab items are system images for the same reason; their titles land with the
-/// copy for them. History and Settings reach the toolbar with Slice 4.
+/// copy for them. History sits in the Calculator's toolbar and opens over it;
+/// Settings joins it there when that screen lands.
 struct RootTabs: View {
     @EnvironmentObject private var env: AppEnvironment
     @EnvironmentObject private var taps: NotificationTaps
@@ -74,10 +75,14 @@ struct RootTabs: View {
 /// window the user entered across a tab switch.
 private struct CalculatorTab: View {
     @StateObject private var model: CalculatorModel
+    private let env: AppEnvironment
     private let banner: AnyView?
+    /// Whether the History screen is open over the Calculator.
+    @State private var showingHistory = false
 
     init(env: AppEnvironment) {
         _model = StateObject(wrappedValue: CalculatorModel(env: env))
+        self.env = env
         // The banner slot is the entry screen's (R39); the provider decides
         // whether there is anything in it, and the no-op one says no.
         banner = env.banner(width: Self.bannerWidth)
@@ -85,6 +90,25 @@ private struct CalculatorTab: View {
 
     var body: some View {
         CalculatorEntryView(model: model, adBanner: banner)
+            // History is reached from the Calculator rather than from a tab of
+            // its own: the app has two tabs and the record is not a third
+            // thing the user does, it is what they already did. The item is a
+            // system image because no approved copy key names it (R42).
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        showingHistory = true
+                    } label: {
+                        Image(systemName: "clock.arrow.circlepath")
+                    }
+                }
+            }
+            // A sheet and not a push: History carries its own navigation, and
+            // the record is a place the user visits and leaves rather than a
+            // step in planning a session.
+            .sheet(isPresented: $showingHistory) {
+                HistoryView(env: env)
+            }
     }
 
     /// A width for the adaptive banner. The AdMob provider that actually uses it
