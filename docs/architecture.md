@@ -10,13 +10,18 @@ The app is one Swift package (`Package.swift`) plus a thin app shell in `App/`.
 The package holds five library targets; `project.yml` builds the iOS app from
 the shell and the package's UI product.
 
-As of Slices 1, 2, 3 and 4 of the `core-engine` plan, the engine has its
+As of Slices 1 to 5 of the `core-engine` plan, the engine is whole. It has its
 foundation — the shared value types, the constants table, and dose
 arithmetic over a forecast curve — and, on top of it, the budget and the
 solver (what each region may take today, and the session that fits inside
-it), the sunscreen answer, and the loop that learns: the history folded into
-derived state, session by session and report by report. The other four
-targets are placeholders.
+it), the sunscreen answer, the loop that learns (the history folded into
+derived state, session by session and report by report), and the `Planner`
+that composes all of them into one typed result. The other four targets are
+placeholders.
+
+`Planner.plan` is the engine's only entry point. Everything above it — the
+data layer, the UI, the notifications — asks it one question and reads one
+answer.
 
 ## Components
 
@@ -32,6 +37,7 @@ targets are placeholders.
 | `IcarusCore` / `AdaptationModel` | How a region's tan state moves: up with the share of its target a session delivered, down with elapsed time, and what the two together are worth telling the user — the escalation and gap notices, and the plateau outcome. |
 | `IcarusCore` / `CalibrationEngine` | One skin report against one day's logged dose: which region it is evidence about, and what it does to that region's tan state and to the person's one sensitivity multiplier. |
 | `IcarusCore` / `Replay` | The fold. The ordered history in, the current derived state and every report's effect out. |
+| `IcarusCore` / `Planner` | The engine's one entry point. A `PlanRequest` in, a `DoseResult` out: the outcome, the budgets it was solved against, the notices, every figure with the constants behind it, and the copy keys in display order. |
 | `IcarusData` | Placeholder. Will own persistence and the forecast cache (M2). |
 | `IcarusContent` | Placeholder. Will own generated copy and Learn content (M3). |
 | `IcarusUI` | Placeholder. Will own the SwiftUI surface (M4). Not built on Linux. |
@@ -51,8 +57,6 @@ The engine is given data; it never fetches any.
   → `ForecastCurve`, which integrates them once into a one-minute prefix
   integral of SED. Every later dose question is two lookups and a subtraction.
 - `ForecastCurve` --(SED over an interval)--> `DoseCalculator`.
-- `DoseCalculator` --(minutes, windows, flags)--> the target and exposure models
-  (Slice 2, not yet built).
 - The whole window's raw dose and the remaining budget of the hardest-pushed
   region --> `SunscreenSolver` --(a label and application, or an honest
   "shorten the window")--> the result. The solver is pure and holds no state.
@@ -71,6 +75,11 @@ The engine is given data; it never fetches any.
 - A `History` --(one ordered stream of events)--> `Replay` --(a `DerivedState`
   and one effect per report)--> the target model, which closes the loop: what
   the app learned is what it plans with next.
+- A `PlanRequest` — the forecast or the reason there is none, where the device
+  is, the clock, the window, the posture, the user and their replayed state —
+  --> `Planner.plan` --(one `DoseResult`)--> the caller. The planner calls every
+  model above and adds nothing of its own except the order they run in, the
+  notices, and the bookkeeping that makes each figure's provenance exact.
 - `ForecastCurve` --(one day's samples)--> `StoredCurve`, the external form kept
   inside a session record and inside the export. `StoredCurve.curve()` rebuilds
   a curve that answers the same dose questions.
@@ -209,6 +218,73 @@ The engine tells the user what to wear; it never asks what they have (R15).
    whole entered window would add — against the target and the burn line, and
    only when the user has said they mean to stay out for it.
 
+### Plan one window — the whole answer
+
+The order is the answer's meaning, not an implementation detail: staleness and
+the plateau both move the budgets, so they are settled first; the budgets are
+settled before anything looks at the window; and the sunscreen is judged
+against what is left of the budget *after* any maintenance scaling.
+
+1. No forecast is the one outcome that shows no number. It names why — a
+   provider failure, a malformed response, an unreadable cache, or no location
+   — and stops there, having read no constant and claimed no figure.
+2. Staleness is judged on the forecast's age and place: nothing under three
+   hours, the age alone under six, and a warning past six, or at any age when
+   the device is more than the tunable distance from the place the forecast is
+   for, or does not know where it is. A warning trims the target and widens the
+   range; it never refuses a number.
+3. Each region's plateau outcome is read from the replayed state. A region that
+   has one has its budget scaled to the maintenance fraction **before** the
+   session is solved, so the session and the sunscreen are both answers about
+   the maintained dose.
+4. Every region spent is the budget-spent outcome, naming the region that took
+   the most today. A window wholly in the past is the window-passed outcome; a
+   window partly in the past is clipped and solved from now.
+5. The whole window's raw dose per region says which region it pushes hardest
+   against what is left — the attenuation region. Everything about overshoot and
+   sunscreen is judged there, because a product that covers that region covers
+   every other exposed one.
+6. Under half of what is left of that region's budget — or of its target,
+   whichever is smaller — the window is too weak to bother with. The answer
+   carries the shortfall from the melanogenic dose and the next window in the
+   cached horizon that could deliver the full target. When the horizon holds
+   none, the answer is instead how many days were searched and the strongest UVI
+   in them, and it never claims a season.
+7. Otherwise the exposure model solves the session against the maintained
+   budgets. A solve with nothing to plan is the budget-spent outcome again.
+8. The sunscreen answer follows only when the whole window would overshoot the
+   attenuation region: the lowest ladder label whose normal application covers
+   it, or the honest "no realistic product covers this".
+9. The headline is the bare sub-window, unless the window could not reach the
+   budget (then the window itself is the answer) or the user has said they will
+   stay out for it and there is a realistic product to name. "Nothing realistic"
+   never leads.
+10. The notices are gathered around the limiting region: its tolerance news, its
+    plateau outcome, whether maintenance was applied, the UVA flag, the
+    staleness level, and the flags that follow from the skin type and the report
+    count. The copy keys are then the outcome first, then the notices, the
+    warnings and the sunscreen, each named once.
+
+### How a figure knows what it read
+
+Every number in a result carries the set of constant keys it came from, and a
+figure is an estimate exactly when one of those keys is an assumption (R30).
+The promise the tests hold is stronger than that: what a recording `Tunables`
+observes over a whole `Planner.plan` call is **exactly** the union of the
+figures' declared reads.
+
+The planner keeps that true by construction rather than by a table someone
+maintains. Every step that touches constants runs through a small helper that
+runs it twice — once through a recording copy, which learns the keys, and once
+through the caller's own `Tunables`, so a sink the caller installed sees the
+same reads. `recording(_:)` replaces the sink rather than chaining onto it, so
+a nested recording would swallow the caller's; two runs of a pure computation
+is the price of not losing it. The keys are collected in groups — the budgets,
+the solve, the viability search, the sunscreen, the UVA threshold, the
+escalation notice — and each figure declares the groups its own value actually
+came from. A group read for a notice rather than for a number is folded into
+the headline figure at the end, so nothing is dropped.
+
 ### Replay the history into state
 
 The history is the record; everything the engine knows about the user is
@@ -309,8 +385,42 @@ logged sessions at the end of what was actually faced, reports when they were
 answered, and a lasting-colour answer at its own timestamp rather than at its
 report's.
 
+## The success criteria that are scripts
+
+`acceptance/S1.sh` runs the dose, target and constants tests and prints every
+read key the single `Tunables` file exposes. `acceptance/S18.sh` runs the
+use-case fixtures twice, under `TZ=UTC` and `TZ=Europe/Oslo`, and fails when the
+filter matched nothing — `swift test` exits 0 on an empty selection, and "no
+fixtures" must not read like "every fixture passed". Both take class-name
+prefixes rather than exact names, because the classes are split by subject and
+the fixtures are written blind.
+
+The file names are `S<n>.sh` exactly: `.github/scripts/acceptance-criteria.sh`
+matches a criterion id to `acceptance/S<n>.sh` and runs nothing else, so a
+descriptive suffix would be a script the check never runs.
+
 ## Known rough edges
 
+- A `Planner.plan` call solves the session twice over: once to learn which
+  constants the solve reads and once for the answer. It is bounded — the worst
+  case measured here, a ten-hour lying window on a cached curve, is about 13 ms
+  in a debug build against the 100 ms R38 allows — but it is a doubling, and the
+  reason for it is the sink-replacing shape of `Tunables.recording(_:)` rather
+  than anything the planner wants.
+- The UVA-heavy threshold is read for a notice, not for a number, so its key is
+  folded into the headline figure. That makes the headline an estimate on
+  grounds it did not quite use. The alternative — dropping the key — would break
+  the stronger promise that a recording `Tunables` sees exactly what the figures
+  declare, and that promise is the one the provenance rests on.
+- The cloud-cover caveat is always false. Nothing in a `PlanRequest` carries
+  cloud cover; the data layer supplies it when it exists (M2).
+- A result with no forecast carries no figures and no notices beyond the
+  thin-margin line, because it reads no constants at all. The flags that would
+  need a constant — the pre-calibration line among them — are not claimed rather
+  than guessed.
+- The budget-spent check runs before the window-passed check, as the plan's
+  Internals order them. A window that has passed for a user with nothing left
+  today is reported as spent, which is the more useful of the two.
 - `Tunables` reads report their key through a sink, which means provenance is
   only as accurate as the engine's discipline about reading constants through
   the request's `Tunables` rather than `Tunables.current`. `ForecastCurve` does
