@@ -13,8 +13,13 @@ import SwiftUI
 /// copy for them. History and Settings reach the toolbar with Slice 4.
 struct RootTabs: View {
     @EnvironmentObject private var env: AppEnvironment
+    @EnvironmentObject private var taps: NotificationTaps
     @Environment(\.scenePhase) private var scenePhase
     @State private var tab: Tab = .calculator
+    /// The notification whose flow is open over the tabs. Held as the tapped
+    /// identifier, because that is all the shell knows: `RoutedPromptView` is
+    /// what turns it into a day and a question.
+    @State private var tappedPrompt: TappedPrompt?
 
     var body: some View {
         TabView(selection: $tab) {
@@ -39,11 +44,24 @@ struct RootTabs: View {
             guard phase == .active else { return }
             Task { await env.didBecomeActive() }
         }
+        .onChange(of: taps.tapped) { _, identifier in
+            guard let identifier else { return }
+            tappedPrompt = TappedPrompt(id: identifier)
+        }
+        .sheet(item: $tappedPrompt, onDismiss: { taps.tapped = nil }) { prompt in
+            RoutedPromptView(env: env, notificationID: prompt.id)
+        }
     }
 
     private enum Tab {
         case calculator
         case learn
+    }
+
+    /// One tapped identifier, as the sheet's item. The identifier is its own
+    /// identity: two taps on the same prompt are the same sheet.
+    private struct TappedPrompt: Identifiable {
+        let id: String
     }
 }
 
