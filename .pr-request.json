@@ -1,5 +1,5 @@
 {
-  "base": "feat/calculator-ui-2",
-  "title": "logging-calibration (M5): the skin check, lasting colour, totals, end to end",
-  "body": "Plan: `docs/plans/logging-calibration.md`, all three slices (the skin-check flow with the did-you-do-it opener and the interval editor; notification routing; the lasting-colour prompt and the in-app due card; totals in Settings; the end-to-end calibration test through the real store; use case 7 for S18; `acceptance/S10.sh`). Stacked on `feat/calculator-ui-2`. 481 Linux tests; S10 passes on Linux.\n\nThe UI halves are not compiled here. Copy gap (BL-2): no approved keys for Q1's answers, Q2's timings, the regions, the confounders or the lasting-colour answers; the views show the enum names as words as data. No blind test edited except a formatting-only pass.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nhttps://claude.ai/code/session_01YcAj6rStzSvKdhtjXi9csp\n"
+  "base": "feat/logging-calibration",
+  "title": "history (M6): the session log, the dose-trajectory chart, export and import",
+  "body": "Plan: `docs/plans/history.md`, all three slices (the session log grouped by day with the day's report; the dose-trajectory chart per region, titled as dose and never colour; export and import from History). Stacked on `feat/logging-calibration`. 481 Linux tests.\n\nUI only, not compiled here. Assembly: the History control moved from a toolbar the entry screen's own navigation bar hides into the shell's control row beside Settings (`App/RootTabs.swift`). No blind test edited.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nhttps://claude.ai/code/session_01YcAj6rStzSvKdhtjXi9csp\n"
 }
