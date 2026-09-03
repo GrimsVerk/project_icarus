@@ -93,6 +93,9 @@ answer.
 | `IcarusUI` / `ModuleView` | One module: its body rendered by MarkdownUI — tables and blockquotes included — then its citations as rows. No banner, no figure. |
 | `IcarusUI` / `ModuleRenderModel` | What reaches a module screen: the body with the `> **Sources**` blockquote removed, and the citations as data. A value, not a view, so what is rendered can be asserted without rendering. `Theme.icarus` (MarkdownUI's GitHub theme) is the markdown styling. |
 | `IcarusUI` / `CitationRow` | One citation as a row: a `Link` when its identifier resolves — a DOI through doi.org, a PMID through PubMed, a URL as given — and text with the identifier beside it when it does not. Never hidden for the lack of a link. |
+| `IcarusUI` / `OnboardingModel` | What first launch knows and the one rule that ends it: the disclaimer acknowledgement, the chosen skin type, the optional quiz total, and `canComplete`, true only once the first two are answered. `applyQuiz()` turns the total into a type through `FitzpatrickQuiz`; `complete()` saves the profile and sets the onboarding and disclaimer flags. It also holds Module 1, so what the first page shows is data anything can assert. |
+| `IcarusUI` / `OnboardingFlow` | First launch in four pages — Module 1, the disclaimer, the skin-type table, the two permissions — with back and forward controls that are symbols only, because no approved copy names them. Advancing is gated per page. No banner, no figure (R39). |
+| `IcarusUI` / `DisclaimerView`, `SkinTypePicker`, `QuizView` | The three middle pages. The disclaimer is the approved `disclaimer` copy used as the acknowledgement toggle's own label. The picker lists the six `SkinTypeTable` rows, name and description, with a checkmark on the chosen one and the questionnaire behind a toolbar symbol. The quiz is ten `FitzpatrickQuiz` questions, each a picker over its own answers. |
 | `IcarusAds` | The ad banner behind a protocol (R40); the only package that will import the SDK. Not built on Linux. |
 | `IcarusAds` / `AdBannerProvider`, `NoAdsProvider` | The whole surface the app has on advertising: prepare for a region (which is where the consent flow will live), a banner view for a width or nil, and the flags every request carries. `NoAdsProvider` shows nothing, asks for nothing, and reports non-personalised — it is what previews, tests, CI and the app itself use until M7. |
 | `App/` | The iOS app shell. Depends only on `IcarusUI`. `ProjectIcarusApp` builds the live environment; `RootTabs` is the two-tab shell with the foreground hook and the deep-link hook. It holds no logic and no copy. |
@@ -612,6 +615,34 @@ that was never made in the document, fails before it ships.
    the document against each other in both directions, and greps the UI and the
    app target for a literal at a copy-bearing call site.
 
+### Take a new user through onboarding
+
+All three flow flags false is a first launch, and onboarding is what runs then
+(R28, R29).
+
+1. Page one is Module 1, rendered by the same `ModuleView` the Learn tab uses.
+   The text is the module's own — "there is no safe tan" arrives unsoftened,
+   because nothing here retells it.
+2. Page two is the medical disclaimer. The approved `disclaimer` copy is the
+   label of the toggle that acknowledges it, so the sentence being agreed to and
+   the agreement are one control. The flow will not advance until it is on.
+3. Page three is the skin-type table: the six `SkinTypeTable` rows, each its
+   name and its plain description, the chosen one marked with a checkmark. A
+   user who cannot place themselves opens the questionnaire from the toolbar.
+   It scores every answered question through the published bands, and the score
+   becomes the chosen type only when the user confirms — so they end up looking
+   at the same table, with a row marked.
+4. Page four gives the reason for each permission before asking for it: the
+   location line, then the notification line, each next to the button that
+   requests it. Neither request is waited on and neither is required. A denial
+   is an answer the app lives with — the location service and the prompt
+   scheduler each read the real state where it matters.
+5. Finishing saves a `Profile` at the standard ceiling with no manual
+   multiplier, sets `onboardingComplete` and `disclaimerAcknowledged` in the
+   store's flags, and hands the profile to the caller. The button is offered
+   only once both required answers are in; asking for it earlier is a
+   programmer error and traps.
+
 ### Come back to the app
 
 1. The shell sees the scene become active and calls
@@ -897,3 +928,24 @@ descriptive suffix would be a script the check never runs.
   `trailingCommas` rule adds exactly what it removes, and both run in CI; and
   it excludes the short names the design fixes (skin types `i`–`vi`, the
   lasting-colour answer `no`, the calibration constant `k`).
+- Onboarding's navigation, its permission buttons and the way into the quiz are
+  SF Symbols with no words at all. That is not a style choice: no approved copy
+  key names any of them, and a word invented here would be copy the owner never
+  saw (R42, S11). Where a symbol needs a spoken name, it borrows content data —
+  the permission reason, the quiz's first question — rather than a new sentence.
+- The quiz keeps its answers as question id → option index, not as points, so
+  two answers worth the same score stay distinguishable and the picker shows
+  the one actually chosen. An unanswered question scores nothing, which is also
+  its most sensitive answer; the total only means something once every question
+  has been answered, and the user decides that by confirming.
+- Onboarding asks for the two permissions directly — `CLLocationManager` and
+  `UNUserNotificationCenter`, each behind its own `canImport` — rather than
+  through `AppEnvironment`. The model takes only a `ProfileStore`, which is what
+  keeps the completion rule testable without a whole environment; the services
+  read the real authorization state later anyway, so nothing here caches an
+  answer. The location manager is held for the life of the app: one released
+  before the user answers takes its dialog with it.
+- Nothing in this slice has been compiled. `IcarusUI` does not exist on Linux,
+  so `swift build`, `swift test`, S11 and S15 all pass without ever looking at
+  these five files; the first real evidence is the macOS CI job, and the first
+  evidence that the flow reads well is the owner's S9 on a device.
