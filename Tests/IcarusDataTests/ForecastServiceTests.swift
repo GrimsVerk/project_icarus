@@ -39,10 +39,14 @@ private enum Fixture {
     }
 
     /// Midnight UTC on the fixtures' first day.
-    static var start: Date { date(2026, 6, 15) }
+    static var start: Date {
+        date(2026, 6, 15)
+    }
 
     /// The working instant of most tests: 12:00 UTC on the first day.
-    static var noon: Date { date(2026, 6, 15, 12) }
+    static var noon: Date {
+        date(2026, 6, 15, 12)
+    }
 
     /// `days` whole days of hourly samples in Oslo's zone: a hump peaking at
     /// UVI 7 at 11:00 UTC, with solar noon at 11:15 UTC every day.
@@ -99,9 +103,17 @@ private actor CountingProvider: UVForecastProvider {
         self.answer = answer
     }
 
-    var callCount: Int { asked.count }
-    var lastCoordinate: Coordinate? { asked.last?.location }
-    var lastDays: Int? { asked.last?.days }
+    var callCount: Int {
+        asked.count
+    }
+
+    var lastCoordinate: Coordinate? {
+        asked.last?.location
+    }
+
+    var lastDays: Int? {
+        asked.last?.days
+    }
 
     func forecast(at location: Coordinate, days: Int) async throws(ProviderError) -> ProviderForecast {
         asked.append((location: location, days: days))

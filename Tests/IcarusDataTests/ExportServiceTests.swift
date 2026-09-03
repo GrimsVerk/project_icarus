@@ -237,7 +237,9 @@ enum StoreFixtures {
         return calendar.date(from: DateComponents(year: year, month: month, day: day, hour: hour))!
     }
 
-    static func day(_ moment: Date) -> DayKey { DayKey(moment, timeZone: zone) }
+    static func day(_ moment: Date) -> DayKey {
+        DayKey(moment, timeZone: zone)
+    }
 
     /// Ids that read as numbers, so a failure names the record it is about.
     static func uuid(_ index: Int) -> UUID {
@@ -382,7 +384,9 @@ final class ProfileBox: @unchecked Sendable {
     private let lock = NSLock()
     private var storage: Profile
 
-    init(_ profile: Profile) { storage = profile }
+    init(_ profile: Profile) {
+        storage = profile
+    }
 
     var profile: Profile {
         lock.lock()

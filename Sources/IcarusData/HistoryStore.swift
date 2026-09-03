@@ -44,7 +44,9 @@ public actor HistoryStore {
     }
 
     /// The constant set this store replays under; the export records it.
-    public var tunablesVersion: String { tunables.version }
+    public var tunablesVersion: String {
+        tunables.version
+    }
 
     // MARK: - Reading
 
@@ -62,7 +64,9 @@ public actor HistoryStore {
             dayID: dayID(at: now, in: history),
             profile: profile
         )
-        if let memo, memo.key == key { return memo.state }
+        if let memo, memo.key == key {
+            return memo.state
+        }
         let replayed = Replay.replay(history, skinType: profile.skinType, now: now, tunables: tunables)
         memo = (key, replayed.state)
         return replayed.state
@@ -186,7 +190,9 @@ public actor HistoryStore {
             try persistence.upsertSession(stale)
             discarded += 1
         }
-        if discarded > 0 { invalidate() }
+        if discarded > 0 {
+            invalidate()
+        }
         return discarded
     }
 

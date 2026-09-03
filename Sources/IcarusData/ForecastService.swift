@@ -52,7 +52,11 @@ public enum ForecastResult: Sendable {
         switch self {
         case .fresh: nil
         case let .cached(_, reason):
-            if case let .providerFailed(failure) = reason { failure } else { nil }
+            if case let .providerFailed(failure) = reason {
+                failure
+            } else {
+                nil
+            }
         case let .none(failure): failure
         }
     }
@@ -94,7 +98,9 @@ public actor ForecastService {
             return .fresh(curve)
         } catch {
             let failure = Self.named(error)
-            if let stored { return .cached(stored.curve, reason: .providerFailed(failure)) }
+            if let stored {
+                return .cached(stored.curve, reason: .providerFailed(failure))
+            }
             return .none(failure)
         }
     }

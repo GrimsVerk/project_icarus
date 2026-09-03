@@ -35,7 +35,9 @@ public struct FakeForecastProvider: UVForecastProvider {
         if delay > .zero {
             try? await Task.sleep(for: delay)
         }
-        if let failing { throw failing }
+        if let failing {
+            throw failing
+        }
         guard malformed else { return fixture }
         return ProviderForecast(
             hourly: fixture.hourly.reversed(),

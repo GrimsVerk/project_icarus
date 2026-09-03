@@ -65,7 +65,10 @@ final class HistoryStorePlanningTests: XCTestCase {
         try await StoreFixtures.seed(store, index: 3, opens: StoreFixtures.date(2026, 6, 20, 12),
                                      dose: [.front: 1.0])
 
-        let discarded = try await store.discardPlanned(before: StoreFixtures.date(2026, 6, 22))
+        // R45: a planned session is discarded only once its in-app skin-check
+        // window (72 h after the session) has closed unanswered, never before.
+        // The stale session's window closes on the 23rd; the cutoff is the 24th.
+        let discarded = try await store.discardPlanned(before: StoreFixtures.date(2026, 6, 24))
         XCTAssertEqual(discarded, 1)
         let stale = try await store.plannedSessions(on: StoreFixtures.day(staleDay))
         XCTAssertTrue(stale.isEmpty)

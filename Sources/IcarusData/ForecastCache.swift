@@ -32,7 +32,9 @@ public struct FileForecastCache: ForecastCacheStore {
         self.directory = directory
     }
 
-    private var fileURL: URL { directory.appendingPathComponent("forecast.json") }
+    private var fileURL: URL {
+        directory.appendingPathComponent("forecast.json")
+    }
 
     public func load() throws -> CachedForecast? {
         guard FileManager.default.fileExists(atPath: fileURL.path) else { return nil }

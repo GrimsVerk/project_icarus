@@ -1,7 +1,6 @@
 // The planner's contract is one function with a great many promises, and they
 // are asserted here one test each. Splitting them across files would put half
 // of this slice's tests in a file the plan does not declare.
-// swiftlint:disable file_length
 
 @testable import IcarusCore
 import XCTest
