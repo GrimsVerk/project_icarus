@@ -316,6 +316,13 @@ private extension Context {
         }
         wholeWindowRaw = raw
         reads.solve.formUnion(geometryReads)
+        // Every minute figure rests on the UVI-minutes-per-SED conversion
+        // (R4), which the curve applied when it integrated the forecast —
+        // before this planner was asked, so no solve above could observe the
+        // read. It is declared here and read through the request's Tunables,
+        // so a recording copy sees exactly what the figures claim (R30, S1).
+        _ = tunables.uviMinutesPerSED
+        reads.solve.insert("uviMinutesPerSED")
         attenuationRegion = ExposureModel.attenuationRegion(raw: raw, targets: targets)
 
         let noon = curve.solarNoon(on: curve.day(ahead.start))
