@@ -1,0 +1,27 @@
+Preparing worktree (new branch 'worker/learn-tab-1-tests')
+HEAD is now at 21a49e5 Fix a blind test that expected a planned session discarded before its prompt window closed
+=== spawn-worker[learn-tab-1-tests] engine=claude branch=worker/learn-tab-1-tests base=feat/learn-tab (21a49e529f5e35f28747f6421c9f025494f9fb2a) bypass=0 ===
+=== 2026-09-03T05:30:59Z ===
+Ignoring 2 permissions.allow entries from .claude/settings.json: this workspace has not been trusted. Run Claude Code interactively here once and accept the trust dialog, or set projects["/home/user/project_icarus"].hasTrustDialogAccepted: true in /root/.claude.json.
+**What I did**
+
+I wrote the tests for Slice 1. Three files, nothing else:
+
+- `Tests/IcarusContentTests/ModuleIndexTests.swift` — twelve modules load in id order; every id resolves; `ModuleID` says no to 0, 13, -1; titles match the source headings; `normalise(section) == module.markdown` for all twelve; `split` keeps the text and the `[VERIFY]` markers; `split` throws if the document is not twelve modules; `normalise` drops the preamble, the markers and trailing spaces; loaded bodies keep every source line and the Sources block.
+- `Tests/IcarusContentTests/CitationTests.swift` — no citation dropped (35 in the source); Routaboul → `.pmid("10066941")`; McKinlay and the module 4 standard → `.iso("17166:1999")` with no link; WHO → `.url` with that link; Miyamura → the DOI with no marker in it and `needsVerification` true; European Commission and Ledo → `.none`; every DOI links through doi.org; no identifier is invented; marker counts match per module.
+- `Tests/IcarusContentTests/DeepLinkTests.swift` — `deepLink(3)` is `icarus://learn/3`; all twelve round-trip; wrong scheme, wrong host, bad number, missing or extra path → nil.
+
+The tests read `docs/LEARN_CONTENT.md` from disk at test time, relative to `#filePath`. No source text is copied into the tests. My copy of the plan had no `### Internals` section, as expected.
+
+**Did it work**
+
+Yes, as expected: the tests do not compile. Every error is "cannot find `ModuleID` / `LearnModule` / `Citation` / `LearnSource` / `DeepLink` / `ModuleIndex`". That is the point — the code is not in my tree. I checked my own helper code separately in a scratch package: it compiles and parses all twelve sections correctly. `swiftformat` and `swiftlint --strict` are clean.
+
+Committed on the branch with the trailer `Blind-Tests: learn-tab-1`. I did not push.
+
+**Two places we may clash at assembly**
+
+1. I assert `module.markdown` **contains** the heading line `## Module N — Title`. The plan calls `markdown` the "body", so the code author might drop the heading. If so, that one assertion needs a ruling.
+2. Fields like `authors` and `venue`: I only check they contain the right name (for example "Routaboul"), because the contract does not say if a trailing full stop is kept. Identifiers, years, links and counts are checked exactly.
+
+WORK_ON_BRANCH worker/learn-tab-1-tests
