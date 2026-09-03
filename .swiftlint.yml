@@ -27,3 +27,8 @@ identifier_name:
     - vi
     - no
     - k
+file_length:
+  # Count code, not commentary: a test file that explains each promise it
+  # asserts is not too long for having said why. The formatter's wrap rules
+  # (0.63) also lengthen files without adding a line of logic.
+  ignore_comment_only_lines: true

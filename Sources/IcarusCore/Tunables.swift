@@ -1,7 +1,3 @@
-// swiftlint:disable file_length
-// R30 rules that every tunable constant lives in ONE configuration file, with
-// its basis beside it; splitting this file to satisfy a line count would
-// break that promise, so the rule is off for this file alone.
 import Foundation
 
 /// Where a number came from. A `citation` points at a source the project can

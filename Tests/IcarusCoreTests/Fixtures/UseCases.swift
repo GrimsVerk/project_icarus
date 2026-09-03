@@ -1,7 +1,6 @@
 // The eight §4 use cases are one fixture file by the plan's file list: each is
 // a whole request with its expected answer, and splitting them would put half
 // of S18 in a file no slice declares.
-// swiftlint:disable file_length
 
 @testable import IcarusCore
 import XCTest

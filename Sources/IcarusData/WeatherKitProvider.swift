@@ -76,7 +76,9 @@ public enum WeatherKitMapping {
             String(format: "%.3f,%.3f", location.latitude, location.longitude)
         }
 
-        func zone(for location: Coordinate) -> String? { zones[key(location)] }
+        func zone(for location: Coordinate) -> String? {
+            zones[key(location)]
+        }
 
         func remember(_ identifier: String, for location: Coordinate) {
             zones[key(location)] = identifier
@@ -114,7 +116,9 @@ public enum WeatherKitMapping {
         /// failing the fetch: a wrong-by-an-hour day boundary is far less bad
         /// than no forecast at all.
         private static func zoneIdentifier(for location: Coordinate, place: CLLocation) async -> String {
-            if let known = await ZoneCache.shared.zone(for: location) { return known }
+            if let known = await ZoneCache.shared.zone(for: location) {
+                return known
+            }
             let marks = try? await CLGeocoder().reverseGeocodeLocation(place)
             let identifier = marks?.first?.timeZone?.identifier ?? TimeZone.current.identifier
             await ZoneCache.shared.remember(identifier, for: location)
