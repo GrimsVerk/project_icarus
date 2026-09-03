@@ -72,11 +72,8 @@
             switch prompt {
             case let .skinCheck(day):
                 SkinCheckFlow(model: SkinCheckModel(env: env, day: day, channel: .inApp))
-            case .lastingColour:
-                // The lasting-colour flow is Slice 2. Until it lands the row is
-                // shown but opens nothing rather than opening the wrong
-                // question.
-                EmptyView()
+            case let .lastingColour(day):
+                LastingColourFlow(model: LastingColourModel(env: env, day: day, channel: .inApp))
             }
         }
 
