@@ -927,6 +927,36 @@ descriptive suffix would be a script the check never runs.
    plan came from — place, fetch time, peak UVI, zone.
 6. No heading on either screen is copy: no approved key names a column, so the
    screens show dates, clock times, stored numbers and case names as words.
+### Chart the dose of a tan cycle
+
+1. `TrajectoryModel.reload(now:)` reads the whole record once and the replayed
+   state once. A store that cannot be read leaves an empty chart: History is a
+   record screen and nothing on it is a figure the user acts on.
+2. It keeps the logged sessions that actually faced something and orders them by
+   the end of their actual window, oldest first. Planned and discarded sessions
+   are not a record of dose and never reach the chart.
+3. Each region has its own cycle. The cycle opens at that region's `cycleStart`
+   in the replayed state, or — for a region the replay left outside a cycle — at
+   the most recent entry of `cycleStarts`. A session that ended before its
+   region's cycle opened is skipped for that region alone.
+4. Within the cycle the model adds the session's stored `dosePerRegion` to a
+   running sum per region and emits one `TrajectoryPoint` per session per
+   region: the instant the session ended, the region, and the sum so far. So the
+   line only ever rises inside a cycle, and it restarts at each cycle start,
+   region by region.
+5. The escalation-notice line is not guessed at from the dose. For each point
+   the model replays the state to that instant and asks `AdaptationModel` for
+   the region's notice; the first instant the answer is "risen" fixes that
+   region's notice dose. A region that never earned one has no line.
+6. `TrajectoryChart` draws a `LineMark` per region over date and cumulative SED,
+   coloured by region, with a dashed `RuleMark` at each region's notice dose.
+   The y axis is labelled with the unit, which is data and not copy.
+7. The words above the chart are the `trajectoryTitle` copy and they are the
+   point of the screen: this is a record of dose, not a measurement of colour.
+   Nothing here plots pigment.
+8. The chart is one accessibility element. It reads that title and then, per
+   region, the region's own words and the last cumulative dose — the numbers a
+   VoiceOver user is asking for when they ask what the chart says.
 
 ## Known rough edges
 
