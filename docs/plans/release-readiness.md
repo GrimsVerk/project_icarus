@@ -63,14 +63,14 @@ acceptance/S15-ads.sh: `swift test --filter IcarusAdsTests` + grep for GoogleMob
 ## Slice 2 — Live WeatherKit, entitlement, attribution, privacy policy
 
 - **Delivers:** The app target carries the WeatherKit capability and the attribution view with Apple's logo and legal link findable from every tab; the privacy policy link in Settings opens the owner's page; the live fetch on a signed device matches the built-in Weather app for the same hour and the returned horizon is recorded in Tunables (S8 owner part).
-- **Files:** `project.yml`, `App/ProjectIcarus.entitlements`, `Sources/IcarusUI/Settings/AttributionView.swift`, `Sources/IcarusUI/Settings/PrivacyPolicyLink.swift`, `Sources/IcarusCore/Tunables.swift`, `docs/reviews/citations.md`
+- **Files:** `project.yml`, `App/ProjectIcarus.entitlements`, `Sources/IcarusUI/Settings/PrivacyPolicyLink.swift`, `App/AppEnvironment.swift`, `Sources/IcarusCore/Tunables.swift`, `docs/reviews/citations.md`
 - **Estimate:** ~140 lines
 
 ### Signatures
 
 ```text
 // project.yml: entitlements com.apple.developer.weatherkit; bundleIdPrefix set to the owner's; deploymentTarget 18.0
-public struct AttributionView: View { public init() }          // WeatherKit attribution per Apple: logo + link to the legal attribution page
+// AttributionView is built in calculator-ui Slice 4; this slice adds the entitlement, the live provider wiring in AppEnvironment.live, and the link URL
 public struct PrivacyPolicyLink: View { public init(url: URL) }
 // docs/reviews/citations.md: the S13 report — every [VERIFY] and addendum-flagged citation with resolved / corrected / unresolved
 // Promises (S8 owner, S9 owner, S13 owner): recorded by the owner on a device; Tunables.forecastHorizonDays updated to the observed horizon if it differs
@@ -79,7 +79,7 @@ public struct PrivacyPolicyLink: View { public init(url: URL) }
 ### Internals
 
 ```text
-AttributionView: Image("weatherkit-attribution") from the Apple-provided asset; Link to https://weatherkit.apple.com/legal-attribution.html ; placed in Settings › About and linked from the Result's forecast line
+AppEnvironment.live: swap NoAdsProvider for AdMobBannerProvider(adUnitID); PrivacyPolicyLink(url: the owner's page) wired into Settings › About; AttributionView (M3) gets the Apple asset and the legal link URL here
 ```
 
 ## Slice 3 — Accessibility, copy pass, TestFlight, listing
