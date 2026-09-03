@@ -1,0 +1,478 @@
+{
+  "keys" : {
+    "aggressiveLocked" : {
+      "base" : "Aggressive unlocks after {count} skin reports with at least one redness report in the current tan cycle. The app needs to have seen where your line is."
+    },
+    "alreadyReported" : {
+      "base" : "This day already has a skin report. One report per day is all the app uses."
+    },
+    "alternativeShadeForRest" : {
+      "base" : "{spf} applied {application} covers the first {coveredMinutes} minutes. Shade for the rest of the {window}, and cover head and shoulders."
+    },
+    "alternativeThickEnough" : {
+      "base" : "{spf} is enough if you apply it thickly: about a shot glass for the whole body. Applied normally it is not."
+    },
+    "alternativeWholeWindow" : {
+      "base" : "{spf} applied {application} covers the whole {window}."
+    },
+    "boundByBurnLine" : {
+      "base" : "Today's target is set by your redness line. For your skin type the tanning dose is at that line, not below it. [Module 5]"
+    },
+    "boundByMelanogenic" : {
+      "base" : "Today's target is your tanning dose, which sits below your redness line. [Module 5]"
+    },
+    "budgetSpent" : {
+      "base" : "Today's budget for your {region} is used up. More sun today buys damage, not colour. Tomorrow starts a fresh budget."
+    },
+    "ceilingReached" : {
+      "base" : "The last {count} lasting-colour answers were \"no\" near modelled saturation, and this cycle has shown a redness report. You have likely reached your skin's maximum. More dose buys damage without colour. The dose drops to maintenance."
+    },
+    "cloudCaveat" : {
+      "base" : "The forecast already includes expected cloud. Real conditions vary, and thin cloud passes most UV."
+    },
+    "conservativeUntilCalibrated" : {
+      "base" : "Shorter until the app has learned your skin. It uses the conservative setting until you have sent {count} skin reports."
+    },
+    "coverToRunLonger" : {
+      "base" : "With a hat or shirt on head and shoulders, each side could run {minutes} minutes longer."
+    },
+    "deleteHistoryWarning" : {
+      "base" : "Deleting the history starts the app over from your skin-type prior. Calibration, tan state, today's budget and History are all lost. Export first if you want to keep them."
+    },
+    "didYouDoThisSession" : {
+      "base" : "Did you do this session? {window}"
+    },
+    "didYouWearIt" : {
+      "base" : "Did you wear {spf}, applied {application}?"
+    },
+    "disclaimer" : {
+      "base" : "This app is not medical advice and does not diagnose or treat anything. It estimates a dose from a forecast and from what you report; the estimate can be wrong. Any tan is a sign of skin damage, and there is no dose of ultraviolet light that is known to be free of risk. If you have a skin condition, take medication that affects sun sensitivity, or are unsure, ask a doctor. Sunbeds are outside this app's scope and are not recommended."
+    },
+    "escalationRisen" : {
+      "base" : "Your threshold has risen since this tan cycle began. A fixed dose would no longer trigger new pigment, so today's dose is larger. Cycle dose so far: {cycleDose} SED. [Module 6]"
+    },
+    "fairSkinPreCalibration" : {
+      "base" : "The first sessions are set below the dose that reliably tans fair skin, on purpose, so that a first redness report arrives at a low dose."
+    },
+    "immediateDarkeningExplained" : {
+      "base" : "Redness that shows within an hour and is gone by evening is immediate darkening, not a burn. The report was counted as \"normal\". [Module 2]"
+    },
+    "importApplied" : {
+      "base" : "Import complete: {count} sessions and {reports} reports. The file's profile was applied."
+    },
+    "importFailed" : {
+      "base" : "The file could not be read. Nothing was changed."
+    },
+    "maintenance" : {
+      "base" : "Maintenance dose: {percent}% of your usual target. It changes back after a \"yes\" or \"a little\" to the lasting-colour question."
+    },
+    "missingForecast" : {
+      "base" : "No forecast is available, so there is no number to show. Reason: {reason}. Refresh, or check the place the forecast is for."
+    },
+    "missingForecastNoLocation" : {
+      "base" : "The app does not know where you are, and there is no saved forecast. Allow location, or enter a place."
+    },
+    "noSessionToReport" : {
+      "base" : "No session was logged for this day, so there is nothing to report. Nothing was recorded."
+    },
+    "noViableWindow" : {
+      "base" : "No slot in the next {days} days reaches a useful dose. The highest UV index in the forecast is {peakUVI}. This app does not guess past its forecast."
+    },
+    "nothingRealistic" : {
+      "base" : "No realistic product covers this slot. Even SPF 50 applied normally is not enough. Shorten the slot instead."
+    },
+    "onboardingWhyLocation" : {
+      "base" : "Location is used for one thing: fetching the UV forecast for where you are. It never leaves the phone except in that request."
+    },
+    "onboardingWhyNotifications" : {
+      "base" : "Notifications carry the day-after skin check, the lasting-colour question and the flip-timer alerts. Without them the same questions wait for the next launch, and the timer cannot alert with the screen locked."
+    },
+    "oneSideSpent" : {
+      "base" : "Your {region} has no budget left today, so that side gets no minutes. The other side is solved on its own."
+    },
+    "pauseSuggested" : {
+      "base" : "Blistering means the dose was far past your line. The estimate was corrected at once. Pause for {pauseDays} days and let the skin recover. [Module 7]"
+    },
+    "planBareSubWindow" : {
+      "base" : "Best {minutes} minutes, no sunscreen. Your slot is longer than your skin needs today, so these are the minutes to take."
+    },
+    "planStayWearThis" : {
+      "base" : "To stay the whole {window}, wear {spf}, applied {application}. The bare-skin alternative is below."
+    },
+    "planStayWholeWindowFits" : {
+      "base" : "The whole {window} fits under today's budget. Stay for all of it, no sunscreen needed for the tan."
+    },
+    "privacyOptions" : {
+      "base" : "Privacy options for the ad banner."
+    },
+    "reapply" : {
+      "base" : "Reapply at {times}."
+    },
+    "reportRecorded" : {
+      "base" : "Report saved. {effect}"
+    },
+    "revisitSkinType" : {
+      "base" : "Your reports put your sensitivity outside the range for your skin type. Check your skin type in Settings."
+    },
+    "sensitivitySentence" : {
+      "base" : "{percent}% {direction} sensitive than typical for your skin type, based on {count} skin reports."
+    },
+    "staleFarFromCache" : {
+      "base" : "The saved forecast is for {place}, which is not where you are. The number is shorter and the range wider until you refresh or change the place."
+    },
+    "staleHeadsUp" : {
+      "base" : "Forecast fetched {hours} hours ago for {place}."
+    },
+    "staleWarn" : {
+      "base" : "The forecast is {hours} hours old and may be outdated. The number is shorter and the range wider until it is refreshed."
+    },
+    "sunscreenApplicationBeatsLabel" : {
+      "base" : "How much you apply matters more than the number on the bottle: half the amount gives about the square root of the label. A moderate SPF applied properly beats a high SPF applied thinly. [Module 8]"
+    },
+    "sunscreenNotNeeded" : {
+      "base" : "No sunscreen is needed for the tanning goal in these minutes. You may still wear it; then the tan takes longer."
+    },
+    "sunscreenPrescribed" : {
+      "base" : "Wear {spf}, applied {application}. That covers every exposed region for the whole {window}."
+    },
+    "thinMargin" : {
+      "base" : "For your skin type the dose that tans and the dose that turns skin red are close together. Deciding a tan is not worth it is a reasonable conclusion. This app will not push you either way. [Module 5]"
+    },
+    "timerCannotStart" : {
+      "base" : "The timer cannot start: there is no session to run. {reason}"
+    },
+    "timerNeedsNotifications" : {
+      "base" : "Notifications are off, so the timer cannot alert you with the screen locked. Turn them on in Settings, or keep the screen on."
+    },
+    "timerStoppedAtPlannedEnd" : {
+      "base" : "The timer was still running at midnight. The session was stopped at its planned end."
+    },
+    "toleranceDropped" : {
+      "base" : "Your tolerance has dropped by about {percent}% since your last session. Today's dose is smaller than the last one you did. [Module 6]"
+    },
+    "tooWeak" : {
+      "base" : "This slot will not build lasting colour. It delivers {shortfall} SED less than your skin needs for new pigment. The next slot that can is {nextDay} around {nextHour}."
+    },
+    "trajectoryTitle" : {
+      "base" : "Dose per tan cycle, in SED. This is a record of dose, not a measurement of colour."
+    },
+    "underDosed" : {
+      "base" : "The last {count} lasting-colour answers were \"no\" near modelled saturation, but this cycle has shown no redness, so the app cannot tell whether the dose is too low or your skin is done. At this tan state a maintenance dose keeps what you have."
+    },
+    "unreportedDays" : {
+      "base" : "{count} session days have no skin report."
+    },
+    "uvaHeavy" : {
+      "base" : "This slot is far from solar noon. The light is UVA-heavy: more ageing per unit of lasting colour. [Module 3]"
+    },
+    "uvaMultiple" : {
+      "base" : "The same tanning dose spread over {multiple} times the minutes carries about {multiple} times the UVA. Sunscreen filters UVB more than UVA unless it carries a UVA rating. [Module 3] [Module 8]"
+    },
+    "warnPastTarget" : {
+      "base" : "Staying the whole {window} takes your {region} past today's target, to {sed} SED. Expect more damage than colour."
+    },
+    "warnReachesThreshold" : {
+      "base" : "Staying the whole {window} reaches your {region}'s redness threshold, {sed} SED. Expect redness the next day: this is the dose at which skin cells die and the inflammation Module 7 describes begins. [Module 7]"
+    },
+    "whichSideFirst" : {
+      "base" : "Which side is up first?"
+    },
+    "windowPassed" : {
+      "base" : "That slot has already passed. Enter a slot that ends after now."
+    }
+  },
+  "quiz" : [
+    {
+      "id" : 1,
+      "options" : [
+        {
+          "points" : 0,
+          "text" : "Light blue, grey or green"
+        },
+        {
+          "points" : 1,
+          "text" : "Blue, grey or green"
+        },
+        {
+          "points" : 2,
+          "text" : "Blue"
+        },
+        {
+          "points" : 3,
+          "text" : "Dark brown"
+        },
+        {
+          "points" : 4,
+          "text" : "Brownish black"
+        }
+      ],
+      "text" : "What colour are your eyes?"
+    },
+    {
+      "id" : 2,
+      "options" : [
+        {
+          "points" : 0,
+          "text" : "Red or light blond"
+        },
+        {
+          "points" : 1,
+          "text" : "Blond"
+        },
+        {
+          "points" : 2,
+          "text" : "Chestnut or dark blond"
+        },
+        {
+          "points" : 3,
+          "text" : "Dark brown"
+        },
+        {
+          "points" : 4,
+          "text" : "Black"
+        }
+      ],
+      "text" : "What is your natural hair colour?"
+    },
+    {
+      "id" : 3,
+      "options" : [
+        {
+          "points" : 0,
+          "text" : "Reddish"
+        },
+        {
+          "points" : 1,
+          "text" : "Very pale"
+        },
+        {
+          "points" : 2,
+          "text" : "Pale with a beige tint"
+        },
+        {
+          "points" : 3,
+          "text" : "Light brown"
+        },
+        {
+          "points" : 4,
+          "text" : "Dark brown"
+        }
+      ],
+      "text" : "What colour is your skin where it is not exposed to the sun?"
+    },
+    {
+      "id" : 4,
+      "options" : [
+        {
+          "points" : 0,
+          "text" : "Many"
+        },
+        {
+          "points" : 1,
+          "text" : "Several"
+        },
+        {
+          "points" : 2,
+          "text" : "Few"
+        },
+        {
+          "points" : 3,
+          "text" : "Incidental"
+        },
+        {
+          "points" : 4,
+          "text" : "None"
+        }
+      ],
+      "text" : "Do you have freckles on unexposed areas?"
+    },
+    {
+      "id" : 5,
+      "options" : [
+        {
+          "points" : 0,
+          "text" : "Painful redness, blistering, peeling"
+        },
+        {
+          "points" : 1,
+          "text" : "Blistering followed by peeling"
+        },
+        {
+          "points" : 2,
+          "text" : "Burns sometimes followed by peeling"
+        },
+        {
+          "points" : 3,
+          "text" : "Rare burns"
+        },
+        {
+          "points" : 4,
+          "text" : "Never had burns"
+        }
+      ],
+      "text" : "What happens when you stay in the sun too long?"
+    },
+    {
+      "id" : 6,
+      "options" : [
+        {
+          "points" : 0,
+          "text" : "Hardly or not at all"
+        },
+        {
+          "points" : 1,
+          "text" : "Light colour tan"
+        },
+        {
+          "points" : 2,
+          "text" : "Reasonable tan"
+        },
+        {
+          "points" : 3,
+          "text" : "Tan very easily"
+        },
+        {
+          "points" : 4,
+          "text" : "Turn dark brown quickly"
+        }
+      ],
+      "text" : "To what degree do you turn brown?"
+    },
+    {
+      "id" : 7,
+      "options" : [
+        {
+          "points" : 0,
+          "text" : "Never"
+        },
+        {
+          "points" : 1,
+          "text" : "Seldom"
+        },
+        {
+          "points" : 2,
+          "text" : "Sometimes"
+        },
+        {
+          "points" : 3,
+          "text" : "Often"
+        },
+        {
+          "points" : 4,
+          "text" : "Always"
+        }
+      ],
+      "text" : "Do you turn brown within several hours after sun exposure?"
+    },
+    {
+      "id" : 8,
+      "options" : [
+        {
+          "points" : 0,
+          "text" : "Very sensitive"
+        },
+        {
+          "points" : 1,
+          "text" : "Sensitive"
+        },
+        {
+          "points" : 2,
+          "text" : "Normal"
+        },
+        {
+          "points" : 3,
+          "text" : "Very resistant"
+        },
+        {
+          "points" : 4,
+          "text" : "Never had a problem"
+        }
+      ],
+      "text" : "How does your face react to the sun?"
+    },
+    {
+      "id" : 9,
+      "options" : [
+        {
+          "points" : 0,
+          "text" : "More than 3 months ago"
+        },
+        {
+          "points" : 1,
+          "text" : "2–3 months ago"
+        },
+        {
+          "points" : 2,
+          "text" : "1–2 months ago"
+        },
+        {
+          "points" : 3,
+          "text" : "Less than a month ago"
+        },
+        {
+          "points" : 4,
+          "text" : "Less than 2 weeks ago"
+        }
+      ],
+      "text" : "When did you last expose your body to the sun, a sunbed or a tanning cream?"
+    },
+    {
+      "id" : 10,
+      "options" : [
+        {
+          "points" : 0,
+          "text" : "Never"
+        },
+        {
+          "points" : 1,
+          "text" : "Hardly ever"
+        },
+        {
+          "points" : 2,
+          "text" : "Sometimes"
+        },
+        {
+          "points" : 3,
+          "text" : "Often"
+        },
+        {
+          "points" : 4,
+          "text" : "Always"
+        }
+      ],
+      "text" : "Did you expose the area to be treated to the sun?"
+    }
+  ],
+  "skinTypes" : [
+    {
+      "description" : "Skin goes red after a short time in strong sun and does not turn brown afterwards. Often very fair skin, light eyes, red or very light hair, freckles.",
+      "name" : "Type I",
+      "type" : 1
+    },
+    {
+      "description" : "Skin goes red easily and turns only slightly brown afterwards. Often fair skin, light or hazel eyes, blond or light brown hair.",
+      "name" : "Type II",
+      "type" : 2
+    },
+    {
+      "description" : "Skin sometimes goes red, then turns brown gradually. Often light to medium skin, any eye colour, brown hair.",
+      "name" : "Type III",
+      "type" : 3
+    },
+    {
+      "description" : "Skin rarely goes red and turns brown easily. Often olive or light brown skin, dark eyes, dark hair.",
+      "name" : "Type IV",
+      "type" : 4
+    },
+    {
+      "description" : "Skin very rarely goes red and turns dark brown readily. Often brown skin, dark eyes, dark hair.",
+      "name" : "Type V",
+      "type" : 5
+    },
+    {
+      "description" : "Skin does not go visibly red under ordinary sun. Deeply pigmented skin.",
+      "name" : "Type VI",
+      "type" : 6
+    }
+  ]
+}
