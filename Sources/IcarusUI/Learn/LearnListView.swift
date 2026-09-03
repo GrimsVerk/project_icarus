@@ -15,8 +15,8 @@
     /// It is the one Learn screen with a banner slot (R39). The banner arrives
     /// as a view from the app, so this package needs no ad code to place it.
     public struct LearnListView: View, ScreenManifest {
-        public static let hasBannerSlot = true
-        public static let showsFigures = false
+        public nonisolated static let hasBannerSlot = true
+        public nonisolated static let showsFigures = false
 
         private let adBanner: AnyView?
 
