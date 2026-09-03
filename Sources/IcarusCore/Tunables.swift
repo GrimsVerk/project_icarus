@@ -31,6 +31,17 @@ public struct Tunables: Sendable {
         Tunables(version: version, storage: storage, sink: sink)
     }
 
+    /// The same constants, with every read reported to `sink` AND to whatever
+    /// this copy was already reporting to. A nested observer must not swallow
+    /// the outer one's reads, and observing must never mean computing twice.
+    public func alsoRecording(_ sink: @escaping @Sendable (String) -> Void) -> Tunables {
+        let outer = self.sink
+        return Tunables(version: version, storage: storage, sink: { key in
+            outer?(key)
+            sink(key)
+        })
+    }
+
     fileprivate func read<T>(_ key: String, _ value: T) -> T {
         sink?(key)
         return value
