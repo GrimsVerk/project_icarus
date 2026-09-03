@@ -1,0 +1,21 @@
+Preparing worktree (new branch 'worker/history-2')
+HEAD is now at 4343144 Merge logging-calibration slice 2: lasting colour, in-app fallbacks, housekeeping
+=== spawn-worker[history-2] engine=claude branch=worker/history-2 base=feat/history (4343144cfe10ca58a7ca601325c5a7eea32c7097) bypass=0 ===
+=== 2026-09-03T06:37:54Z ===
+Ignoring 2 permissions.allow entries from .claude/settings.json: this workspace has not been trusted. Run Claude Code interactively here once and accept the trust dialog, or set projects["/home/user/project_icarus"].hasTrustDialogAccepted: true in /root/.claude.json.
+Done. Here is the short version.
+
+**What I made**
+- `Sources/IcarusUI/History/TrajectoryModel.swift` — adds up dose per region over the current tan cycle, one point per logged session. It also finds the dose where the "your tolerance has risen" notice first fired.
+- `Sources/IcarusUI/History/TrajectoryChart.swift` — one line per region, the notice line dashed, the title "dose, not colour", and a VoiceOver summary.
+- `docs/architecture.md` — new section that tells the story of both.
+
+**Did it work**
+- `swift build`, `swift test` (466 tests), `bash acceptance/S11.sh`, `bash acceptance/S15.sh`: all pass.
+- `swiftformat .` and `swiftlint lint --strict --quiet`: clean.
+- The chart code itself is not compiled here. Linux does not build IcarusUI. A Mac must check it.
+
+**One thing you should know**
+`HistoryView` is not on this branch. Another worker is writing it right now. So the chart is not yet placed on that screen. Whoever joins the two slices must add it at the top.
+
+WORK_ON_BRANCH worker/history-2
