@@ -10,8 +10,9 @@ import SwiftUI
 /// placeholder sentence, because a user-visible sentence would have to be a
 /// `CopyKey` the owner approved (R42) and no key stands for "not built yet". The
 /// tab items are system images for the same reason; their titles land with the
-/// copy for them. History sits in the Calculator's toolbar and opens over it;
-/// Settings joins it there when that screen lands.
+/// copy for them. Settings opens as a sheet from a control row above the
+/// Calculator (the entry screen owns its own navigation bar); History sits in the
+/// same row and opens over the Calculator.
 struct RootTabs: View {
     @EnvironmentObject private var env: AppEnvironment
     @EnvironmentObject private var taps: NotificationTaps
@@ -21,10 +22,37 @@ struct RootTabs: View {
     /// identifier, because that is all the shell knows: `RoutedPromptView` is
     /// what turns it into a day and a question.
     @State private var tappedPrompt: TappedPrompt?
+    /// Settings is a sheet off the Calculator's toolbar, not a third tab: R39
+    /// keeps the two tabs, and the banner, exactly where they are.
+    @State private var settingsShown = false
+    /// Whether the History screen is open over the Calculator (M6).
+    @State private var showingHistory = false
 
     var body: some View {
         TabView(selection: $tab) {
+            // The entry screen owns its own navigation stack, so the shell's
+            // controls sit in a row above it rather than in a bar it cannot
+            // reach. Settings is a sheet, not a third tab (R39).
             CalculatorTab(env: env)
+                .safeAreaInset(edge: .top) {
+                    HStack {
+                        Spacer()
+                        // History is reached from the Calculator rather than
+                        // from a tab of its own: the record is what the user
+                        // already did, not a third thing they do (M6).
+                        Button {
+                            showingHistory = true
+                        } label: {
+                            Image(systemName: "clock.arrow.circlepath")
+                        }
+                        Button {
+                            settingsShown = true
+                        } label: {
+                            Image(systemName: "gearshape")
+                        }
+                    }
+                    .padding(.horizontal)
+                }
                 .tabItem { Image(systemName: "sun.max") }
                 .tag(Tab.calculator)
             // `Color.clear` and not `EmptyView`: a tab whose content is empty is
@@ -33,6 +61,13 @@ struct RootTabs: View {
             Color.clear
                 .tabItem { Image(systemName: "book") }
                 .tag(Tab.learn)
+        }
+        .sheet(isPresented: $settingsShown) {
+            SettingsView(model: SettingsModel(env: env))
+        }
+        // A sheet and not a push: History carries its own navigation.
+        .sheet(isPresented: $showingHistory) {
+            HistoryView(env: env)
         }
         .onOpenURL { url in
             // Every deep link the app registers is a Learn module (R27), so the
@@ -77,8 +112,6 @@ private struct CalculatorTab: View {
     @StateObject private var model: CalculatorModel
     private let env: AppEnvironment
     private let banner: AnyView?
-    /// Whether the History screen is open over the Calculator.
-    @State private var showingHistory = false
 
     init(env: AppEnvironment) {
         _model = StateObject(wrappedValue: CalculatorModel(env: env))
@@ -90,25 +123,7 @@ private struct CalculatorTab: View {
 
     var body: some View {
         CalculatorEntryView(model: model, adBanner: banner)
-            // History is reached from the Calculator rather than from a tab of
-            // its own: the app has two tabs and the record is not a third
-            // thing the user does, it is what they already did. The item is a
-            // system image because no approved copy key names it (R42).
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        showingHistory = true
-                    } label: {
-                        Image(systemName: "clock.arrow.circlepath")
-                    }
-                }
-            }
-            // A sheet and not a push: History carries its own navigation, and
-            // the record is a place the user visits and leaves rather than a
-            // step in planning a session.
-            .sheet(isPresented: $showingHistory) {
-                HistoryView(env: env)
-            }
+    }
     }
 
     /// A width for the adaptive banner. The AdMob provider that actually uses it
