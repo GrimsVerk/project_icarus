@@ -25,16 +25,14 @@ Non-goals:
 Owner costs:
 - S13: check every `[VERIFY]` and addendum-flagged citation before release.
 
-Rulings: D-2026-09-02 revision 2 (markers never rendered; non-DOI identifiers as given; MarkdownUI)
+Rulings: D-2026-09-03-F4, F5 (docs/DECISIONS.md); design revision 2 for markers and identifiers
 
 ## The slices
 
-FORK F4 (structural, batch): module files. TRUNK — `scripts/split-learn-content.sh`
+Module files (ruled D-2026-09-03-F4): `scripts/split-learn-content.sh`
 generates `Sources/IcarusContent/Resources/Learn/module-NN.md` from
 `docs/LEARN_CONTENT.md`; the generated files are committed and S7 fails if
-they drift from the source. Alternative — hand-split files edited directly,
-with the design document as a mirror. The trunk keeps one source of truth
-and makes "edit one module" a one-section edit in one document.
+they drift from the source. One source of truth.
 
 ## Slice 1 — Modules as data, with citations parsed and markers stripped
 

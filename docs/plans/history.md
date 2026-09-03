@@ -23,7 +23,7 @@ Non-goals:
 Owner costs:
 - None.
 
-Rulings: D-2026-09-02 revision 2 (History carries no banner; chart is a record of dose)
+Rulings: D-2026-09-03-F5 (docs/DECISIONS.md); design revision 2 for no banner and dose-not-colour
 
 ## The slices
 
