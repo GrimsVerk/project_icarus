@@ -1,0 +1,24 @@
+Preparing worktree (new branch 'worker/calculator-ui-2')
+HEAD is now at c06072f Merge learn-tab slice 2: the Learn tab views
+=== spawn-worker[calculator-ui-2] engine=claude branch=worker/calculator-ui-2 base=feat/calculator-ui-2 (c06072f1d6c4306fd6e70598fb0b19a10dc8cec0) bypass=0 ===
+=== 2026-09-03T06:00:00Z ===
+Ignoring 2 permissions.allow entries from .claude/settings.json: this workspace has not been trusted. Run Claude Code interactively here once and accept the trust dialog, or set projects["/home/user/project_icarus"].hasTrustDialogAccepted: true in /root/.claude.json.
+Done. Here is the short version.
+
+**What I made** (5 new files in `Sources/IcarusUI/Onboarding/`):
+- `OnboardingModel.swift` — the rules. `canComplete` is true only when the user ticked the disclaimer **and** picked a skin type. `applyQuiz()` turns the quiz score into a skin type. `complete()` saves the profile plus the flags.
+- `OnboardingFlow.swift` — four pages: Module 1, disclaimer, skin type, permissions.
+- `DisclaimerView.swift`, `SkinTypePicker.swift`, `QuizView.swift` — the pages.
+- Updated `docs/architecture.md`.
+
+**Did it work?**
+- `swift build` — pass.
+- `swift test` — pass (457 tests).
+- `bash acceptance/S11.sh` — pass (all six checks).
+- `bash acceptance/S15.sh` — pass.
+- `swiftformat .` — no changes needed. `swiftlint lint --strict` — clean.
+- One caveat: Linux cannot compile `IcarusUI` at all. So these five files were checked by eye against the iOS 18 SDK, not by a compiler. macOS CI is the first real test.
+
+**What you do now:** nothing. I committed on the branch. I did not push, as told.
+
+WORK_ON_BRANCH worker/calculator-ui-2

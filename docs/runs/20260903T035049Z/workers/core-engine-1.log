@@ -1,0 +1,26 @@
+Preparing worktree (new branch 'worker/core-engine-1')
+HEAD is now at 80b9b30 Scaffold the package layout for M1: app shell in App/, placeholder test targets, Linux core-tests job
+=== spawn-worker[core-engine-1] engine=claude branch=worker/core-engine-1 base=feat/core-engine (80b9b30a971854bbd3f125d5165e310d40bfe5d7) bypass=0 ===
+=== 2026-09-03T03:54:45Z ===
+Ignoring 2 permissions.allow entries from .claude/settings.json: this workspace has not been trusted. Run Claude Code interactively here once and accept the trust dialog, or set projects["/home/user/project_icarus"].hasTrustDialogAccepted: true in /root/.claude.json.
+Done. Here is the short version.
+
+**What I did**
+- Made `Package.swift`: five targets. On Linux only Core, Content, Data build. UI and Ads are hidden behind `#if !os(Linux)`.
+- Wrote all the shared types in `Sources/IcarusCore/`: days that carry their time zone, windows, regions, skin types, sunscreen, the record types, copy keys, figures.
+- Wrote `Tunables.swift`: every number is read through an accessor that says its own name out loud, so a test can see what a result used. Each number has one source note (a citation or an assumption).
+- Wrote `DoseCalculator.swift`: sun dose over any time span, the shortest block that hits a target, "is this window worth it", the next good window, the UVA flag, and the "too late, it has passed" clip.
+- Updated `project.yml` and `docs/architecture.md`.
+
+**Did it work**
+- Yes. On Linux: `swift build` ✅, `swift test` ✅, `swiftformat` ✅, `swiftlint --strict` ✅.
+- I also ran a throwaway program in my scratch folder against every promise in the slice contract. All passed — the 21.44-minute case, the ramp within 0.5%, the rising-curve block ending on the window's end, the day-key round trip, and `dosePerRegion` encoding as a JSON object.
+- Not checked here: the macOS app build and the Xcode project. No Xcode in this box.
+
+**One thing you should know**
+I had to edit `.swiftlint.yml`, which was not in my file list. Two reasons: SwiftFormat adds trailing commas that SwiftLint deletes (they fight, both run in CI), and the plan's own names (`SkinType.i`, `LastingColour.no`, `Tunables.k`) are shorter than SwiftLint allows. It is written up in the commit message and in the architecture doc.
+
+**What you do now**
+Nothing. The branch is committed and waiting for the driver. I did not push.
+
+WORK_ON_BRANCH worker/core-engine-1
