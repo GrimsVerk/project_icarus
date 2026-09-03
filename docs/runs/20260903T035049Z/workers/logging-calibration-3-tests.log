@@ -1,0 +1,34 @@
+Preparing worktree (new branch 'worker/logging-calibration-3-tests')
+HEAD is now at fd9a13c Merge calculator-ui slice 4 into the logging-calibration chain
+=== spawn-worker[logging-calibration-3-tests] engine=claude branch=worker/logging-calibration-3-tests base=feat/logging-calibration (fd9a13cd27ed992c5b418e2c1ec9a62c7c6b1948) bypass=0 ===
+=== 2026-09-03T07:12:51Z ===
+Ignoring 2 permissions.allow entries from .claude/settings.json: this workspace has not been trusted. Run Claude Code interactively here once and accept the trust dialog, or set projects["/home/user/project_icarus"].hasTrustDialogAccepted: true in /root/.claude.json.
+I wrote the tests and committed them. Here is the short version.
+
+**What I made — 2 files, 11 new tests**
+
+1. `Tests/IcarusDataTests/EndToEndCalibrationTests.swift`
+   - A copy of the S3 simulated user, but each day goes through the real store: `upsertPlanned` → `log` → `addReport`.
+   - Checks: sensitive user found in 8 reports; truthful user left alone over 20; every report gives back an effect; the "normal" outlier moves the number by ≤ 0.05; the "red and sore" outlier moves it down 0.10–0.20; same answer in UTC and Europe/Oslo (multiplier and tan state).
+   - Totals from that same run: the week holds only the last 7 days, the cycle holds all of it, every body region gets its own pair of figures, and a logged day leaves nothing still planned.
+
+2. `Tests/IcarusCoreTests/Fixtures/UseCaseLogging.swift`
+   - Use case 7 ("the day after"): one session logged, Q1 answered "faint pink", the effect is `multiplierMoved`, the number moves down, and the next morning's dose is smaller than it would have been.
+   - It adds itself to the S18 runner with `UseCases.register(...)`. I did not touch `UseCases.swift`.
+
+**Did it work**
+
+Yes. `swift test` is green: 481 tests, 0 failures. `swiftformat` and `swiftlint --strict` are clean.
+
+**Two things you should know**
+
+- My tests pass today. That is normal here: the store half they exercise (`totals`, `addReport`) already shipped in earlier slices. The new parts of Slice 3 are `TotalsView` and `acceptance/S10-logging.sh`, which are not my files.
+- I could not test the sensitivity sentence. It lives in Settings (UI, Apple-only), and the UI test file is not in my file list.
+
+**One guess I had to make**
+
+The plan does not say how use case 7 is registered before the S18 runner reads the list. I register it in `override static func setUp()` of my own test class, and my file also asserts all of use case 7's promises on its own. So the promises hold whatever order the test classes run in.
+
+The plan file shows as modified in git. That is the deliberate `### Internals` strip your driver did, not my edit. I did not commit it.
+
+WORK_ON_BRANCH worker/logging-calibration-3-tests
