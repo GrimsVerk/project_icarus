@@ -49,9 +49,11 @@
             switch NotificationRouting.route(notificationID) {
             case let .some(.skinCheck(day)):
                 SkinCheckFlow(model: SkinCheckModel(env: env, day: day, channel: .notification))
+            case let .some(.lastingColour(day)):
+                LastingColourFlow(model: LastingColourModel(env: env, day: day, channel: .notification))
             default:
-                // The lasting-colour flow is Slice 2's; until it lands its tap
-                // reaches the card, which lists that question as due.
+                // A malformed identifier opens the card, which lists whatever
+                // is due; a tap on a real prompt goes straight to its question.
                 DuePromptsCard(env: env)
             }
         }
