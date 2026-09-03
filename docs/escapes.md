@@ -57,3 +57,4 @@ someone guessed at. If the same gate column keeps appearing, that is the signal.
 <!-- Append below, newest at the bottom. Never rewrite an entry; if one turns
 out to be wrong (or a stub gets its check), append a correction row with the
 same id. -->
+| ESC-1 | 2026-09-03 | The Open PR workflow opened nothing for a pushed `.pr-request.json`: its freshness guard reads the push event's per-commit file lists, and those arrived empty for pushes from the hosted session, so no App-authored pull request could be opened | none existed (open-pr.yml's own guard) | unverified — pending: open-pr.yml also reads the marker's authorship from git (`git diff --name-only HEAD^ HEAD`, checkout depth 2) so an empty event payload no longer hides a fresh request |
