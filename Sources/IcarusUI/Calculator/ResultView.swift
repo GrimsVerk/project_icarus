@@ -24,8 +24,8 @@
     /// shows a figure the user could act on, and this is the screen that shows
     /// all of them.
     public struct ResultView: View, ScreenManifest {
-        public static let hasBannerSlot = false
-        public static let showsFigures = true
+        public nonisolated static let hasBannerSlot = false
+        public nonisolated static let showsFigures = true
 
         @ObservedObject private var model: CalculatorModel
         @State private var changingPlace = false

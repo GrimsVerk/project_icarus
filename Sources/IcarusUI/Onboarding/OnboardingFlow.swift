@@ -22,8 +22,8 @@
     ///
     /// It carries no banner and shows no figure (R39).
     public struct OnboardingFlow: View, ScreenManifest {
-        public static let hasBannerSlot = false
-        public static let showsFigures = false
+        public nonisolated static let hasBannerSlot = false
+        public nonisolated static let showsFigures = false
 
         @ObservedObject private var model: OnboardingModel
         private let onComplete: (Profile) -> Void

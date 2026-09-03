@@ -14,8 +14,8 @@
     /// It carries no banner: R39 puts the Learn banner under the module list and
     /// nowhere else, and it shows no figure the user could act on.
     public struct ModuleView: View, ScreenManifest {
-        public static let hasBannerSlot = false
-        public static let showsFigures = false
+        public nonisolated static let hasBannerSlot = false
+        public nonisolated static let showsFigures = false
 
         private let title: String
         private let render: ModuleRenderModel
