@@ -1,0 +1,39 @@
+Preparing worktree (new branch 'worker/calculator-ui-4-tests')
+HEAD is now at c06072f Merge learn-tab slice 2: the Learn tab views
+=== spawn-worker[calculator-ui-4-tests] engine=claude branch=worker/calculator-ui-4-tests base=feat/calculator-ui-2 (c06072f1d6c4306fd6e70598fb0b19a10dc8cec0) bypass=0 ===
+=== 2026-09-03T06:04:13Z ===
+Ignoring 2 permissions.allow entries from .claude/settings.json: this workspace has not been trusted. Run Claude Code interactively here once and accept the trust dialog, or set projects["/home/user/project_icarus"].hasTrustDialogAccepted: true in /root/.claude.json.
+Done. Here is the short version.
+
+## What I did
+
+I wrote the tests for Slice 4. I could not see the code — that is the point.
+
+Two new files, both committed:
+- `Tests/IcarusUITests/FlipTimerModelTests.swift`
+- `Tests/IcarusUITests/SettingsModelTests.swift`
+
+## Did it work
+
+Yes, as far as it can here.
+- `swiftformat` — clean.
+- `swiftlint lint --strict` — clean.
+- `swift test` on Linux — 457 tests, 0 failures.
+
+My two files are **not** compiled here. Linux does not build IcarusUI. So they are untested code that will first run on a Mac. That is expected: the code they test does not exist in my tree yet.
+
+## What the tests cover
+
+Timer (13 tests): starts idle and face up; refuses a `.tooWeak` window; warns about denied notifications *before* logging; starts anyway on demand; opens on the chosen side; with SPF 30 confirmed it plans the whole covered window (~5.5× the bare minutes) and logs the dose at the target; stop half way halves the front dose and writes one stretch; stop after the flip writes two; ticks move it on; past midnight it stops at the planned end; alerts at the flip, at each reapply time, and at the end.
+
+Settings (11 tests): the sensitivity sentence and its report count; override and reset; aggressive unlock at 5 reports with redness; ceiling saves; unreported days; export; import applies the file's profile; delete empties everything.
+
+## Where I had to guess (may clash at assembly)
+
+1. **Reapply alerts.** The contract says "the sunscreen advice's reapplyAt". The timer's own re-plan will say "sunscreen not needed" (the scaling is what makes it fit), so I assumed the times come from the *calculator's* result. If the code reads its own re-plan, that test fails.
+2. **Sensitivity sentence.** I assert the exact string, with percent as a whole number and `count` = `state.totalReports`. A different number format, or `reportCount`, will disagree.
+3. **Load timing.** `aggressiveUnlocked`, `sensitivitySentence` and `unreportedDays` are declared as plain (non-async) properties, but the data behind them lives in an actor. I assume an init-time task fills them in, so my tests wait for the sentence to resolve before asserting.
+4. **"Stop at half time."** I read it as half of the first side on a lying session, so "one interval" and "the front dose halved" are both true.
+5. **Override.** "state(now) changes without a write" — I read it as: the record is untouched, the learned multiplier is untouched, and the derived budget moves.
+
+WORK_ON_BRANCH worker/calculator-ui-4-tests

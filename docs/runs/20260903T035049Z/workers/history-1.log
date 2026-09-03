@@ -1,0 +1,27 @@
+Preparing worktree (new branch 'worker/history-1')
+HEAD is now at 4343144 Merge logging-calibration slice 2: lasting colour, in-app fallbacks, housekeeping
+=== spawn-worker[history-1] engine=claude branch=worker/history-1 base=feat/history (4343144cfe10ca58a7ca601325c5a7eea32c7097) bypass=0 ===
+=== 2026-09-03T06:37:37Z ===
+Ignoring 2 permissions.allow entries from .claude/settings.json: this workspace has not been trusted. Run Claude Code interactively here once and accept the trust dialog, or set projects["/home/user/project_icarus"].hasTrustDialogAccepted: true in /root/.claude.json.
+**What I did**
+
+- Added the History screen: `HistoryModel`, `DaySummaryRow`, `HistoryView`, `SessionRow`, `SessionDetailView`.
+- Model reads the store, keeps only logged sessions, groups by day, adds that day's report, sums dose per region, sorts newest first.
+- Added the clock toolbar button in `App/RootTabs.swift` that opens History.
+- Updated `docs/architecture.md`.
+- Wrote no tests.
+
+**Did it work**
+
+- `swift build`: pass.
+- `swift test`: 466 pass, 0 fail.
+- `bash acceptance/S11.sh` and `bash acceptance/S15.sh`: pass.
+- `swiftformat .` and `swiftlint lint --strict --quiet`: clean.
+- Note: Linux does not build IcarusUI, so no compiler checked the new screens.
+
+**Two things I wrote down as rough edges**
+
+- The toolbar button sits outside the Calculator's navigation stack (that file is another slice's), so it may not draw. Needs a look on a simulator.
+- Factors and targets use the nearest `FigureKey` cases; no key exists for them.
+
+WORK_ON_BRANCH worker/history-1
