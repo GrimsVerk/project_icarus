@@ -1,0 +1,29 @@
+Preparing worktree (new branch 'worker/core-engine-2-tests')
+HEAD is now at a9919a1 Fix a blind test that asserted a platform-specific zone name
+=== spawn-worker[core-engine-2-tests] engine=claude branch=worker/core-engine-2-tests base=feat/core-engine (a9919a1985d37e5a53779df0d0af961a3910e96f) bypass=0 ===
+=== 2026-09-03T04:14:08Z ===
+Ignoring 2 permissions.allow entries from .claude/settings.json: this workspace has not been trusted. Run Claude Code interactively here once and accept the trust dialog, or set projects["/home/user/project_icarus"].hasTrustDialogAccepted: true in /root/.claude.json.
+Done. Here is the short version.
+
+**What I did**
+- Wrote 2 test files only. No code under `Sources/`.
+  - `Tests/IcarusCoreTests/TargetModelTests.swift` (24 tests)
+  - `Tests/IcarusCoreTests/ExposureModelTests.swift` (28 tests)
+- Every promise in the contract has its own test. Fixed dates from `Curves`, UTC only, `accuracy:` on all doubles, no mocks.
+- Ran `swiftformat .` and `swiftlint lint --strict --quiet`: both clean.
+- Committed on branch `worker/core-engine-2-tests` with the `Blind-Tests: core-engine-2` trailer.
+- The plan file has a local change (the stripped `### Internals`). I left it alone, not committed.
+
+**Did it work**
+- Yes. The tests do not compile yet. Every error is "cannot find `Profile` / `DerivedState` / `RegionTarget` / `ExposureRequest` / `ExposurePlan` / `Warning` in scope". That is the missing Slice 2 code, which is correct for now.
+- No `### Internals` section was in my copy of the plan.
+
+**Three things where the contract was not clear. I had to choose.**
+1. **`attenuationRegion` with equal budgets.** The rule says "argmax of raw/remaining". In a lying session head-and-shoulders gets 1.5× the torso dose, so with equal budgets the argmax is head-and-shoulders, not "the torso" as the promise text says. I trusted the formula, and wrote the torso test with head-and-shoulders **covered**. Worth a reviewer's eye.
+2. **"Zero reports" for the clipped range.** Before 3 reports the scale is forced conservative, and then the upper edge would not clip. So I test the clip with 3 reports and **zero redness reports**, which is the R7 rule ("upper edge narrows only with redness reports").
+3. **Stale widening ×1.5.** Unclear if 1.5 multiplies the band before or after the 5% stale cut. I assert the ratio 1.5 with a 0.1 tolerance, so both readings pass but "no widening" still fails.
+
+**What you do now**
+- Nothing from me. The driver picks this up. Do not push from here.
+
+WORK_ON_BRANCH worker/core-engine-2-tests

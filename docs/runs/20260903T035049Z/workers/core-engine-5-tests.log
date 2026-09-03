@@ -1,0 +1,25 @@
+Preparing worktree (new branch 'worker/core-engine-5-tests')
+HEAD is now at 6342f42 Fix the target-test fixture: a redness report bounds the region within its cycle
+=== spawn-worker[core-engine-5-tests] engine=claude branch=worker/core-engine-5-tests base=feat/core-engine (6342f42a3dc49a80c45dbb8a3d477f1eda706136) bypass=0 ===
+=== 2026-09-03T04:30:12Z ===
+Ignoring 2 permissions.allow entries from .claude/settings.json: this workspace has not been trusted. Run Claude Code interactively here once and accept the trust dialog, or set projects["/home/user/project_icarus"].hasTrustDialogAccepted: true in /root/.claude.json.
+Done. Here is the short version.
+
+**What I made** — three test files, all committed on this branch:
+
+- `Tests/IcarusCoreTests/PlannerTests.swift` — 40 tests, one per promise in the Slice 5 contract.
+- `Tests/IcarusCoreTests/Fixtures/UseCases.swift` — the eight design use cases (1–6, 8, 9) as fixtures, plus the `UseCaseTests` class that runs them. Use case 7 can be added later with `UseCases.register(...)`. Nobody has to edit my file.
+- `Tests/IcarusCoreTests/PerformanceTests.swift` — the two S14 time limits, measured with `Date`, and the measured time is printed when a test fails.
+
+**Did it work** — yes, as planned. The tests do **not** compile. That is correct: `Planner`, `DoseResult`, `PlanRequest` and `Replay` are not in my tree yet. I checked the compiler errors: every error comes from those missing names. No error comes from the code I wrote against the parts that do exist. `swiftformat .` and `swiftlint lint --strict --quiet` are both clean.
+
+**What you do now** — nothing here. The driver pushes and merges. At assembly, watch these four spots, where my reading of the contract could differ from the code:
+
+1. **`tooWeak` shortfall.** I assert `shortfall == melanogenic − the dose the window can deliver`. The contract says only "the shortfall from the melanogenic dose".
+2. **The lying attenuation fixture.** The contract says the attenuation region is "a torso side". With the head and shoulders bare, that region wins the ratio, so I wrote the test with the head and shoulders **covered** — the same way the Slice 2 test solved the same wording.
+3. **Headline copy keys.** I mapped `.bareSubWindow` → `planBareSubWindow`, `.sunscreenForWholeWindow` → `planStayWearThis`, `.wholeWindowFits` → `planStayWholeWindowFits`. The contract does not state this mapping.
+4. **`staleLevel` takes a non-optional curve.** The contract does not say.
+
+Two more notes. Use case 6 has three branches in the design; the fixture holds the escalation branch, and the ceiling and under-dosed branches are separate tests in `PlannerTests.swift`. Where a use case states no minute count (2, 5, 6, 8), the fixture leaves it empty instead of me inventing a number.
+
+WORK_ON_BRANCH worker/core-engine-5-tests
