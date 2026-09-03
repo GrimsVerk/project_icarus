@@ -119,6 +119,15 @@ answer.
 | `IcarusUI` / `ExportImportModel`, `ExportImportView` | History's own two record actions (R25). The model writes the whole record, the profile and the constant set to a temporary JSON file through `ExportService.export` and answers with its URL; it reads a picked file back through `ExportService.import`, saves the profile the file carried, drops the store's replay memo, and keeps the summary. An import that throws changes nothing — the service validates every record before writing any — and the model keeps the error instead of a summary. The view is the pair of toolbar buttons: a `ShareLink` over the exported file, and a `.json` file importer whose answer is an alert reading `importApplied` with the counts filled in, or `importFailed`. No approved key names either action, so each button is its system symbol alone. |
 | `IcarusUI` / `HistoryFormat` | How the History screens turn record data into short strings: a date and a clock time in the day's own zone, a coordinate as two numbers, a sunscreen pair as its label and application, a stored number to one decimal, and a case name split into words by the prompts' own splitter. All of it is data, so none of it goes through `AppCopy` (R42). |
 | `App/` | The iOS app shell. Depends only on `IcarusUI`. `ProjectIcarusApp` builds the live environment; `RootTabs` is the two-tab shell with the foreground hook and the deep-link hook, and its Calculator tab owns the one `CalculatorModel` the entry and result screens share and carries the toolbar item that opens History over it. It holds no logic and no copy, and it never names the ad provider: `AppEnvironment.banner(width:)` hands it a view. |
+| `App/` | The iOS app shell. Depends only on `IcarusUI`. `ProjectIcarusApp` builds the live environment; `RootTabs` is the two-tab shell with the foreground hook and the deep-link hook, and its Calculator tab owns the one `CalculatorModel` the entry and result screens share. It holds no logic and no copy, and it never names the ad provider: `AppEnvironment.banner(width:)` hands it a view. |
+| `IcarusUI` / `FlipTimerModel` | The session clock for a lying-down session (R11). It plans nothing itself: the calculator builds the request, this model moves the window's start to the real clock, scales every target by the confirmed sunscreen's effective SPF so the plan spans the covered window, and hands it to the `Planner`. A non-plan outcome is a refusal (`TimerError.cannotStart`); notifications that are denied are a refusal too, before anything is written, and the same start is offered again with that refusal waived. It logs the session at the start from the plan's intervals and again, in place and shorter, from the intervals it actually ran. `ScaledGoal` is the one-line goal wrapper that does the SPF scaling. |
+| `IcarusUI` / `FlipTimerView` | The timer screen: which side is up first, the time left on this side and on the session, a stop button, and the refusal lines. No banner, figures yes (R39). Every sentence is a copy key; the sides, the buttons and the clock are symbols and numbers, because no approved line names them. |
+| `IcarusUI` / `SettingsModel` | Everything Settings can change or say: the ceiling (which is the profile), the sensitivity sentence and the manual override, the count of session days with no report, the export file, the import, and deleting the record. The replayed state lives behind an actor, so the model keeps a snapshot of it and refreshes after every write. |
+| `IcarusUI` / `SettingsView` | The list: the ceiling selector (each option named by the share of the threshold it plans at, the aggressive one disabled with the approved line until it unlocks), the sensitivity sentence with a stepper and a reset, the unreported-days line, the record's export, import and delete-with-warning, the WeatherKit attribution, the privacy row (wired in M7) and the disclaimer. |
+| `IcarusUI` / `AttributionView` | Apple's mark and the link to Apple's legal page (R29). The URL arrives with the forecast in M7; until then the link is absent rather than a placeholder sentence. |
+| `IcarusAds` | The ad banner behind a protocol (R40); the only package that will import the SDK. Not built on Linux. |
+| `IcarusAds` / `AdBannerProvider`, `NoAdsProvider` | The whole surface the app has on advertising: prepare for a region (which is where the consent flow will live), a banner view for a width or nil, and the flags every request carries. `NoAdsProvider` shows nothing, asks for nothing, and reports non-personalised — it is what previews, tests, CI and the app itself use until M7. |
+| `App/` | The iOS app shell. Depends only on `IcarusUI`. `ProjectIcarusApp` builds the live environment; `RootTabs` is the two-tab shell with the foreground hook, the deep-link hook and the Settings sheet on the Calculator's toolbar. It holds no logic and no copy. |
 
 Two things follow from the layout and are deliberate. `IcarusCore` depends on
 nothing, so the engine is testable on Linux and in CI without a simulator. And
@@ -740,6 +749,57 @@ All three flow flags false is a first launch, and onboarding is what runs then
    the named module's screen on top of that list lands with the router slice
    that owns the shell's navigation state.
 
+### Run a session on the flip timer
+
+1. The user picks which side is up first (face up by default,
+   D-2026-09-03-F8) and starts the timer.
+2. `FlipTimerModel.start(now:)` asks the calculator for the same request the
+   result was computed from — same profile, same replayed state, same stale
+   level, same maintenance scaling — with the window's start moved to the real
+   clock.
+3. If the user confirmed the prescribed sunscreen (or named an alternative),
+   every target is scaled by the pair's effective SPF, so the solve spans the
+   covered window: the same skin budget reached through a product that divides
+   the dose takes about that many times as long.
+4. `Planner.plan` answers. Anything but `.plan` is `TimerError.cannotStart`
+   carrying the outcome, and the screen shows that outcome's own line as the
+   reason.
+5. The scheduler is asked whether alerts are allowed. Denied is
+   `TimerError.notificationsDenied`, thrown before anything is written, and the
+   screen offers to start anyway (R11).
+6. The session is logged straight away from the plan's intervals, with the dose
+   attenuated by the pair it is being run under, so a session that is running is
+   a logged session and not a planned one (R45).
+7. The alerts are scheduled as one set: the first side's end when there are two
+   sides, each reapplication time inside the span, and the session's end.
+8. `tick(now:)` moves the phase to the second side at the flip and to finished
+   at the planned end.
+9. `stop(now:)` clips the plan's intervals at the stop time, recomputes the dose
+   those intervals delivered over the same curve, attenuates it, logs the same
+   record again — shorter — and cancels every timer alert.
+10. `foregrounded(now:)` past the session day's local midnight stops the timer at
+    its planned end instead, and the screen says so (R11).
+
+### Change a setting, or move the record
+
+1. `SettingsModel` reads the ceiling out of the profile and takes a snapshot of
+   the replayed state and the record.
+2. Changing the ceiling saves the profile. The aggressive option is offered only
+   when `TanningGoal.effectiveScale` does not refuse it — enough reports, and one
+   of them bounding a region in the current cycle (R7).
+3. The sensitivity sentence is the approved line filled from the snapshot: the
+   distance of the multiplier from one as a percentage, the direction, and the
+   number of reports behind it.
+4. An override writes `manualMultiplier` into the profile and invalidates the
+   store's memo, so the next `state(now:)` answers under it without any write to
+   the history. Resetting clears it and the learned value takes over again.
+5. Export asks `ExportService` for the whole record under the current profile and
+   writes it to a temporary file the share sheet hands on.
+6. Import reads the file, lands it whole or not at all, applies the profile the
+   file carried, invalidates the memo and refreshes the snapshot.
+7. Delete shows the R44 warning first, then empties the record — which is what
+   deletes the calibration, the tan state and today's budget with it.
+
 ## State and storage
 
 `Profile` is what the user told the app; `DerivedState` is everything else the
@@ -907,6 +967,10 @@ descriptive suffix would be a script the check never runs.
    (`"timer-end"`).
 2. `cancelTimer` cancels the same prefix. Stopping the timer therefore takes no
    record of what was pending.
+3. `authorization()` answers what the port says, so the timer can warn *before*
+   it starts that it cannot alert with the screen locked (R11) rather than
+   discovering it when a request is silently dropped. It is the only read of the
+   port outside scheduling, and it keeps the port itself inside this layer.
 
 ### Read back the session log
 
@@ -1014,6 +1078,15 @@ descriptive suffix would be a script the check never runs.
   grounds it did not quite use. The alternative — dropping the key — would break
   the stronger promise that a recording `Tunables` sees exactly what the figures
   declare, and that promise is the one the provenance rests on.
+- `SettingsModel` reads the replayed state through a snapshot, because the store
+  is an actor and the properties the screen reads are synchronous. The snapshot
+  is taken at init and after every write, and the screen refreshes it when it
+  appears; a state changed by something else while Settings is open is one
+  refresh behind until then.
+- The flip timer logs at the start against the planned session the calculator
+  created. If there is none — a timer started without a computed result — the
+  timer still runs and writes nothing, rather than refusing a session the engine
+  said was fine.
 - The cloud-cover caveat is always false. Nothing in a `PlanRequest` carries
   cloud cover; the data layer supplies it when it exists (M2).
 - A result with no forecast carries no figures and no notices beyond the
