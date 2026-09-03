@@ -295,8 +295,11 @@ extension UseCases {
             posture: .upAndAbout, firstSide: .faceUp, cover: false, intent: .bestMinutes,
             profile: Profile(skinType: .ii, ceiling: .standard),
             state: PlannerFixture.state(
+                // One full half-life before `now` (11:50 on the 15th), and a
+                // little more: the gap notice is inclusive at exactly 21 days
+                // (D-2026-09-03-T5), and 20 days 23 h 50 min is not 21 days.
                 tanState: 0.45, tanStateAtLastSession: 0.9,
-                lastExposure: Curves.date(2026, 5, 25, 12), doseInCycle: 20,
+                lastExposure: Curves.date(2026, 5, 25, 11), doseInCycle: 20,
                 cycleStart: DayKey(Curves.date(2026, 5, 1), timeZone: Curves.zone)
             ),
             expected: .init(
