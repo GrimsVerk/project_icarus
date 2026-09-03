@@ -124,7 +124,6 @@ private struct CalculatorTab: View {
     var body: some View {
         CalculatorEntryView(model: model, adBanner: banner)
     }
-    }
 
     /// A width for the adaptive banner. The AdMob provider that actually uses it
     /// lands in M7; the no-op provider ignores it.
