@@ -23,8 +23,8 @@
     /// never a sentence written here (R42). The missing keys are a gap for the
     /// owner to close.
     public struct LastingColourFlow: View, ScreenManifest {
-        public static let hasBannerSlot = false
-        public static let showsFigures = false
+        public nonisolated static let hasBannerSlot = false
+        public nonisolated static let showsFigures = false
 
         @ObservedObject private var model: LastingColourModel
         @Environment(\.dismiss) private var dismiss
