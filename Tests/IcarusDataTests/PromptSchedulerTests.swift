@@ -1,7 +1,6 @@
 // Slice 4's prompts, asserted one promise per test against the fake port. The
 // scheduler itself is never mocked: the only boundary here is the notification
 // port, which is the protocol the slice declares for exactly that purpose.
-// swiftlint:disable file_length
 
 @testable import IcarusCore
 @testable import IcarusData
@@ -149,7 +148,8 @@ final class PromptSchedulerSkinCheckTests: XCTestCase {
 
         await scheduler.sessionsChanged(on: day, lastSessionEnd: Prompts.instant(2026, 6, 15, 16))
 
-        let notification = try await XCTUnwrap(port.pending().first)
+        let pending = await port.pending()
+        let notification = try XCTUnwrap(pending.first)
         XCTAssertEqual(notification.id, "skin-" + day.id)
         XCTAssertEqual(notification.id, "skin-2026-06-15@Europe/Oslo")
     }
@@ -542,7 +542,8 @@ final class PromptSchedulerNotificationIDTests: XCTestCase {
 
         await scheduler.sessionsChanged(on: day, lastSessionEnd: Prompts.instant(2026, 6, 15, 16))
 
-        let identifier = try await XCTUnwrap(port.pending().first).id
+        let pending = await port.pending()
+        let identifier = try XCTUnwrap(pending.first).id
         XCTAssertEqual(PromptScheduler.day(fromNotificationID: identifier), day)
         XCTAssertEqual(day.timeZoneID, "Europe/Oslo")
     }
@@ -554,7 +555,8 @@ final class PromptSchedulerNotificationIDTests: XCTestCase {
 
         await scheduler.reportAdded(on: day, at: Prompts.instant(2026, 6, 16, 9))
 
-        let identifier = try await XCTUnwrap(port.pending().first).id
+        let pending = await port.pending()
+        let identifier = try XCTUnwrap(pending.first).id
         XCTAssertEqual(PromptScheduler.day(fromNotificationID: identifier), day)
     }
 
