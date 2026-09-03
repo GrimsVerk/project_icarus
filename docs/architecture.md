@@ -86,6 +86,10 @@ answer.
 | `IcarusUI` | The SwiftUI surface. Imports the other four packages and nothing else. Not built on Linux. |
 | `IcarusUI` / `ScreenManifest`, `ScreenTable` | Every screen declares, statically, whether it carries the ad slot and whether it shows a figure. `ScreenTable` is the whole list in one place — the declaration R39 is checked against — and it names screens later slices build, so adding a view agrees with a decision already recorded. |
 | `IcarusUI` / `AppEnvironment` | Everything the screens are given, in one object: the forecast service, the location service, the history store, the profile store, the prompt scheduler, the ad provider, the constants and the clock. It owns three app-level jobs and no calculation: the foreground refresh, discarding stale planned sessions, and turning a URL into a deep link. `live()` composes the real services; `preview()` composes the fakes and a clock that does not move. |
+| `IcarusUI` / `LearnListView` | The Learn tab: the twelve module titles from `ModuleIndex`, each a link to its module, and the ad banner underneath. The banner arrives as a view from the app, so no ad code reaches this package. It is the only Learn screen with a banner slot (R39), and it carries no title of its own because no approved copy key names the tab. |
+| `IcarusUI` / `ModuleView` | One module: its body rendered by MarkdownUI — tables and blockquotes included — then its citations as rows. No banner, no figure. |
+| `IcarusUI` / `ModuleRenderModel` | What reaches a module screen: the body with the `> **Sources**` blockquote removed, and the citations as data. A value, not a view, so what is rendered can be asserted without rendering. `Theme.icarus` (MarkdownUI's GitHub theme) is the markdown styling. |
+| `IcarusUI` / `CitationRow` | One citation as a row: a `Link` when its identifier resolves — a DOI through doi.org, a PMID through PubMed, a URL as given — and text with the identifier beside it when it does not. Never hidden for the lack of a link. |
 | `IcarusAds` | The ad banner behind a protocol (R40); the only package that will import the SDK. Not built on Linux. |
 | `IcarusAds` / `AdBannerProvider`, `NoAdsProvider` | The whole surface the app has on advertising: prepare for a region (which is where the consent flow will live), a banner view for a width or nil, and the flags every request carries. `NoAdsProvider` shows nothing, asks for nothing, and reports non-personalised — it is what previews, tests, CI and the app itself use until M7. |
 | `App/` | The iOS app shell. Depends only on `IcarusUI`. `ProjectIcarusApp` builds the live environment; `RootTabs` is the two-tab shell with the foreground hook and the deep-link hook. It holds no logic and no copy. |
@@ -94,6 +98,12 @@ Two things follow from the layout and are deliberate. `IcarusCore` depends on
 nothing, so the engine is testable on Linux and in CI without a simulator. And
 `IcarusUI` and `IcarusAds` are declared only under `#if !os(Linux)` in the
 manifest, so a Linux build sees exactly Core, Content and Data.
+
+The one external dependency is declared the same way. `swift-markdown-ui`
+(MIT, pinned at exactly 2.4.1, D-2026-09-03-DEP1) is used by `IcarusUI` alone,
+to render the Learn tables Apple's `AttributedString` markdown does not render,
+and both the package and the product sit inside the `#if !os(Linux)` block, so a
+Linux build never resolves it.
 
 ## Data flow
 
@@ -568,6 +578,18 @@ and then normalises the text into the body the app renders. A citation keeps the
 identifier the source gave it and only that one; a citation with no identifier
 is still listed, as text.
 
+The screen is the last step. `LearnListView` lists the twelve titles;
+`ModuleView` builds a `ModuleRenderModel` from the chosen module. That model
+removes one thing and only one thing from the stored text: the `> **Sources**`
+blockquote, from its heading line to the first line that is not a quote. Any
+other blockquote a module carries stays, and so does every table. The citations
+the removed block held are then rendered under the text as `CitationRow`s, which
+is what makes each one tappable (R26). The store itself is never edited, because
+S7 compares the stored text against the document.
+
+Stripping at render rather than at load is why the model is a value: it can be
+built and asserted on without a screen.
+
 Drift is what `acceptance/S7.sh` catches: it regenerates the files into a
 temporary directory and diffs them byte for byte against the committed ones, so
 an edit to the document that was never regenerated, or an edit to a module file
@@ -605,8 +627,9 @@ that was never made in the document, fails before it ships.
 1. The shell hands the URL to `AppEnvironment.handle(_:)`, which is
    `DeepLink(url:)` and nothing more — every link the app registers today is a
    Learn module.
-2. A URL that parses selects the Learn tab. Opening the module itself lands with
-   the Learn list.
+2. A URL that parses selects the Learn tab, which is the module list. Pushing
+   the named module's screen on top of that list lands with the router slice
+   that owns the shell's navigation state.
 
 ## State and storage
 
