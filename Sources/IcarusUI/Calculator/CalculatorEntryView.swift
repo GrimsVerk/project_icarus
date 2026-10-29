@@ -83,7 +83,6 @@
         // MARK: - The window
 
         /// The two times are the forecast place's, as the Result shows them.
-        @ViewBuilder
         private var windowRows: some View {
             Group {
                 startPicker
