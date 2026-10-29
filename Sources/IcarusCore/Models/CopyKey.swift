@@ -6,7 +6,10 @@ import Foundation
 ///
 /// THIS LIST IS COMPLETE FOR EVERY PLAN. A later plan that needs a key adds it
 /// here and to `docs/APP_COPY.md`, and lists both files.
-public enum CopyKey: String, Codable, Sendable, CaseIterable {
+///
+/// One case per line of copy, so its length is the document's: the body-length
+/// rule does not apply to a list.
+public enum CopyKey: String, Codable, Sendable, CaseIterable { // swiftlint:disable:this type_body_length
     // Outcomes
     case planBareSubWindow
     case planStayWearThis
