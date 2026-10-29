@@ -3,16 +3,6 @@
 Work in flight. Write a task here before starting it; delete it when done.
 Keep this short enough to read in one go.
 
-## In flight (2026-10-29): plain ⌘R in Xcode 27
-
-Branch `fix/xcode27-resource-bundles`. The owner's Xcode 27.1 fails the default
-(signed) simulator build: codesign rejects `Icarus_IcarusData.bundle` and
-`Icarus_IcarusContent.bundle` ("bundle format unrecognized"), each a shallow
-bundle with a top-level `Resources/` folder from `.copy("Resources")`. Fix: copy
-the folder's children instead, so no bundle has a `Resources/` dir; adjust the
-`Bundle.module` lookups. Add a manual job on the newest GitHub-hosted Xcode
-(26+) doing a signed simulator build. Small PR, CI green, rebase merge.
-
 ## State (2026-10-29)
 
 On `main`, built and tested on macOS (nightly) and Linux (CI), all green:
@@ -49,6 +39,14 @@ entitlement, attribution and privacy policy link (slice 2, no live check),
 the privacy manifest and the release checklists in `docs/release/` (slice 3,
 no copy). Owner inputs are build settings in `project.yml`, now Google's test
 ids and an example.com page.
+
+Xcode 26+: a plain ⌘R in the owner's Xcode 27.1 failed because codesign
+rejected the SwiftPM resource bundles, which held a top-level `Resources/`
+folder. The targets now copy that folder's children (`Package.swift`). The
+pinned jobs build unsigned on Xcode 16.4 and cannot see this class of break;
+`gh workflow run nightly.yml --ref <branch> -f new_xcode=true` adds a signed
+simulator build on `macos-26` (Xcode 26.6) and the `xcode-27` preview image
+(27.1, the owner's build). Run it after touching resources or build settings.
 
 Branch rules: the `grimsverk-gates` ruleset makes `feat/**` PR-only after the
 first push and undeletable, so don't name work branches `feat/`. Its leftover
@@ -90,6 +88,10 @@ first push and undeletable, so don't name work branches `feat/`. Its leftover
   the preview place is Oslo).
 - Once the owner's inputs arrive: fill `project.yml`, run S16 on a device,
   TestFlight.
+- `PerformanceTests` (S14) times the slowest of 100 plans with wall-clock
+  `Date` against 100 ms; on a shared macOS runner one plan once took 271 ms
+  and failed the nightly (a rerun passed). Flaky, not slow code: a fix would
+  bound the median or a high percentile instead of the maximum.
 - Release risk: the pinned CI jobs build on `macos-15`'s Xcode 16.4, and App
   Store uploads need a current Xcode SDK, so a release build cannot come from
   that pin. The pin is the template's; Verkmester handles it there. Until then
