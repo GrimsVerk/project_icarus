@@ -123,3 +123,7 @@ owner rulings, not agent defaults; do not reopen them.
 ## 2026-10-29 — S3's separation bound (owner ruling)
 
 - **D-2026-10-29-S3** — Closes BL-1. In S3's separation simulation, a user whose true adaptation gain is 0.7× the modelled one keeps the multiplier within 0.15 of 1.0 after six weeks, not 0.10; the 1.3× case stays at 0.10. Under the ruled constants (D-2026-09-03-T1) the estimate settles near 0.88: the escalating dose crosses the slower-adapting user's line and two faint-pink reports move the multiplier, as R21 attributes them. It errs short (the estimate drops, never rises). The owner accepted 0.15 on 2026-10-29 and noted it may change later.
+
+## 2026-10-29 — Remove ads: not at launch (owner ruling)
+
+- **D-2026-10-29-A1** — The app launches free, with the banner (R39) and no way to pay to remove it. A paid "remove ads" option is wanted eventually, not now: don't build it, and add no StoreKit code or purchase screen until the owner asks. What keeps it cheap later is the seam that already exists: every ad call goes through `AdBannerProvider` (IcarusAds, R40), and the live app picks its provider in one place, `AppEnvironment.live` (`IcarusAds.liveProvider()`). A future purchase chooses `NoAdsProvider` there, and every screen's slot then holds nothing, as it does in previews and tests. Keep it that way: no view, model or other package may check for ads or a purchase itself. The ruling came through Verkmester (Chief of Staff) on 2026-10-29.

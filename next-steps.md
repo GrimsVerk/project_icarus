@@ -44,6 +44,16 @@ Branch rules: the `grimsverk-gates` ruleset makes `feat/**` PR-only after the
 first push and undeletable, so don't name work branches `feat/`. Its leftover
 `feat/screenshots` is merged and can only be deleted by the owner.
 
+## In flight (2026-10-29)
+
+- Copy draft for the owner (Verkmester's task): every line with no approved
+  `docs/APP_COPY.md` text (BL-2, the bare symbols, posture names, Result
+  labels, VoiceOver, the location purpose string) plus a privacy policy text,
+  as one local HTML file outside the repo (`../review/icarus-copy.html`
+  beside the GrimsVerk repos). Nothing goes into the app or `APP_COPY.md`
+  until the owner approves.
+- Record the owner's remove-ads ruling in `docs/DECISIONS.md` (small PR).
+
 ## Waiting on the owner
 
 - BL-2 copy (`docs/BACKLOG.md`): no approved `docs/APP_COPY.md`
