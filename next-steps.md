@@ -88,8 +88,8 @@ first push and undeletable, so don't name work branches `feat/`. Its leftover
 - First run on the owner's iPhone (README, "Run on your iPhone"; PR #37):
   on the owner's Mac, `Local.xcconfig` from the example, then build and
   install. CI checks the settings resolve and that the app builds for a device
-  unsigned; real Personal Team signing, the install and the README's team-id
-  `defaults` command have only been tried on that Mac, not here.
+  unsigned. Not yet tried anywhere: real Personal Team signing, the install
+  and the README's team-id `defaults` command. They need that Mac.
 - Small things the screenshots show, none of them blocking: the History chart
   is an empty box with one session; times on the Calculator are in the device's
   zone and on the Result and History in the place's (the simulator runs in UTC,
