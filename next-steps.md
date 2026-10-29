@@ -22,14 +22,13 @@ swiftformat 0.64.4 and SwiftLint 0.65.1 (`gh release download`) match CI. Tests
 need CI: `gh workflow run ci.yml --ref <branch>` and `gh workflow run
 nightly.yml --ref <branch>` both work on any branch.
 
-Still unmerged: `docs/run-followups-20260903` (BL-2) and
-`docs/plan-corrections-20260903` (plan fixes, WeatherKit mapping seam). Their
-pipeline rows (ESC-*) are moot.
+The two September docs branches are on `main` too (BL-2 in
+`docs/BACKLOG.md`, the plan corrections in `docs/plans/`); they can be deleted.
 
 ## Waiting on the owner
 
 - BL-1 ruling (`docs/BACKLOG.md`).
-- BL-2 copy (on `docs/run-followups-20260903`): no approved `docs/APP_COPY.md`
+- BL-2 copy (`docs/BACKLOG.md`): no approved `docs/APP_COPY.md`
   lines for the skin-check answers and timings, the regions, the confounders,
   the lasting-colour answers and the Learn tab title. Until then the views show
   enum names as words. Copy is owner-approved line by line (S17).
@@ -38,9 +37,8 @@ pipeline rows (ESC-*) are moot.
 
 ## Next
 
-- In progress (branch `docs/land-20260903`): land the two docs branches (merge onto `main`, drop summer process files,
-  bring BL-2 into `docs/BACKLOG.md`).
-- Run the app in a simulator once and look at it: the tests pass, but no one has
-  seen the screens yet.
+- Screenshots: a manual CI job (GitHub-hosted macOS) that runs the app in a
+  simulator and uploads every main screen as a run artifact. Run it, look,
+  fix what is clearly broken.
 - M7 release readiness (`docs/plans/release-readiness.md`) as far as it goes
   without the owner's inputs.
