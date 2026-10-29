@@ -5,9 +5,13 @@ owner's (S17); nothing below drafts any of it.
 
 ## In the project (`project.yml`)
 
-- [ ] Bundle id: `options.bundleIdPrefix` is `com.example`.
+- [ ] Bundle id: `PRODUCT_BUNDLE_IDENTIFIER` in `Signing.xcconfig` is
+      `com.example.ProjectIcarus` (the test targets take
+      `options.bundleIdPrefix`, also `com.example`).
 - [ ] Signing: a `DEVELOPMENT_TEAM`, and the WeatherKit capability on the App ID
-      (the entitlement is in `project.yml`; it needs the team to sign).
+      (the entitlement is `App/ProjectIcarus.entitlements`; it needs the team
+      to sign). A `Local.xcconfig` that clears `CODE_SIGN_ENTITLEMENTS` for a
+      Personal Team must not be what a release is built from.
 - [ ] `ADMOB_APP_ID` and `ADMOB_BANNER_UNIT_ID`: Google's test ids until the
       owner's AdMob app and banner unit exist.
 - [ ] `PRIVACY_POLICY_URL`: an example.com placeholder.

@@ -5,4 +5,5 @@ xcuserdata/
 DerivedData/
 .build/
 App/Info.plist
-App/ProjectIcarus.entitlements
+# Machine-specific signing (Local.xcconfig.example has the shape).
+Local.xcconfig

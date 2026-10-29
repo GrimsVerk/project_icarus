@@ -1,0 +1,14 @@
+// The app target's signing settings. project.yml names this file for every
+// configuration, so XcodeGen leaves these keys out of the target and the
+// optional Local.xcconfig below can override them.
+//
+// Without Local.xcconfig (CI, any machine not set up for a device) this is the
+// unsigned simulator build as before: the placeholder bundle id and the
+// WeatherKit entitlement. On a Mac that builds to an iPhone, copy
+// Local.xcconfig.example to Local.xcconfig and fill it in (README, "Run on
+// your iPhone").
+
+PRODUCT_BUNDLE_IDENTIFIER = com.example.ProjectIcarus
+CODE_SIGN_ENTITLEMENTS = App/ProjectIcarus.entitlements
+
+#include? "Local.xcconfig"
