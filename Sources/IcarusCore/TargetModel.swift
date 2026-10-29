@@ -57,9 +57,7 @@ public struct RegionTarget: Sendable, Equatable {
 
     /// The same target scaled — the maintenance dose (R14). Today's dose is
     /// recovered from `target − remaining`, so what is left shrinks with the
-    /// target rather than staying where it was. The range moves with the
-    /// number it surrounds; scaled down, its upper edge is no longer at the
-    /// burn line.
+    /// target rather than staying where it was.
     public func scaled(by factor: Double) -> RegionTarget {
         let spentToday = max(0, target - remaining)
         let scaledTarget = target * factor
@@ -72,8 +70,8 @@ public struct RegionTarget: Sendable, Equatable {
             boundBy: boundBy,
             scaleUsed: scaleUsed,
             remaining: max(0, scaledTarget - spentToday),
-            range: range.lowerBound * factor ... min(range.upperBound * factor, medPersonal),
-            rangeClipped: rangeClipped && factor >= 1
+            range: range,
+            rangeClipped: rangeClipped
         )
     }
 }

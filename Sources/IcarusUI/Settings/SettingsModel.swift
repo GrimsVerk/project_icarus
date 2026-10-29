@@ -25,14 +25,18 @@
         /// it can never strand the selector (R7, screen review F6).
         @Published public var ceiling: Ceiling {
             didSet {
-                guard ceiling != oldValue else { return }
+                guard ceiling != oldValue, !settingStored else { return }
                 guard isSelectable(ceiling) else {
-                    ceiling = oldValue
+                    setStored(oldValue)
                     return
                 }
                 save { $0.ceiling = self.ceiling }
             }
         }
+
+        /// True while the selector is set to what the profile already holds,
+        /// which is neither a pick to check nor a change to save.
+        private var settingStored = false
 
         /// The replayed state and the record it came from, as they stood at the
         /// last refresh. Published so the screen redraws when a write moves them.
@@ -220,7 +224,9 @@
             let summary = try await ExportService.import(Data(contentsOf: url), into: env.history)
             env.profile.save(summary.profile)
             await env.history.invalidate()
-            ceiling = summary.profile.ceiling
+            // The file's ceiling is the record's, not a pick: it is applied
+            // as saved.
+            setStored(summary.profile.ceiling)
             await refresh()
             return summary
         }
@@ -254,6 +260,13 @@
         // MARK: - Inside
 
         private static let exportName = "icarus-history.json"
+
+        /// Show a ceiling without checking or saving it.
+        private func setStored(_ stored: Ceiling) {
+            settingStored = true
+            ceiling = stored
+            settingStored = false
+        }
 
         /// Change the stored profile in place, starting from the app's own
         /// prior when onboarding has not saved one yet.

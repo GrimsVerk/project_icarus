@@ -205,6 +205,12 @@ private struct RangeMinutes {
     let clipped: Bool
 }
 
+/// A region's range edges as fractions of its target.
+private struct RangeFractions {
+    let lower: Double
+    let upper: Double
+}
+
 // MARK: - One plan in progress
 
 /// The planner's working state for one request. It is a value, built up in the
@@ -218,6 +224,9 @@ private struct Context {
     var stale = StaleLevel.fresh
     var plateau = [Region: PlateauOutcome]()
     var targets = [Region: RegionTarget]()
+    /// Each region's range edges as fractions of its target, taken before any
+    /// maintenance scaling, so the range moves with the number it surrounds.
+    var rangeFractions = [Region: RangeFractions]()
     var conservativeForced = false
     var aggressiveRefused = false
     var fairSkinPreCalibration = false
@@ -280,16 +289,24 @@ private extension Context {
         reads.target.formUnion(plateauReads)
 
         let reduced = level.reducesTarget
+        var fractions = [Region: RangeFractions]()
         let (budgets, targetReads) = Planner.tracked(tunables) { tunables in
             Region.allCases.reduce(into: [Region: RegionTarget]()) { found, region in
                 let target = request.goal.target(
                     for: region, profile: request.profile, state: request.state,
                     now: request.now, stale: reduced, tunables: tunables
                 )
+                if target.target > 0 {
+                    fractions[region] = RangeFractions(
+                        lower: target.range.lowerBound / target.target,
+                        upper: target.range.upperBound / target.target
+                    )
+                }
                 found[region] = outcomes[region] == nil ? target : target.scaled(by: tunables.maintenanceFraction)
             }
         }
         targets = budgets
+        rangeFractions = fractions
         reads.target.formUnion(targetReads)
         prepareScale()
     }
@@ -404,21 +421,23 @@ private extension Context {
     /// at `MED_personal` when it was, and its key says so (FIG-10). The number
     /// always sits inside its range.
     mutating func rangeMinutes(_ plan: ExposurePlan) -> RangeMinutes {
-        let atLower = budgets(at: { $0.range.lowerBound })
-        let atUpper = budgets(at: { $0.range.upperBound })
+        let atLower = budgets(at: \.lower)
+        let atUpper = budgets(at: \.upper)
         let lower = solve(against: atLower)?.totalMinutes ?? 0
         let upper = solve(against: atUpper)?.totalMinutes ?? plan.totalMinutes
         return RangeMinutes(
             lower: min(lower, plan.totalMinutes),
             upper: max(upper, plan.totalMinutes),
-            clipped: targets[plan.limitingRegion]?.rangeClipped ?? false
+            // A maintained target sits below the line its range was clipped at.
+            clipped: plateau[plan.limitingRegion] == nil && targets[plan.limitingRegion]?.rangeClipped == true
         )
     }
 
     /// Every region's budget moved to one edge of its own range.
-    func budgets(at edge: (RegionTarget) -> SED) -> [Region: RegionTarget] {
-        targets.mapValues { target in
-            target.target > 0 ? target.scaled(by: edge(target) / target.target) : target
+    func budgets(at edge: KeyPath<RangeFractions, Double>) -> [Region: RegionTarget] {
+        targets.reduce(into: [Region: RegionTarget]()) { moved, entry in
+            let fraction = rangeFractions[entry.key]?[keyPath: edge] ?? 1
+            moved[entry.key] = entry.value.scaled(by: fraction)
         }
     }
 
