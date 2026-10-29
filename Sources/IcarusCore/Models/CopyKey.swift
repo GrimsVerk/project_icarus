@@ -306,7 +306,7 @@ public enum CopyKey: String, Codable, Sendable, CaseIterable {
     case onboardingAllowNotifications // ONB-10
     case onboardingPermissionsFootnote // ONB-11
 
-    // Learn (provisional, D-2026-10-29-C1)
+    /// The Learn list's title (provisional, D-2026-10-29-C1).
     case learnTitle // LEARN-1
 
     // VoiceOver only (S9) (provisional, D-2026-10-29-C1)
