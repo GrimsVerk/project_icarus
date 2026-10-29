@@ -29,16 +29,19 @@
         }
 
         public var body: some View {
-            List {
-                switch page {
-                case .sessions: sessions
-                case .nothingLogged: nothingLogged
-                case .look: look
-                case .timing: timing
-                case .region: region
-                case .confounders: confounders
-                case .confirmation: confirmed
+            NavigationStack {
+                List {
+                    switch page {
+                    case .sessions: sessions
+                    case .nothingLogged: nothingLogged
+                    case .look: look
+                    case .timing: timing
+                    case .region: region
+                    case .confounders: confounders
+                    case .confirmation: confirmed
+                    }
                 }
+                .navigationTitle(AppCopy.text(.skinCheckTitle))
             }
             .task {
                 await model.load()
@@ -96,8 +99,8 @@
 
         // MARK: - Q1 and Q2
 
-        /// How does your skin look today? Five answers, and no approved copy
-        /// names any of them, so each is its own case as words.
+        /// How does your skin look today? (SKIN-2), and R21's five answers
+        /// (SKIN-3 to SKIN-7).
         private var look: some View {
             Section {
                 ForEach(SkinAnswer.allCases, id: \.self) { option in
@@ -108,9 +111,11 @@
                             model.timing = nil
                         }
                     } label: {
-                        row(PromptWords.words(option.rawValue), chosen: model.answer == option)
+                        row(CopyWords.answer(option), chosen: model.answer == option)
                     }
                 }
+            } header: {
+                heading(.skinQuestionLook)
             }
         }
 
@@ -123,9 +128,11 @@
                         model.timing = option
                         page = .region
                     } label: {
-                        row(PromptWords.words(option.rawValue), chosen: model.timing == option)
+                        row(CopyWords.timing(option), chosen: model.timing == option)
                     }
                 }
+            } header: {
+                heading(.skinQuestionTiming)
             }
         }
 
@@ -140,9 +147,11 @@
                         model.region = option
                         page = .confounders
                     } label: {
-                        row(PromptWords.words(option.rawValue), chosen: model.region == option)
+                        row(CopyWords.reportRegion(option), chosen: model.region == option)
                     }
                 }
+            } header: {
+                heading(.skinQuestionRegion)
             }
         }
 
@@ -158,13 +167,15 @@
                             model.confounders.insert(option)
                         }
                     } label: {
-                        row(PromptWords.words(option.rawValue), chosen: model.confounders.contains(option))
+                        row(CopyWords.confounder(option), chosen: model.confounders.contains(option))
                     }
                 }
                 Button(action: submit) {
-                    Image(systemName: "checkmark.circle")
+                    Label(AppCopy.text(.skinSendReport), systemImage: "checkmark.circle")
                 }
                 .disabled(!model.canSubmit)
+            } header: {
+                heading(.skinQuestionConfounders)
             }
         }
 
@@ -214,6 +225,15 @@
                     Image(systemName: "checkmark")
                 }
             }
+        }
+
+        /// A question above its answers, in the owner's own case: a section
+        /// header would otherwise shout it in capitals.
+        private func heading(_ key: CopyKey) -> some View {
+            Text(AppCopy.text(key, skinType: skinType))
+                .font(.headline)
+                .foregroundStyle(.primary)
+                .textCase(nil)
         }
 
         private var zone: TimeZone {

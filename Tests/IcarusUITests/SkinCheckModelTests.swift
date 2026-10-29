@@ -604,6 +604,25 @@
         func testADayWithNoLoggedDoseIsToldThereWasNothingToReport() {
             XCTAssertEqual(SkinCheckModel.confirmationKey(for: .noDoseThatDay), .noSessionToReport)
         }
+
+        /// "Report saved. {effect}" says what the report did in words (FILL-7
+        /// to FILL-11), and a lower multiplier means more sensitive skin.
+        func testReportSavedSaysWhatTheReportDidInWords() {
+            let cases: [(CalibrationEffect, CopyKey)] = [
+                (.none, .effectNone),
+                (.tanStateCredited(.front, 0.27), .effectTanCredited),
+                (.multiplierMoved(from: 1.0, to: 0.9), .effectMoreSensitive),
+                (.multiplierMoved(from: 0.9, to: 1.0), .effectLessSensitive),
+                (.discounted, .effectDiscounted),
+            ]
+            for (effect, key) in cases {
+                let args = SkinCheckModel.confirmationArgs(for: effect)
+                XCTAssertEqual(args["effect"], AppCopy.text(key), "\(effect)")
+                let line = AppCopy.text(SkinCheckModel.confirmationKey(for: effect), args: args)
+                XCTAssertFalse(line.contains("0.27"), line)
+                XCTAssertFalse(line.contains("{"), line)
+            }
+        }
     }
 
     // MARK: - Opening the flow from a notification (R20)

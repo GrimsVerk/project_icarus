@@ -8,59 +8,56 @@
     /// "Did you notice lasting colour?", days after the report it belongs to.
     ///
     /// One page and three answers, per day: yes, a little, no (R20). Answering
-    /// writes the answer against that day's report and closes the flow, which is
-    /// also what takes the row off the due card — the card re-reads what is due
-    /// when the sheet dismisses.
+    /// writes the answer against that day's report and says so (LC-4). The
+    /// user swipes the sheet away, as at the end of the skin check, and the
+    /// due card re-reads what is due when it dismisses.
     ///
-    /// It shows the day it is about and no figure at all: no MED, no SED, no
-    /// dose (R20, R39). It carries no banner.
-    ///
-    /// **A copy gap, deliberately not filled here.** `docs/APP_COPY.md` approves
-    /// the notification's wording (`notificationLastingColour`), which is not a
-    /// `CopyKey` yet, and nothing approves an in-app question line or words for
-    /// the three answers. So the page shows the day as a date and the answers as
-    /// their own case names, split into words — data the enum already carries,
-    /// never a sentence written here (R42). The missing keys are a gap for the
-    /// owner to close.
+    /// It shows the question for the day it is about (LC-2) and no figure at
+    /// all: no MED, no SED, no dose (R20, R39). It carries no banner.
     public struct LastingColourFlow: View, ScreenManifest {
         public nonisolated static let hasBannerSlot = false
         public nonisolated static let showsFigures = false
 
         @ObservedObject private var model: LastingColourModel
-        @Environment(\.dismiss) private var dismiss
 
         public init(model: LastingColourModel) {
             self.model = model
         }
 
         public var body: some View {
-            List {
-                Section {
-                    Text(dayText)
-                }
-                Section {
-                    ForEach(Self.answers, id: \.self) { option in
-                        Button {
-                            answer(option)
-                        } label: {
-                            row(PromptWords.words(option.rawValue), chosen: model.answered == option)
+            NavigationStack {
+                List {
+                    Section {
+                        Text(AppCopy.text(.lastingColourQuestion, args: ["day": dayText]))
+                    }
+                    Section {
+                        ForEach(Self.answers, id: \.self) { option in
+                            Button {
+                                answer(option)
+                            } label: {
+                                row(CopyWords.lastingColour(option), chosen: model.answered == option)
+                            }
+                        }
+                    }
+                    if model.answered != nil {
+                        Section {
+                            Text(AppCopy.text(.lastingSaved))
                         }
                     }
                 }
+                .navigationTitle(AppCopy.text(.lastingColourTitle))
             }
         }
 
         // MARK: - Answering
 
-        /// Write the answer and leave. A write that fails — a day whose report
-        /// is gone — leaves the page open with nothing recorded, because there
-        /// is no approved line to explain the failure with.
+        /// Write the answer; the page then says it is saved (LC-4) and the
+        /// user swipes it away. A write that fails — a day whose report is gone
+        /// — leaves the page as it was, with nothing recorded and nothing said,
+        /// because there is no approved line to explain the failure with.
         private func answer(_ option: LastingColour) {
             Task {
                 try? await model.submit(option, now: model.env.clock())
-                if model.answered != nil {
-                    dismiss()
-                }
             }
         }
 

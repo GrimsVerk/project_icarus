@@ -83,21 +83,18 @@
             }
         }
 
-        /// The row's words: the question it opens, which is the approved copy
-        /// for the skin check. The lasting-colour question's own line arrives
-        /// with its flow.
+        /// The row's words: which question it opens, and for which day
+        /// (DUE-1, DUE-2).
         private func words(for prompt: DuePrompt) -> String {
             switch prompt {
-            case .skinCheck:
-                AppCopy.text(.didYouDoThisSession, skinType: skinType, args: ["window": ""])
+            case let .skinCheck(day):
+                AppCopy.text(.dueSkinCheck, skinType: skinType, args: ["day": dayText(day)])
             case let .lastingColour(day):
-                dayText(day)
+                AppCopy.text(.dueLastingColour, skinType: skinType, args: ["day": dayText(day)])
             }
         }
 
-        /// A day as a date, in its own zone. No copy key names the
-        /// lasting-colour row, so it shows the day it is about and nothing
-        /// else, until its own flow brings its line (Slice 2).
+        /// A day as a date, in its own zone.
         private func dayText(_ day: DayKey) -> String {
             let formatter = DateFormatter()
             formatter.dateStyle = .medium

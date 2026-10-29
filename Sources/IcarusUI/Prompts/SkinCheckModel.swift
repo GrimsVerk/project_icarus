@@ -159,19 +159,32 @@
             }
         }
 
-        /// The values that line's placeholders take. Only two effects carry a
-        /// number: the credited amount and the pause. The rest fill `{effect}`
-        /// with nothing, because there is no approved wording for "the
-        /// multiplier moved" and an invented sentence would be copy the owner
-        /// never saw (R42).
+        /// The values that line's placeholders take: the pause for a blister,
+        /// and otherwise `{effect}`, the sentence for what the report did.
         public static func confirmationArgs(for effect: CalibrationEffect) -> [String: String] {
             switch effect {
-            case let .tanStateCredited(_, amount):
-                ["effect": String(format: "%.2f", amount)]
             case let .blisterCorrection(_, _, pauseDays):
                 ["pauseDays": String(pauseDays)]
             default:
-                ["effect": ""]
+                ["effect": effectLine(for: effect)]
+            }
+        }
+
+        /// `{effect}` in "Report saved. {effect}" (FILL-7 to FILL-11), never a
+        /// bare number. A lower multiplier is a lower personal threshold, which
+        /// is more sensitive, so plans get shorter.
+        static func effectLine(for effect: CalibrationEffect) -> String {
+            switch effect {
+            case .tanStateCredited:
+                AppCopy.text(.effectTanCredited)
+            case let .multiplierMoved(from, to) where to < from:
+                AppCopy.text(.effectMoreSensitive)
+            case let .multiplierMoved(from, to) where to > from:
+                AppCopy.text(.effectLessSensitive)
+            case .discounted:
+                AppCopy.text(.effectDiscounted)
+            default:
+                AppCopy.text(.effectNone)
             }
         }
 
