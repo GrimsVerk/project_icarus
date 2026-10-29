@@ -69,35 +69,36 @@
                     "window": ResultCopy.windowText(record.plannedWindow, in: zone),
                 ]))
                 Button { page = record.prescribedSunscreen == nil ? .times : .wore } label: {
-                    Image(systemName: "checkmark.circle")
+                    Label(AppCopy.text(.didYes), systemImage: "checkmark.circle")
                 }
                 Button(action: onNo) {
-                    Image(systemName: "xmark.circle")
+                    Label(AppCopy.text(.didNo), systemImage: "xmark.circle")
                 }
             }
         }
 
         // MARK: - Did you wear it?
 
-        /// The prescribed pair is named by the approved line; the other two
-        /// answers are the enum's own words, because no copy key names them.
+        /// The approved question names the prescribed pair, and the three
+        /// answers are DID-3 to DID-5. The pickers for another product are the
+        /// "I don't have that SPF" sheet's own (SUN-2 to SUN-6).
         private var askedWore: some View {
             Section {
                 if let prescribed = record.prescribedSunscreen {
                     Text(AppCopy.text(.didYouWearIt, skinType: skinType, args: [
                         "spf": "SPF \(prescribed.spfLabel)",
-                        "application": prescribed.application.rawValue,
+                        "application": CopyWords.application(prescribed.application),
                     ]))
-                    choiceRow(.asPrescribed, words: PromptWords.words(SunscreenWord.asPrescribed.rawValue))
+                    choiceRow(.asPrescribed, words: AppCopy.text(.woreAsSuggested))
                 }
-                choiceRow(.alternative(alternative), words: PromptWords.words(SunscreenWord.another.rawValue))
+                choiceRow(.alternative(alternative), words: AppCopy.text(.woreDifferent))
                 if case .alternative = wore {
                     labelPicker
                     applicationPicker
                 }
-                choiceRow(.none, words: PromptWords.words(SunscreenWord.none.rawValue))
+                choiceRow(.none, words: AppCopy.text(.woreNone))
                 Button { page = .times } label: {
-                    Image(systemName: "chevron.forward")
+                    Label(AppCopy.text(.promptNext), systemImage: "chevron.forward")
                 }
             }
         }
@@ -123,28 +124,32 @@
                     Text(String(spf)).tag(spf)
                 }
             } label: {
-                Image(systemName: "drop.circle")
+                Label(AppCopy.text(.sunscreenSheetSPF), systemImage: "drop.circle")
             }
         }
 
         private var applicationPicker: some View {
             Picker(selection: applicationBinding) {
                 ForEach(Application.allCases, id: \.self) { applied in
-                    Text(PromptWords.words(applied.rawValue)).tag(applied)
+                    Text(CopyWords.applicationOption(applied)).tag(applied)
                 }
             } label: {
-                Image(systemName: "hand.draw")
+                Label(AppCopy.text(.sunscreenSheetApplication), systemImage: "hand.draw")
             }
         }
 
         // MARK: - The times
 
+        /// The times are editable when logging (R45), and the header says so.
         private var askedTimes: some View {
             Section {
                 IntervalEditor(intervals: $intervals)
                 Button { onYes(intervals, wore) } label: {
-                    Image(systemName: "checkmark.circle")
+                    Label(AppCopy.text(.promptSave), systemImage: "checkmark.circle")
                 }
+            } header: {
+                Text(AppCopy.text(.timesHeader))
+                    .textCase(nil)
             }
         }
 
@@ -170,14 +175,6 @@
             case (.asPrescribed, .asPrescribed), (.none, .none), (.alternative, .alternative): true
             default: false
             }
-        }
-
-        /// The three answers as words. They are cases of an enum rather than
-        /// strings at the call site, so the flow holds no sentence of its own.
-        private enum SunscreenWord: String {
-            case asPrescribed
-            case another
-            case none
         }
     }
 #endif

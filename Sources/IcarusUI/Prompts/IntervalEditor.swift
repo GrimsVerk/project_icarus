@@ -1,5 +1,6 @@
 #if canImport(SwiftUI)
     import Foundation
+    import IcarusContent
     import IcarusCore
     import SwiftUI
 
@@ -23,17 +24,17 @@
         public var body: some View {
             ForEach(Array(intervals.indices), id: \.self) { index in
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(PromptWords.words(for: intervals[index].exposure))
+                    Text(CopyWords.exposure(intervals[index].exposure))
                         .font(.footnote)
                     DatePicker(
                         selection: start(index), displayedComponents: .hourAndMinute
                     ) {
-                        Image(systemName: "sun.horizon")
+                        Label(AppCopy.text(.intervalFrom), systemImage: "sun.horizon")
                     }
                     DatePicker(
                         selection: end(index), displayedComponents: .hourAndMinute
                     ) {
-                        Image(systemName: "sunset")
+                        Label(AppCopy.text(.intervalUntil), systemImage: "sunset")
                     }
                 }
             }
