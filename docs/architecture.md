@@ -32,7 +32,7 @@ As of Slice 1 of the `calculator-ui` plan, the app has a shape. `IcarusContent`
 also carries the app's own words as data — `docs/APP_COPY.md`, generated into
 one JSON file, resolved by key — plus the onboarding skin-type table and the
 Fitzpatrick quiz. `IcarusAds` holds the banner protocol and the no-op that
-stands in for the SDK until M7. `IcarusData` gained the profile store. And
+stood in for the SDK until M7. `IcarusData` gained the profile store. And
 `IcarusUI` exists: the screen manifest, which is where every screen declares
 whether it carries the ad slot and whether it shows a figure, and
 `AppEnvironment`, which composes the packages and is the only thing the app
@@ -98,8 +98,9 @@ answer.
 | `IcarusUI` / `FigureView` | One number with its label and, when the engine says the number rests on an assumed constant, the estimate badge whose VoiceOver label names those assumptions. Every figure the app shows goes through it, and only the Result screen uses it. |
 | `IcarusUI` / `SunscreenAlternativeSheet` | "I don't have that SPF": the SPF ladder and the three applications, the engine's re-solve for the pair chosen, and the confirmation that makes the logged dose that pair's rather than the raw window's. |
 | `IcarusUI` / `ManualLocationSheet` | "Change place": typed text through a `PlaceResolver` — Apple's geocoder on a device — and the chosen place pinned on the location service, which then refetches and recomputes. |
-| `IcarusAds` | The ad banner behind a protocol (R40); the only package that will import the SDK. Not built on Linux. |
-| `IcarusAds` / `AdBannerProvider`, `NoAdsProvider` | The whole surface the app has on advertising: prepare for a region (which is where the consent flow will live), a banner view for a width or nil, and the flags every request carries. `NoAdsProvider` shows nothing, asks for nothing, and reports non-personalised — it is what previews, tests, CI and the app itself use until M7. |
+| `IcarusAds` | The ad banner behind a protocol (R40); the only package that imports the Google Mobile Ads SDK and its User Messaging Platform (iOS only, pinned exactly, D-2026-09-03-DEP2). Not built on Linux. |
+| `IcarusAds` / `AdBannerProvider`, `NoAdsProvider` | The whole surface the app has on advertising: prepare for a region (which runs the consent flow), a banner view for a width or nil, the flags every request carries, and the network's privacy options for Settings. `NoAdsProvider` shows nothing, asks for nothing, and reports non-personalised — it is what previews, tests and CI use. |
+| `IcarusAds` / `AdMobBannerProvider`, `ConsentGateway`, `UMPConsentGateway` | The live banner. `prepare` runs once: it asks the gateway whether Google's form is required here, shows it if so (a refusal means `.limited`, never a missing slot), and only then starts the SDK. Every request it builds carries `npa=1` and is recorded for `AdMobConfigurationTests`. The slot keeps the adaptive banner's height and loads once `prepare` has answered. `UMPConsentGateway` is Google's UMP behind the protocol; the tests use a fake. `IcarusAds.liveProvider()` picks AdMob when the Info.plist names an ad unit (`IcarusAdUnitID`, from `project.yml`). |
 | `IcarusUI` / `SkinCheckModel` | One day's skin check, as state: the sessions still to account for, Q1, Q2, the region and the confounders, and the one report they become. "Yes" on a session sums the confirmed intervals through `ExposureModel` and logs the attenuated dose; "no" discards it. `canSubmit` holds only with something logged that day, Q1 answered, and Q2 answered whenever Q1 named redness. Submitting writes the report, has the store say what it did to the calibration, and schedules the lasting-colour question. `confirmationKey(for:)` maps that effect to the line the user is shown. |
 | `IcarusUI` / `SkinCheckFlow` | The day-after check in R20's order: the unaccounted sessions, then how the skin looks, when the colour showed up, which region, and anything unusual — then the confirmation line. A day with nothing logged is a dead end that records nothing. No banner, no figure, no MED or SED. |
 | `IcarusUI` / `DidYouDoThisView`, `IntervalEditor` | One planned session's question. "Yes" asks what was worn — the prescribed pair, another product, or none — and then offers the planned times to correct before the session is logged; "no" discards it. The editor moves a start or an end and never lets one cross the other. A session with no prescription is never offered "as prescribed". |
@@ -114,13 +115,14 @@ answer.
 | `IcarusUI` / `SessionDetailView` | One session's stored record, recomputing nothing: the day, the window, the posture, the cover flag, the intent, the sunscreen and the ceiling that was in force; then what the user was shown at the time — the adaptation factor and target per region, beside the dose that was stored (R22); then the forecast it was planned from — the place as coordinates, when it was fetched, the strongest hour on the stored curve, and the curve's zone. |
 | `IcarusUI` / `ExportImportModel`, `ExportImportView` | History's own two record actions (R25). The model writes the whole record, the profile and the constant set to a temporary JSON file through `ExportService.export` and answers with its URL; it reads a picked file back through `ExportService.import`, saves the profile the file carried, drops the store's replay memo, and keeps the summary. An import that throws changes nothing — the service validates every record before writing any — and the model keeps the error instead of a summary. The view is the pair of toolbar buttons: a `ShareLink` over the exported file, and a `.json` file importer whose answer is an alert reading `importApplied` with the counts filled in, or `importFailed`. No approved key names either action, so each button is its system symbol alone. |
 | `IcarusUI` / `HistoryFormat` | How the History screens turn record data into short strings: a date and a clock time in the day's own zone, a coordinate as two numbers, a sunscreen pair as its label and application, a stored number to one decimal, and a case name split into words by the prompts' own splitter. All of it is data, so none of it goes through `AppCopy` (R42). |
-| `App/` | The iOS app shell. Depends only on `IcarusUI`. `ProjectIcarusApp` builds the live environment; `RootTabs` is the two-tab shell with the foreground hook, the deep-link hook and a control row above the Calculator that opens Settings (and, from M6, History) as sheets; its Calculator tab owns the one `CalculatorModel` the entry and result screens share. It holds no logic and no copy, and it never names the ad provider: `AppEnvironment.banner(width:)` hands it a view. |
+| `App/` | The iOS app shell. Depends on `IcarusUI` and `IcarusContent`. `ProjectIcarusApp` builds the live environment (in Debug builds, `-IcarusPreview fresh|onboarded` swaps in `preview()` and `-IcarusTapNotification <id>` replays a notification tap, for the screenshot walk); `RootTabs` is the two-tab shell (Calculator, Learn list) with onboarding over it on first launch, the ad consent once onboarding is done, the foreground hook, the deep-link hook (which opens the module in the Learn tab), and History and Settings as sheets from buttons it hands the entry screen for its toolbar; its Calculator tab owns the one `CalculatorModel` the entry and result screens share. It holds no logic and no copy, and it never names the ad provider: `AppEnvironment.banner(width:)` hands it a view. `project.yml` generates its Info.plist additions (the `icarus` scheme, the owner's ad and privacy values) and the WeatherKit entitlement; `App/PrivacyInfo.xcprivacy` is its privacy manifest. |
+| `Tests/Screenshots` | A UI-test target (scheme `Screenshots`) that walks every main screen on the preview environment and attaches a screenshot of each; `.github/workflows/screenshots.yml` runs it by hand and uploads them. |
 | `IcarusUI` / `FlipTimerModel` | The session clock for a lying-down session (R11). It plans nothing itself: the calculator builds the request, this model moves the window's start to the real clock, scales every target by the confirmed sunscreen's effective SPF so the plan spans the covered window, and hands it to the `Planner`. A non-plan outcome is a refusal (`TimerError.cannotStart`); notifications that are denied are a refusal too, before anything is written, and the same start is offered again with that refusal waived. It logs the session at the start from the plan's intervals and again, in place and shorter, from the intervals it actually ran. `ScaledGoal` is the one-line goal wrapper that does the SPF scaling. |
 | `IcarusUI` / `FlipTimerView` | The timer screen: which side is up first, the time left on this side and on the session, a stop button, and the refusal lines. No banner, figures yes (R39). Every sentence is a copy key; the sides, the buttons and the clock are symbols and numbers, because no approved line names them. |
 | `IcarusUI` / `SettingsModel` | Everything Settings can change or say: the ceiling (which is the profile), the sensitivity sentence and the manual override, the count of session days with no report, the weekly and cycle-to-date totals per region, the export file, the import, and deleting the record. The replayed state, the record and the totals live behind an actor, so the model keeps a snapshot of all three and refreshes after every write. |
 | `IcarusUI` / `SettingsView` | The list: the ceiling selector (each option named by the share of the threshold it plans at, the aggressive one disabled with the approved line until it unlocks), the sensitivity sentence with a stepper and a reset, the unreported-days line, the totals, the record's export, import and delete-with-warning, the WeatherKit attribution, the privacy row (wired in M7) and the disclaimer. |
 | `IcarusUI` / `TotalsView` | The dose the record holds, in two sections of three rows: the last seven days, and everything since each region's tan cycle opened (R24). It sums nothing — `HistoryStore.totals` does that from the logged sessions alone — and it draws every number through `FigureView`, with no estimate badge, because a sum of recorded doses rests on no assumed constant. No approved line names either span or any region, so a symbol heads each section and `PromptWords` names each row from the region's own case. |
-| `IcarusUI` / `AttributionView` | Apple's mark and the link to Apple's legal page (R29). The URL arrives with the forecast in M7; until then the link is absent rather than a placeholder sentence. |
+| `IcarusUI` / `AttributionView` | Apple's mark and the link to Apple's legal page (R29), both from `WeatherKitProvider.attribution()` through `AppEnvironment.weatherAttribution`; where WeatherKit has not answered (previews, no entitlement) a system symbol and no link, rather than a placeholder sentence. |
 
 Two things follow from the layout and are deliberate. `IcarusCore` depends on
 nothing, so the engine is testable on Linux and in CI without a simulator. And
@@ -1050,11 +1052,6 @@ The file names are `S<n>.sh` exactly, one per criterion id: CI runs every
 
 ## Known rough edges
 
-- The History toolbar item is attached in `RootTabs`, outside the navigation
-  stack `CalculatorEntryView` owns, because the entry screen is another slice's
-  file. A toolbar declared outside its stack may not draw; nothing on Linux can
-  see either way, so this needs a look on a simulator, and the fix — if it is
-  needed — is one modifier moved inside that screen.
 - A session's factors and targets are shown under the figure keys closest to
   their units, `uvaMultiple` and `rangeUpper`, because `FigureKey` has no case
   for either. The label carries the meaning; the key does not. A case per stored
@@ -1194,21 +1191,16 @@ The file names are `S<n>.sh` exactly, one per criterion id: CI runs every
   deliberate: the table is the declaration R39 is checked against, and listing a
   screen before building it means the banner decision is made once, in the plan,
   rather than again by whoever writes the view.
-- `AppEnvironment`, `IcarusAds` and `App/` cannot be compiled on Linux, so
-  nothing in this slice's Apple-only code has been built anywhere yet. It is
-  written against the iOS 18 SDK and checked by eye; the first real evidence is
-  the macOS CI job.
+- `AppEnvironment`, `IcarusAds` and `App/` cannot be compiled on Linux; the
+  nightly macOS job builds and tests them, and the screenshot walk runs them.
 - `AppEnvironment.live()` has no test and cannot have a useful one: it is the
   composition root, and every branch in it names a service that only exists on a
   device. `preview()` is the shape the tests exercise.
 - `SwiftDataPersistence.onDisk()` was added so the composition root can ask for
   the real store: the two SwiftData entities are internal to `IcarusData`, so
   nothing outside the package can build a container for them.
-- Both tabs in `RootTabs` render `Color.clear` and neither tab item has a title.
-  A tab whose content is `EmptyView` is not a tab, and a title would be a
-  user-visible literal at a copy-bearing call site — there is no `CopyKey` for a
-  tab name, and inventing one would be writing copy the owner never approved.
-  Both land with the screens themselves.
+- Neither tab item has a title: a title would be a user-visible literal at a
+  copy-bearing call site, and there is no `CopyKey` for a tab name (BL-2).
 - `AppCopy.text` fills `{name}` placeholders by replacing each supplied
   argument. An argument the caller forgot stays on screen as `{minutes}`, which
   is ugly on purpose: the alternative is a sentence that quietly lost its number.
