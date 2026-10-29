@@ -1197,8 +1197,8 @@ the owner's to judge.
   by no more than the excess; after nCap reports a "red and sore" report still
   moves the multiplier by at least 0.10. The separation simulation runs with
   the simulated user's true adaptation gain at 0.7× and at 1.3× the modelled
-  gain; in both cases the multiplier stays within 0.10 of 1.0 after six weeks
-  and the first post-gap recommendation is at or below the simulated user's
+  gain; after six weeks the multiplier stays within 0.15 of 1.0 at 0.7× and
+  within 0.10 at 1.3× (D-2026-10-29-S3; may tighten later), and the first post-gap recommendation is at or below the simulated user's
   true threshold. A blistering report applies the protective correction at any
   n; the clamp triggers the revisit-skin-type outcome; a "faint pink" report
   with the immediate-darkening Q2 answer moves the multiplier as "normal"

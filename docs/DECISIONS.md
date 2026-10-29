@@ -119,3 +119,7 @@ owner rulings, not agent defaults; do not reopen them.
 ## 2026-10-29 — Moved to template v2
 
 - **D-2026-10-29-T1** — The project follows grimsverk-template v2 (v1.0.1): no unattended pipeline, oracle, review gate or ceremony checks; fresh sessions, `next-steps.md` as memory, plan mode. CI runs only on pushes to `main`: `ci.yml` (gitleaks, swiftformat and SwiftLint in pinned images, and `core-tests`: `swift test` plus `acceptance/S*.sh` in the official `swift:6.0.3-noble` image) and `nightly.yml` (Xcode build and tests on macOS). Why: summer CI ran 9-23 times per merged PR, and `swift-actions/setup-swift@v2` does not support the Ubuntu 26.04 runners. F6 still holds; its ruleset step is moot because no check gates PRs any more.
+
+## 2026-10-29 — S3's separation bound (owner ruling)
+
+- **D-2026-10-29-S3** — Closes BL-1. In S3's separation simulation, a user whose true adaptation gain is 0.7× the modelled one keeps the multiplier within 0.15 of 1.0 after six weeks, not 0.10; the 1.3× case stays at 0.10. Under the ruled constants (D-2026-09-03-T1) the estimate settles near 0.88: the escalating dose crosses the slower-adapting user's line and two faint-pink reports move the multiplier, as R21 attributes them. It errs short (the estimate drops, never rises). The owner accepted 0.15 on 2026-10-29 and noted it may change later.

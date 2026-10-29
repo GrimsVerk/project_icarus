@@ -59,9 +59,11 @@ final class ScreenshotTests: XCTestCase {
         compute.tap()
 
         let timer = app.buttons["result.timer"]
-        XCTAssertTrue(timer.waitForExistence(timeout: timeout))
+        XCTAssertTrue(app.navigationBars.buttons.firstMatch.waitForExistence(timeout: timeout))
+        sleep(1)
         snap("04-result")
-        app.swipeUp()
+        // The actions close a long list, and a row off screen does not exist yet.
+        XCTAssertTrue(scroll(app, to: timer))
         snap("04-result-scrolled")
 
         timer.tap()
@@ -76,7 +78,8 @@ final class ScreenshotTests: XCTestCase {
         compute.tap()
         // Log the planned session, so History has a row to show.
         let didThis = app.buttons["result.didThis"]
-        XCTAssertTrue(didThis.waitForExistence(timeout: timeout))
+        XCTAssertTrue(app.navigationBars.buttons.firstMatch.waitForExistence(timeout: timeout))
+        XCTAssertTrue(scroll(app, to: didThis))
         didThis.tap()
         app.navigationBars.buttons.element(boundBy: 0).tap()
 
@@ -135,6 +138,14 @@ final class ScreenshotTests: XCTestCase {
         }
         app.launch()
         return app
+    }
+
+    /// Swipes up until the element is on screen, a few times at most.
+    private func scroll(_ app: XCUIApplication, to element: XCUIElement) -> Bool {
+        for _ in 0 ..< 8 where !(element.exists && element.isHittable) {
+            app.swipeUp()
+        }
+        return element.exists && element.isHittable
     }
 
     private func snap(_ name: String) {
