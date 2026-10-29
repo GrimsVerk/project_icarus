@@ -27,7 +27,7 @@ struct ProjectIcarusApp: App {
     private static func environment() -> AppEnvironment {
         #if DEBUG
             if let onboarded = PreviewLaunch.onboarded {
-                return AppEnvironment.preview(onboarded: onboarded)
+                return AppEnvironment.preview(onboarded: onboarded, scenario: PreviewLaunch.scenario)
             }
         #endif
         return AppEnvironment.live()
@@ -40,14 +40,28 @@ struct ProjectIcarusApp: App {
     ///
     /// `-IcarusPreview fresh` runs on `AppEnvironment.preview()` with no profile,
     /// so onboarding opens; `-IcarusPreview onboarded` skips it.
+    /// `yesterday` is onboarded with a session logged the day before, and
+    /// `noforecast` is onboarded with no forecast to be had.
     /// `-IcarusTapNotification <identifier>` opens the app as if that
     /// notification had been tapped, through the same route a real tap takes.
     enum PreviewLaunch {
+        private static var mode: String? {
+            UserDefaults.standard.string(forKey: "IcarusPreview")
+        }
+
         static var onboarded: Bool? {
-            switch UserDefaults.standard.string(forKey: "IcarusPreview") {
+            switch mode {
             case "fresh": false
-            case "onboarded": true
+            case "onboarded", "yesterday", "noforecast": true
             default: nil
+            }
+        }
+
+        static var scenario: AppEnvironment.PreviewScenario {
+            switch mode {
+            case "yesterday": .sessionYesterday
+            case "noforecast": .noForecast
+            default: .plain
             }
         }
 

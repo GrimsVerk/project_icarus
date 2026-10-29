@@ -150,16 +150,36 @@
             return environment
         }
 
+        /// What the preview starts with beyond the recorded forecast, so the
+        /// screenshot walk can reach the screens a fresh, empty run never shows
+        /// (screen review F11).
+        public enum PreviewScenario: Sendable {
+            /// Nothing on disk.
+            case plain
+            /// One logged session the day before, with no skin report yet: the
+            /// skin check asks its questions and History has a past session.
+            case sessionYesterday
+            /// The forecast provider refuses every request and nothing is
+            /// cached: the Result the phone shows without WeatherKit.
+            case noForecast
+        }
+
         /// The environment previews and UI tests run on: the recorded Oslo
         /// forecast, nothing on disk, notifications that are granted and go
-        /// nowhere, no ads, and a clock that does not move.
+        /// nowhere, no ads, and a clock that does not move. The privacy policy
+        /// and Apple's weather credit are stand-ins, so Settings shows the rows
+        /// the phone shows (screen review F12).
         ///
         /// `onboarded` starts it with the starting profile saved and onboarding
         /// done, for a UI test that begins past the first launch.
-        public static func preview(onboarded: Bool = false) -> AppEnvironment {
+        public static func preview(onboarded: Bool = false, scenario: PreviewScenario = .plain) -> AppEnvironment {
             let tunables = Tunables.current
             guard let fixture = try? FakeForecastProvider.fixture(named: previewFixture) else {
                 preconditionFailure("the preview fixture \(previewFixture) is missing from IcarusData")
+            }
+            let persistence = MemoryPersistence()
+            if scenario == .sessionYesterday {
+                try? persistence.replaceAll(History(sessions: [previewSessionYesterday()]))
             }
             let profile = MemoryProfileStore(profile: onboarded ? startingProfile : nil)
             if onboarded {
@@ -168,9 +188,10 @@
                 flags.disclaimerAcknowledged = true
                 profile.setFlags(flags)
             }
-            return AppEnvironment(
+            let refusal: ProviderError? = scenario == .noForecast ? .unavailable("preview without a forecast") : nil
+            let environment = AppEnvironment(
                 forecast: ForecastService(
-                    provider: FakeForecastProvider(fixture: fixture),
+                    provider: FakeForecastProvider(fixture: fixture, failing: refusal),
                     cache: MemoryForecastCache(),
                     tunables: tunables
                 ),
@@ -178,12 +199,60 @@
                     source: FakeLocationSource(reading: .fix(oslo, accuracyKm: 1)),
                     resolver: FakePlaceResolver(table: [:])
                 ),
-                history: HistoryStore.inMemory(tunables: tunables, profile: startingProfile),
+                history: HistoryStore(
+                    persistence: persistence, tunables: tunables, profileProvider: { startingProfile }
+                ),
                 profile: profile,
                 prompts: PromptScheduler(port: FakeNotificationPort(authorization: .granted), tunables: tunables),
                 ads: NoAdsProvider(),
                 tunables: tunables,
                 clock: { previewNow }
+            )
+            environment.privacyPolicyURL = URL(string: "https://example.com/privacy")
+            // Apple's legal page, and a mark that never loads, so the row
+            // shows its placeholder and the link as the phone does before
+            // WeatherKit answers.
+            environment.weatherAttribution = {
+                WeatherAttribution(
+                    legalPageURL: URL(string: "https://weatherkit.apple.com/legal-attribution.html")!,
+                    markLightURL: URL(fileURLWithPath: "/preview/no-mark.png"),
+                    markDarkURL: URL(fileURLWithPath: "/preview/no-mark.png")
+                )
+            }
+            return environment
+        }
+
+        /// Half an hour up and about in the early afternoon of the day before
+        /// the preview clock's day, logged, on a flat UV index 6 day in Oslo.
+        private static func previewSessionYesterday() -> SessionRecord {
+            let zone = TimeZone(identifier: "Europe/Oslo") ?? TimeZone(secondsFromGMT: 7200)!
+            let opens = previewNow.addingTimeInterval(-21 * 3600)
+            let window = Window(start: opens, end: opens.addingTimeInterval(1800))
+            let interval = [ExposureInterval(exposure: .upAndAbout, window: window)]
+            let midnight = previewNow.addingTimeInterval(-33 * 3600)
+            let curve = StoredCurve(
+                hourly: (0 ... 24).map { HourlyUVI(time: midnight.addingTimeInterval(Double($0) * 3600), uvi: 6) },
+                solarNoon: midnight.addingTimeInterval(11 * 3600 + 1200),
+                timeZoneID: zone.identifier,
+                location: oslo,
+                fetchedAt: midnight.addingTimeInterval(6 * 3600)
+            )
+            return SessionRecord(
+                day: DayKey(opens, timeZone: zone),
+                createdAt: opens,
+                plannedWindow: window,
+                plannedIntervals: interval,
+                firstSide: .faceUp,
+                actualIntervals: interval,
+                posture: .upAndAbout,
+                coverHeadAndShoulders: false,
+                intent: .bestMinutes,
+                ceilingAtPlan: startingProfile.ceiling,
+                state: .logged,
+                dosePerRegion: [.front: 0.8, .back: 0.8, .headAndShoulders: 1.6],
+                curveUsed: curve,
+                forecastFetchedAt: curve.fetchedAt,
+                forecastPlace: oslo
             )
         }
 
