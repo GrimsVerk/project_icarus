@@ -38,7 +38,10 @@ branch (a rebase would replay dozens of cascade merges), keep v2's side for
 --ref merge/<name>` (no local Swift or Docker on the Linux box), fix until
 green, then PR and `gh pr merge --merge --delete-branch`.
 
-- [ ] calculator-ui (+ learn-tab-2): branch `merge/calculator-ui`, started
+- [x] calculator-ui (+ learn-tab-2): macOS build and tests green first time;
+  Linux needed one swiftformat fix and jq in `core-tests`.
+  Local format/lint without Docker: the Linux release binaries of swiftformat
+  0.64.4 and SwiftLint 0.65.1 (`gh release download`) match CI.
 - [ ] calculator-ui-2
 - [ ] logging-calibration (+ history)
 
