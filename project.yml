@@ -2,7 +2,8 @@
 # from this file with `xcodegen generate` and is never committed or hand-edited.
 name: ProjectIcarus
 options:
-  bundleIdPrefix: com.example # change before building for a device or distributing
+  # The test targets' ids. The app's own is in Signing.xcconfig.
+  bundleIdPrefix: com.example
   deploymentTarget:
     iOS: "18.0"
 packages:
@@ -35,10 +36,14 @@ targets:
         SKAdNetworkItems:
           - SKAdNetworkIdentifier: cstr6suwn9.skadnetwork
         ITSAppUsesNonExemptEncryption: false
-    entitlements:
-      path: App/ProjectIcarus.entitlements
-      properties:
-        com.apple.developer.weatherkit: true
+    # The bundle id and the entitlements file (WeatherKit) come from
+    # Signing.xcconfig, which a gitignored Local.xcconfig can override for a
+    # device build (README, "Run on your iPhone"). Not an `entitlements:` key:
+    # XcodeGen would set CODE_SIGN_ENTITLEMENTS on the target, where no
+    # xcconfig can clear it for a Personal Team.
+    configFiles:
+      Debug: Signing.xcconfig
+      Release: Signing.xcconfig
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES

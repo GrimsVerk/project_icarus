@@ -3,6 +3,13 @@
 Work in flight. Write a task here before starting it; delete it when done.
 Keep this short enough to read in one go.
 
+## In flight
+
+- Personal Team device build (owner, 2026-10-29): gitignored `Local.xcconfig`
+  (committed `.example`) with `DEVELOPMENT_TEAM`, a dev bundle id and no
+  WeatherKit entitlement; check the no-forecast fallback; README "Run on your
+  iPhone". Branch `worktree-personal-team-device`.
+
 ## State (2026-10-29)
 
 On `main`, built and tested on macOS (nightly) and Linux (CI), all green:
@@ -70,8 +77,11 @@ first push and undeletable, so don't name work branches `feat/`. Its leftover
 - AdMob: the app id and banner unit id (`ADMOB_APP_ID`, `ADMOB_BANNER_UNIT_ID`
   in `project.yml`; now Google's test ids), and a GDPR consent message created
   in the AdMob console: without one Google's form never shows (R39, S16).
-- Signing: a real bundle id (`bundleIdPrefix` is `com.example`), a
-  `DEVELOPMENT_TEAM`, and the WeatherKit capability on that App ID.
+- Signing for release: the paid program, a real bundle id (the app's is
+  `com.example.ProjectIcarus` in `Signing.xcconfig`), a `DEVELOPMENT_TEAM`,
+  and the WeatherKit capability on that App ID. A free Personal Team can
+  already run it on the owner's iPhone, without a forecast (README, "Run on
+  your iPhone").
 - Privacy policy page URL (`PRIVACY_POLICY_URL`; now example.com). Its text
   and the location purpose string (PERM-1) are in the copy draft above. The
   policy still needs the app's name and a contact address.

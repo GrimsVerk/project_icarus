@@ -419,6 +419,24 @@
             XCTAssertGreaterThan(try solved(model.result).plan.totalMinutes, 0)
             XCTAssertNotNil(model.plannedSessionID)
         }
+
+        /// A known place whose forecast is refused, as WeatherKit refuses every
+        /// request from a build signed without its entitlement (a free Personal
+        /// Team): the result names the provider failure and plans nothing.
+        func testARefusedForecastWithAnEmptyCacheNamesTheProviderAndPlansNothing() async throws {
+            let harness = try Harness.make(cacheFetchedAt: nil, providerAnswers: false)
+            let model = harness.model(window: Fixed.hour)
+
+            await model.compute()
+
+            let calls = await harness.provider.calls
+            XCTAssertEqual(calls, 1)
+            XCTAssertNil(model.forecastStatus?.curve)
+            XCTAssertEqual(try XCTUnwrap(model.result).outcome, .missingForecast(.provider))
+            XCTAssertNil(model.plannedSessionID)
+            let sessions = try await harness.sessions()
+            XCTAssertTrue(sessions.isEmpty, "a result with no session to do plans none")
+        }
     }
 
     // MARK: - "I did this" (R15, R45, S10)

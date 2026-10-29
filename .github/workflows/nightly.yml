@@ -90,9 +90,27 @@ jobs:
       - run: xcodebuild -version
       - run: brew install xcodegen
       - run: xcodegen generate
+      - name: Signing settings without Local.xcconfig
+        run: .github/scripts/check-signing.sh com.example.ProjectIcarus App/ProjectIcarus.entitlements
       - name: Signed simulator build (default signing)
         run: >
           xcodebuild build
           -project ProjectIcarus.xcodeproj
           -scheme ProjectIcarus
           -destination 'generic/platform=iOS Simulator'
+      # The Personal Team path (README, "Run on your iPhone") with a made-up
+      # team: the example's bundle id and no WeatherKit entitlement must reach
+      # the build, and the app must build for a device. Signing for a device
+      # needs a real team, so it stays off here and is checked on the owner's Mac.
+      - name: Signing settings with Local.xcconfig
+        run: |
+          sed 's/^DEVELOPMENT_TEAM = .*/DEVELOPMENT_TEAM = TEAM000000/' Local.xcconfig.example > Local.xcconfig
+          xcodegen generate
+          .github/scripts/check-signing.sh io.github.grimsverk.icarus.dev.CHANGEME "" TEAM000000
+      - name: Device build (signing off)
+        run: >
+          xcodebuild build
+          -project ProjectIcarus.xcodeproj
+          -scheme ProjectIcarus
+          -destination 'generic/platform=iOS'
+          CODE_SIGNING_ALLOWED=NO

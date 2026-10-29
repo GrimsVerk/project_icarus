@@ -1,0 +1,20 @@
+// Machine-specific signing for a device build. Copy to Local.xcconfig (which
+// is gitignored), fill in the two values, then `xcodegen generate`.
+// Signing.xcconfig includes it when it exists; README, "Run on your iPhone".
+
+// The team id: Xcode > Settings > Accounts > the Apple ID > the team, or the
+// Team menu under Signing & Capabilities. Ten characters.
+DEVELOPMENT_TEAM = ABCDE12345
+
+// A bundle id no one else has registered. A free Personal Team registers it
+// on the first build; com.example cannot be registered. Keep `.dev.` in it so
+// it never collides with the real id chosen later.
+PRODUCT_BUNDLE_IDENTIFIER = io.github.grimsverk.icarus.dev.CHANGEME
+
+CODE_SIGN_STYLE = Automatic
+
+// A free Personal Team cannot have WeatherKit, and an entitlement the team
+// cannot grant fails signing, so this builds without it: the app runs with no
+// UV forecast and shows its no-forecast state. On the paid program, once the
+// App ID has the WeatherKit capability, delete this line.
+CODE_SIGN_ENTITLEMENTS =
