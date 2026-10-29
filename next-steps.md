@@ -52,6 +52,16 @@ Branch rules: the `grimsverk-gates` ruleset makes `feat/**` PR-only after the
 first push and undeletable, so don't name work branches `feat/`. Its leftover
 `feat/screenshots` is merged and can only be deleted by the owner.
 
+## In flight (2026-10-29, icarus-copy agent, branch `copy/*`)
+
+Put the owner's provisional copy in the app (D-2026-10-29-C1): every line of
+`../review/icarus-copy.html` into `docs/APP_COPY.md` with its id, `CopyKey`
+and the views (VoiceOver, PERM-1 too); the small code changes the lines need
+({application}, {effect}, skin-check headings, import confirmation, the
+Settings skin-type row); the privacy policy as `docs/privacy-policy.md`
+(unpublished); a script that regenerates the review file from APP_COPY.md.
+Small PRs; never touch README.md (icarus-screens owns it today).
+
 ## Waiting on the owner
 
 - Copy (BL-2, S17): a draft of every missing line is with the owner as a
