@@ -45,6 +45,12 @@ jobs:
           path: .build
           key: swift-6.0.3-${{ hashFiles('Package.swift', 'Package.resolved') }}
           restore-keys: swift-6.0.3-
+      # A restored .build kept the old app-copy.json in its resource bundle
+      # after the document changed (PR #40), so the tests read stale copy.
+      # Resource bundles are cheap to copy again; the compiled code is the
+      # part worth caching.
+      - name: Drop cached resource bundles
+        run: find .build -name '*.resources' -prune -exec rm -rf {} + 2>/dev/null || true
       # The acceptance scripts read `swift package describe --type json` with jq,
       # which the Swift image does not ship.
       - name: Install jq

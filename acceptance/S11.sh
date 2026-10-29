@@ -2,7 +2,7 @@
 #
 # S11 (R32, R34, R42) — the static checks.
 #
-# Six pieces of evidence, and each one is a fact about the tree rather than a
+# Seven pieces of evidence, and each one is a fact about the tree rather than a
 # claim about it:
 #
 #   1. The committed app copy is what `docs/APP_COPY.md` produces right now.
@@ -17,6 +17,9 @@
 #   5. No network or weather import outside IcarusData, no ad SDK outside
 #      IcarusAds.
 #   6. No figure on the Calculator entry screen or in the prompts (R39).
+#   7. The location permission's purpose string is PERM-1, word for word: it
+#      is copy, but iOS reads it from the Info.plist, so it lives in
+#      project.yml rather than behind a CopyKey.
 #
 # Everything here runs on Linux and on macOS.
 set -euo pipefail
@@ -131,5 +134,18 @@ if [[ "$figures" -eq 1 ]]; then
 fi
 echo "  none. (A path that does not exist yet shows no figure either.)"
 
+# 7 ------------------------------------------------------------ purpose string
 echo
-echo "S11: all six checks hold."
+echo "== the location purpose string in project.yml is PERM-1"
+approved="$(sed -n 's/^- PERM-1: //p' docs/APP_COPY.md)"
+built="$(sed -n 's/^ *INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: *"\(.*\)"$/\1/p' project.yml)"
+if [[ -z "$approved" || "$approved" != "$built" ]]; then
+  echo "S11: project.yml's location purpose string is not PERM-1 in docs/APP_COPY.md." >&2
+  echo "  PERM-1:      $approved" >&2
+  echo "  project.yml: $built" >&2
+  exit 1
+fi
+echo "  $built"
+
+echo
+echo "S11: all seven checks hold."

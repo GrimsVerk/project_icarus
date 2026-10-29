@@ -14,7 +14,7 @@ An iOS app that plans sun exposure for a durable tan while staying under the use
 - `docs/VISION.md`: what matters, the tiebreaker. `docs/DESIGN.md`: what we are building (requirements `R<n>`, success criteria `S<n>` in §13). Both change only with the owner's OK.
 - `docs/DECISIONS.md`: settled decisions and owner rulings (`D-...`). Don't relitigate them.
 - `docs/BACKLOG.md`: ideas and open questions not started. `docs/architecture.md`: what exists and how data flows; update it when components change.
-- `docs/BUILD_PROMPT.md`, `docs/MELANOGENIC_THRESHOLDS.md`: the owner's inputs. `docs/LEARN_CONTENT.md` is the only source of Learn text: never paraphrase it; run `scripts/split-learn-content.sh` after editing and commit the result. `docs/APP_COPY.md`: app copy, every line owner-approved.
+- `docs/BUILD_PROMPT.md`, `docs/MELANOGENIC_THRESHOLDS.md`: the owner's inputs. `docs/LEARN_CONTENT.md` is the only source of Learn text: never paraphrase it; run `scripts/split-learn-content.sh` after editing and commit the result. `docs/APP_COPY.md`: app copy, every line owner-approved; a line with an `- id:` is provisional (D-2026-10-29-C1) and keeps its id for good. After editing it run `scripts/build-app-copy.sh`, and `scripts/copy-review.py <file>` for the owner's readable list (now `../review/icarus-copy.html` from the main checkout).
 
 ## Working
 

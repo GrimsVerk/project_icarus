@@ -15,6 +15,54 @@
     "alternativeWholeWindow" : {
       "base" : "{spf} applied {application} covers the whole {window}."
     },
+    "applicationNormal" : {
+      "base" : "normally"
+    },
+    "applicationThick" : {
+      "base" : "thickly"
+    },
+    "applicationThin" : {
+      "base" : "thinly"
+    },
+    "assumptionAdaptationGain" : {
+      "base" : "how much protection a tan gives darker skin"
+    },
+    "assumptionDecayHalfLifeDays" : {
+      "base" : "how fast a tan fades"
+    },
+    "assumptionFrontBackFraction" : {
+      "base" : "how much sun each side gets while you move about"
+    },
+    "assumptionImpliedRatio" : {
+      "base" : "what each skin-check answer says about your redness line"
+    },
+    "assumptionMelanogenicFraction" : {
+      "base" : "how far below your redness line your skin starts to tan"
+    },
+    "assumptionPlateauTanState" : {
+      "base" : "when a tan counts as near its peak"
+    },
+    "assumptionRiseMultiplier" : {
+      "base" : "how fast darker skin builds a tan"
+    },
+    "assumptionRiseTimeConstantDays" : {
+      "base" : "how fast a tan builds"
+    },
+    "assumptionShoulderFraction" : {
+      "base" : "how much sun your shoulders get lying face down"
+    },
+    "assumptionTolerantCredit" : {
+      "base" : "how much of a day without redness is put down to your tan"
+    },
+    "assumptionUvaHeavyHoursFromNoon" : {
+      "base" : "how far from midday the light counts as UVA-heavy"
+    },
+    "attributionLink" : {
+      "base" : "Weather data sources"
+    },
+    "attributionMark" : {
+      "base" : "Weather data from Apple Weather"
+    },
     "boundByBurnLine" : {
       "base" : "Today's target is set by your redness line. For your skin type the tanning dose is at that line, not below it. [Module 5]"
     },
@@ -24,11 +72,68 @@
     "budgetSpent" : {
       "base" : "Today's budget for your {region} is used up. More sun today buys damage, not colour. Tomorrow starts a fresh budget."
     },
+    "calcCompute" : {
+      "base" : "Plan this slot"
+    },
+    "calcCover" : {
+      "base" : "Head and shoulders covered"
+    },
+    "calcCoverFootnote" : {
+      "base" : "A hat or a shirt. Sunscreen doesn't count as cover."
+    },
+    "calcFrom" : {
+      "base" : "From"
+    },
+    "calcHistory" : {
+      "base" : "History"
+    },
+    "calcPostureLabel" : {
+      "base" : "You'll be"
+    },
+    "calcSettings" : {
+      "base" : "Settings"
+    },
+    "calcSlotHeader" : {
+      "base" : "Your slot today"
+    },
+    "calcStay" : {
+      "base" : "Staying the whole slot"
+    },
+    "calcStayFootnote" : {
+      "base" : "Off: the app picks the best minutes inside your slot. On: it plans for all of it, with sunscreen, and warns you if that goes too far."
+    },
+    "calcUntil" : {
+      "base" : "Until"
+    },
+    "ceilingAggressive" : {
+      "base" : "Aggressive"
+    },
+    "ceilingConservative" : {
+      "base" : "Conservative"
+    },
     "ceilingReached" : {
       "base" : "The last {count} lasting-colour answers were \"no\" near modelled saturation, and this cycle has shown a redness report. You have likely reached your skin's maximum. More dose buys damage without colour. The dose drops to maintenance."
     },
+    "ceilingStandard" : {
+      "base" : "Standard"
+    },
     "cloudCaveat" : {
       "base" : "The forecast already includes expected cloud. Real conditions vary, and thin cloud passes most UV."
+    },
+    "confounderAlcohol" : {
+      "base" : "Alcohol"
+    },
+    "confounderAltitude" : {
+      "base" : "High altitude"
+    },
+    "confounderIllness" : {
+      "base" : "Illness or fever"
+    },
+    "confounderPhotosensitisingMedication" : {
+      "base" : "Medication that makes skin sun-sensitive"
+    },
+    "confounderWaterOrSnow" : {
+      "base" : "Water or snow nearby"
     },
     "conservativeUntilCalibrated" : {
       "base" : "Shorter until the app has learned your skin. It uses the conservative setting until you have sent {count} skin reports."
@@ -36,8 +141,71 @@
     "coverToRunLonger" : {
       "base" : "With a hat or shirt on head and shoulders, each side could run {minutes} minutes longer."
     },
+    "deleteCancel" : {
+      "base" : "Cancel"
+    },
+    "deleteConfirm" : {
+      "base" : "Delete everything"
+    },
     "deleteHistoryWarning" : {
       "base" : "Deleting the history starts the app over from your skin-type prior. Calibration, tan state, today's budget and History are all lost. Export first if you want to keep them."
+    },
+    "detailCovered" : {
+      "base" : "Head and shoulders covered"
+    },
+    "detailDay" : {
+      "base" : "Day"
+    },
+    "detailForecastFetched" : {
+      "base" : "Forecast fetched"
+    },
+    "detailForecastFor" : {
+      "base" : "Forecast for"
+    },
+    "detailPeakUVI" : {
+      "base" : "Highest UV index"
+    },
+    "detailPlan" : {
+      "base" : "Plan"
+    },
+    "detailPosition" : {
+      "base" : "Position"
+    },
+    "detailReceived" : {
+      "base" : "SED received, {region}"
+    },
+    "detailSetting" : {
+      "base" : "Setting"
+    },
+    "detailSunscreen" : {
+      "base" : "Sunscreen"
+    },
+    "detailTanProtection" : {
+      "base" : "Tan protection, {region}"
+    },
+    "detailTarget" : {
+      "base" : "Target SED, {region}"
+    },
+    "detailTheForecast" : {
+      "base" : "The forecast it used"
+    },
+    "detailTime" : {
+      "base" : "Time"
+    },
+    "detailTimeZone" : {
+      "base" : "Time zone"
+    },
+    "detailWhatYouDid" : {
+      "base" : "What you did"
+    },
+    "detailWhatYouWereShown" : {
+      "base" : "What you were shown"
+    },
+    "didNo" : {
+      "base" : "No"
+    },
+    "didYes" : {
+      "base" : "Yes, I did"
     },
     "didYouDoThisSession" : {
       "base" : "Did you do this session? {window}"
@@ -48,11 +216,104 @@
     "disclaimer" : {
       "base" : "This app is not medical advice and does not diagnose or treat anything. It estimates a dose from a forecast and from what you report; the estimate can be wrong. Any tan is a sign of skin damage, and there is no dose of ultraviolet light that is known to be free of risk. If you have a skin condition, take medication that affects sun sensitivity, or are unsure, ask a doctor. Sunbeds are outside this app's scope and are not recommended."
     },
+    "dueLastingColour" : {
+      "base" : "Lasting colour from {day}"
+    },
+    "dueSkinCheck" : {
+      "base" : "Skin check for {day}"
+    },
+    "effectDiscounted" : {
+      "base" : "Something unusual was going on that day, so this report counts for less."
+    },
+    "effectLessSensitive" : {
+      "base" : "The app now treats your skin as a little less sensitive. Plans may run a little longer."
+    },
+    "effectMoreSensitive" : {
+      "base" : "The app now treats your skin as more sensitive. Plans get shorter."
+    },
+    "effectNone" : {
+      "base" : "It matched what the app expected, so nothing changed."
+    },
+    "effectTanCredited" : {
+      "base" : "Your skin took more than expected without redness. The app counts that as tan first, so later plans may run a little longer."
+    },
     "escalationRisen" : {
       "base" : "Your threshold has risen since this tan cycle began. A fixed dose would no longer trigger new pigment, so today's dose is larger. Cycle dose so far: {cycleDose} SED. [Module 6]"
     },
+    "exposureFaceDown" : {
+      "base" : "Face down"
+    },
+    "exposureFaceUp" : {
+      "base" : "Face up"
+    },
+    "exposureUpAndAbout" : {
+      "base" : "Up and about"
+    },
     "fairSkinPreCalibration" : {
       "base" : "The first sessions are set below the dose that reliably tans fair skin, on purpose, so that a first redness report arrives at a low dose."
+    },
+    "figCycleDose" : {
+      "base" : "SED on your {region} this tan cycle"
+    },
+    "figExtraIfCovered" : {
+      "base" : "more minutes per side with head and shoulders covered"
+    },
+    "figHeadlineMinutes" : {
+      "base" : "minutes in total"
+    },
+    "figRangeLower" : {
+      "base" : "minutes: low end of the range"
+    },
+    "figRangeUpper" : {
+      "base" : "minutes: high end of the range"
+    },
+    "figRangeUpperClipped" : {
+      "base" : "minutes: redness likely beyond"
+    },
+    "figRegionDose" : {
+      "base" : "SED on your {region} in this plan"
+    },
+    "figRemainingBudget" : {
+      "base" : "SED left for your {region} today"
+    },
+    "figShortfall" : {
+      "base" : "SED short of a tanning dose"
+    },
+    "figSideMinutes" : {
+      "base" : "min per side"
+    },
+    "figSideMinutesFaceDown" : {
+      "base" : "min face down"
+    },
+    "figSideMinutesFaceUp" : {
+      "base" : "min face up"
+    },
+    "figUvaMultiple" : {
+      "base" : "× the UVA of the bare-skin minutes"
+    },
+    "historyDayDose" : {
+      "base" : "SED on your {region}"
+    },
+    "historyEmpty" : {
+      "base" : "No sessions yet. A session is saved when you tap “I did this” or start the flip timer."
+    },
+    "historyExport" : {
+      "base" : "Export"
+    },
+    "historyImport" : {
+      "base" : "Import"
+    },
+    "historyNoSunscreen" : {
+      "base" : "No sunscreen"
+    },
+    "historySkinAnswer" : {
+      "base" : "Skin: {answer}"
+    },
+    "historySunscreen" : {
+      "base" : "SPF {spf}, {application}"
+    },
+    "historyTitle" : {
+      "base" : "History"
     },
     "immediateDarkeningExplained" : {
       "base" : "Redness that shows within an hour and is gone by evening is immediate darkening, not a burn. The report was counted as \"normal\". [Module 2]"
@@ -60,8 +321,50 @@
     "importApplied" : {
       "base" : "Import complete: {count} sessions and {reports} reports. The file's profile was applied."
     },
+    "importCancel" : {
+      "base" : "Cancel"
+    },
+    "importConfirm" : {
+      "base" : "Import and replace"
+    },
     "importFailed" : {
       "base" : "The file could not be read. Nothing was changed."
+    },
+    "importWarning" : {
+      "base" : "Importing replaces everything on this phone with the file: sessions, reports and your skin-type settings. Export first if you want to keep what is here."
+    },
+    "intentBestMinutes" : {
+      "base" : "Best minutes"
+    },
+    "intentStayWholeWindow" : {
+      "base" : "Whole slot"
+    },
+    "intervalFrom" : {
+      "base" : "From"
+    },
+    "intervalUntil" : {
+      "base" : "Until"
+    },
+    "lastingALittle" : {
+      "base" : "A little"
+    },
+    "lastingColourQuestion" : {
+      "base" : "Did you notice lasting colour from {day}?"
+    },
+    "lastingColourTitle" : {
+      "base" : "Lasting colour"
+    },
+    "lastingNo" : {
+      "base" : "No"
+    },
+    "lastingSaved" : {
+      "base" : "Answer saved."
+    },
+    "lastingYes" : {
+      "base" : "Yes"
+    },
+    "learnTitle" : {
+      "base" : "Learn"
     },
     "maintenance" : {
       "base" : "Maintenance dose: {percent}% of your usual target. It changes back after a \"yes\" or \"a little\" to the lasting-colour question."
@@ -81,6 +384,42 @@
     "nothingRealistic" : {
       "base" : "No realistic product covers this slot. Even SPF 50 applied normally is not enough. Shorten the slot instead."
     },
+    "onboardingAcknowledge" : {
+      "base" : "I have read this"
+    },
+    "onboardingAllowLocation" : {
+      "base" : "Allow location"
+    },
+    "onboardingAllowNotifications" : {
+      "base" : "Allow notifications"
+    },
+    "onboardingBack" : {
+      "base" : "Back"
+    },
+    "onboardingDisclaimerHeading" : {
+      "base" : "Before you start"
+    },
+    "onboardingNext" : {
+      "base" : "Next"
+    },
+    "onboardingPermissionsFootnote" : {
+      "base" : "Both are optional, and you can change them later in the iPhone's Settings."
+    },
+    "onboardingPermissionsHeading" : {
+      "base" : "Two permissions"
+    },
+    "onboardingSkinTypeHeading" : {
+      "base" : "Your skin type"
+    },
+    "onboardingSkinTypeIntro" : {
+      "base" : "Pick the description that fits you best. Not sure? The questionnaire works it out."
+    },
+    "onboardingStart" : {
+      "base" : "Start"
+    },
+    "onboardingTakeQuiz" : {
+      "base" : "Take the questionnaire"
+    },
     "onboardingWhyLocation" : {
       "base" : "Location is used for one thing: fetching the UV forecast for where you are. It never leaves the phone except in that request."
     },
@@ -93,6 +432,18 @@
     "pauseSuggested" : {
       "base" : "Blistering means the dose was far past your line. The estimate was corrected at once. Pause for {pauseDays} days and let the skin recover. [Module 7]"
     },
+    "placeNotFound" : {
+      "base" : "No place found by that name."
+    },
+    "placeSearchPrompt" : {
+      "base" : "Town or place"
+    },
+    "placeSheetTitle" : {
+      "base" : "Change place"
+    },
+    "placeYourLocation" : {
+      "base" : "your location"
+    },
     "planBareSubWindow" : {
       "base" : "Best {minutes} minutes, no sunscreen. Your slot is longer than your skin needs today, so these are the minutes to take."
     },
@@ -102,20 +453,206 @@
     "planStayWholeWindowFits" : {
       "base" : "The whole {window} fits under today's budget. Stay for all of it, no sunscreen needed for the tan."
     },
+    "postureLyingTurning" : {
+      "base" : "Lying down, turning over"
+    },
+    "postureUpAndAbout" : {
+      "base" : "Up and about"
+    },
     "privacyOptions" : {
       "base" : "Privacy options for the ad banner."
+    },
+    "privacyPolicyLink" : {
+      "base" : "Privacy policy"
+    },
+    "promptNext" : {
+      "base" : "Next"
+    },
+    "promptSave" : {
+      "base" : "Save"
+    },
+    "quizDone" : {
+      "base" : "See my type"
+    },
+    "quizResult" : {
+      "base" : "Your answers point to type {type}. You can pick another if it fits better."
+    },
+    "quizTitle" : {
+      "base" : "Skin-type questionnaire"
     },
     "reapply" : {
       "base" : "Reapply at {times}."
     },
+    "reasonCacheUnreadable" : {
+      "base" : "the saved forecast could not be read"
+    },
+    "reasonMalformed" : {
+      "base" : "the forecast arrived incomplete"
+    },
+    "reasonProvider" : {
+      "base" : "the weather service did not answer"
+    },
+    "regionBack" : {
+      "base" : "back"
+    },
+    "regionFront" : {
+      "base" : "front"
+    },
+    "regionHeadAndShoulders" : {
+      "base" : "head and shoulders"
+    },
     "reportRecorded" : {
       "base" : "Report saved. {effect}"
+    },
+    "reportRegionAllExposed" : {
+      "base" : "All skin that was in the sun"
+    },
+    "reportRegionBack" : {
+      "base" : "Back"
+    },
+    "reportRegionFront" : {
+      "base" : "Front"
+    },
+    "reportRegionHeadAndShoulders" : {
+      "base" : "Head and shoulders"
+    },
+    "resultChangePlace" : {
+      "base" : "Change place"
+    },
+    "resultDidThis" : {
+      "base" : "I did this"
+    },
+    "resultDoTheNumber" : {
+      "base" : "Do the number. The range shows how sure the app is about your skin."
+    },
+    "resultForecastFor" : {
+      "base" : "Forecast for {place}"
+    },
+    "resultForecastHere" : {
+      "base" : "Forecast for your location"
+    },
+    "resultLogged" : {
+      "base" : "Logged. The app asks about your skin tomorrow."
+    },
+    "resultNoSuchSPF" : {
+      "base" : "I don't have that SPF"
+    },
+    "resultRefresh" : {
+      "base" : "Refresh forecast"
+    },
+    "resultStartTimer" : {
+      "base" : "Start the flip timer"
+    },
+    "resultTitle" : {
+      "base" : "Your answer"
     },
     "revisitSkinType" : {
       "base" : "Your reports put your sensitivity outside the range for your skin type. Check your skin type in Settings."
     },
+    "sensitivityNoReports" : {
+      "base" : "No skin reports yet, so the app uses the typical sensitivity for your skin type."
+    },
     "sensitivitySentence" : {
       "base" : "{percent}% {direction} sensitive than typical for your skin type, based on {count} skin reports."
+    },
+    "settingsAboutHeading" : {
+      "base" : "About"
+    },
+    "settingsAggressive" : {
+      "base" : "Aggressive"
+    },
+    "settingsCeilingFootnote" : {
+      "base" : "Conservative gives the shortest sessions, aggressive the longest. Aggressive goes up to your redness line, never past it."
+    },
+    "settingsCeilingHeading" : {
+      "base" : "How close to your line"
+    },
+    "settingsConservative" : {
+      "base" : "Conservative"
+    },
+    "settingsCycleHeading" : {
+      "base" : "This tan cycle, in SED"
+    },
+    "settingsDataHeading" : {
+      "base" : "Your data"
+    },
+    "settingsDelete" : {
+      "base" : "Delete history"
+    },
+    "settingsDone" : {
+      "base" : "Done"
+    },
+    "settingsExport" : {
+      "base" : "Export history"
+    },
+    "settingsImport" : {
+      "base" : "Import history"
+    },
+    "settingsManualFootnote" : {
+      "base" : "1.00 is typical for your skin type. Lower means more sensitive and shorter sessions."
+    },
+    "settingsManualValue" : {
+      "base" : "Set by hand: {value}"
+    },
+    "settingsResetSensitivity" : {
+      "base" : "Go back to what your reports say"
+    },
+    "settingsSensitivityHeading" : {
+      "base" : "Your skin's sensitivity"
+    },
+    "settingsShare" : {
+      "base" : "Share the file"
+    },
+    "settingsSkinType" : {
+      "base" : "Skin type: Type {type}"
+    },
+    "settingsStandard" : {
+      "base" : "Standard"
+    },
+    "settingsTitle" : {
+      "base" : "Settings"
+    },
+    "settingsWeekHeading" : {
+      "base" : "This week, in SED"
+    },
+    "sideFaceDown" : {
+      "base" : "Face down"
+    },
+    "sideFaceUp" : {
+      "base" : "Face up"
+    },
+    "skinAnswerBlistered" : {
+      "base" : "Very red, painful or blistered"
+    },
+    "skinAnswerClearlyPink" : {
+      "base" : "Clearly pink"
+    },
+    "skinAnswerFaintPink" : {
+      "base" : "Faint pink"
+    },
+    "skinAnswerNormal" : {
+      "base" : "Normal, no redness"
+    },
+    "skinAnswerRedSore" : {
+      "base" : "Red and sore"
+    },
+    "skinCheckTitle" : {
+      "base" : "Skin check"
+    },
+    "skinQuestionConfounders" : {
+      "base" : "Anything unusual that day? Pick any that apply, or none."
+    },
+    "skinQuestionLook" : {
+      "base" : "How does your skin look today?"
+    },
+    "skinQuestionRegion" : {
+      "base" : "Where?"
+    },
+    "skinQuestionTiming" : {
+      "base" : "When did it show up?"
+    },
+    "skinSendReport" : {
+      "base" : "Send report"
     },
     "staleFarFromCache" : {
       "base" : "The saved forecast is for {place}, which is not where you are. The number is shorter and the range wider until you refresh or change the place."
@@ -132,8 +669,35 @@
     "sunscreenNotNeeded" : {
       "base" : "No sunscreen is needed for the tanning goal in these minutes. You may still wear it; then the tan takes longer."
     },
+    "sunscreenOptionNormal" : {
+      "base" : "Normally, as most people do"
+    },
+    "sunscreenOptionThick" : {
+      "base" : "Thickly, about a shot glass for the whole body"
+    },
+    "sunscreenOptionThin" : {
+      "base" : "Thinly"
+    },
     "sunscreenPrescribed" : {
       "base" : "Wear {spf}, applied {application}. That covers every exposed region for the whole {window}."
+    },
+    "sunscreenSheetApplication" : {
+      "base" : "How you'll put it on"
+    },
+    "sunscreenSheetConfirm" : {
+      "base" : "Use this"
+    },
+    "sunscreenSheetSPF" : {
+      "base" : "SPF on the bottle"
+    },
+    "sunscreenSheetTitle" : {
+      "base" : "The sunscreen you have"
+    },
+    "tabLearn" : {
+      "base" : "Learn"
+    },
+    "tabPlan" : {
+      "base" : "Plan"
     },
     "thinMargin" : {
       "base" : "For your skin type the dose that tans and the dose that turns skin red are close together. Deciding a tan is not worth it is a reasonable conclusion. This app will not push you either way. [Module 5]"
@@ -141,11 +705,56 @@
     "timerCannotStart" : {
       "base" : "The timer cannot start: there is no session to run. {reason}"
     },
+    "timerLeftInSession" : {
+      "base" : "left in the session"
+    },
     "timerNeedsNotifications" : {
       "base" : "Notifications are off, so the timer cannot alert you with the screen locked. Turn them on in Settings, or keep the screen on."
     },
+    "timerNow" : {
+      "base" : "Now: {side}"
+    },
+    "timerSidePicker" : {
+      "base" : "Side up first"
+    },
+    "timerStart" : {
+      "base" : "Start"
+    },
+    "timerStartWithoutAlerts" : {
+      "base" : "Start without alerts"
+    },
+    "timerStop" : {
+      "base" : "Stop"
+    },
+    "timerStopFootnote" : {
+      "base" : "Stopping ends the session now and logs the time you were out."
+    },
     "timerStoppedAtPlannedEnd" : {
       "base" : "The timer was still running at midnight. The session was stopped at its planned end."
+    },
+    "timerTitle" : {
+      "base" : "Flip timer"
+    },
+    "timerUntilEnd" : {
+      "base" : "until the session ends"
+    },
+    "timerUntilTurn" : {
+      "base" : "until you turn over"
+    },
+    "timesHeader" : {
+      "base" : "When were you out? Change the times if they were different."
+    },
+    "timingNextMorning" : {
+      "base" : "The next morning"
+    },
+    "timingNotSure" : {
+      "base" : "Not sure"
+    },
+    "timingThatEvening" : {
+      "base" : "That evening"
+    },
+    "timingWithinHourGoneByEvening" : {
+      "base" : "Within an hour, gone by evening"
     },
     "toleranceDropped" : {
       "base" : "Your tolerance has dropped by about {percent}% since your last session. Today's dose is smaller than the last one you did. [Module 6]"
@@ -162,11 +771,35 @@
     "unreportedDays" : {
       "base" : "{count} session days have no skin report."
     },
+    "unreportedNone" : {
+      "base" : "Every session day has a skin report."
+    },
     "uvaHeavy" : {
       "base" : "This slot is far from solar noon. The light is UVA-heavy: more ageing per unit of lasting colour. [Module 3]"
     },
     "uvaMultiple" : {
       "base" : "The same tanning dose spread over {multiple} times the minutes carries about {multiple} times the UVA. Sunscreen filters UVB more than UVA unless it carries a UVA rating. [Module 3] [Module 8]"
+    },
+    "valueNo" : {
+      "base" : "No"
+    },
+    "valueYes" : {
+      "base" : "Yes"
+    },
+    "voAdvertisement" : {
+      "base" : "Advertisement"
+    },
+    "voEstimate" : {
+      "base" : "Estimate. It rests on an assumption: {assumptions}."
+    },
+    "voTimerLeftInSession" : {
+      "base" : "{minutes} minutes {seconds} seconds left in the session"
+    },
+    "voTimerUntilEnd" : {
+      "base" : "{minutes} minutes {seconds} seconds until the session ends"
+    },
+    "voTimerUntilTurn" : {
+      "base" : "{minutes} minutes {seconds} seconds until you turn over"
     },
     "warnPastTarget" : {
       "base" : "Staying the whole {window} takes your {region} past today's target, to {sed} SED. Expect more damage than colour."
@@ -179,6 +812,15 @@
     },
     "windowPassed" : {
       "base" : "That slot has already passed. Enter a slot that ends after now."
+    },
+    "woreAsSuggested" : {
+      "base" : "Yes, as suggested"
+    },
+    "woreDifferent" : {
+      "base" : "A different sunscreen"
+    },
+    "woreNone" : {
+      "base" : "None"
     }
   },
   "quiz" : [
