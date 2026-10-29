@@ -4,7 +4,7 @@
 
 **Resolution accepted:** R1's three bands (I–II / III / IV–VI) plus `melanogenicFraction(skinType)`. Owner sets the final numbers.
 
-**Purpose of this document:** The original table these numbers came from was built in June, for skin type III, before empirical testing established type II. Some of those figures were measured, and some were my extrapolation. This separates the two so the owner isn't setting numbers on top of an unmarked guess.
+**Purpose of this document:** The original table these numbers came from was built in June to answer a narrower question than the one the engine now asks. Some of those figures were measured, and some were my extrapolation. This separates the two so the owner isn't setting numbers on top of an unmarked guess.
 
 ---
 
@@ -129,4 +129,4 @@ targetDose      = min(melanogenicDose × headroom, MED_personal × safetyCeiling
 - The **direction** of the effect — ratio declines as pigmentation increases — is well supported and is the part worth trusting.
 - Two MED baseline sets are currently in circulation. Reconcile before setting anything.
 
-If the numbers matter enough to ship, types III–VI warrant a fresh literature pass rather than inheriting my June extrapolations. They were built to answer a question about type III skin that turned out to be the wrong question.
+If the numbers matter enough to ship, types III–VI warrant a fresh literature pass rather than inheriting my June extrapolations. They were built to answer a narrower question that turned out to be the wrong one.

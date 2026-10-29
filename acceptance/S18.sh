@@ -7,7 +7,7 @@
 # Twice, under two time zones. The day is the unit of budget and it is a local
 # calendar day at the forecast's place, never at the machine's: a fixture that
 # only passes under the runner's own zone is a fixture that will not pass on a
-# phone in Oslo.
+# phone in another time zone.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 

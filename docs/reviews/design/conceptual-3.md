@@ -162,8 +162,8 @@ sees "redness is expected" at 83% of their burn dose; a type III never sees
 it until 5% past their burn dose. The sentence's own promise — the strong
 warning means redness is expected — is broken for four of six skin types.
 CONSEQUENCE: Decision 9's stated fear was burn language "learned to be
-ignored". The literal formula produces exactly that for darker skin, and the
-owner (type II, per the addendum) would never see it on their own device.
+ignored". The literal formula produces exactly that for darker skin, and a
+fair-skinned tester (types I–II) would never see it on their own device.
 S5's test is written from the same formula and passes.
 THE FIX: Replace the parenthetical: "when it would reach the region's
 personal threshold — MED_personal for that region, never a quantity derived
@@ -793,7 +793,7 @@ calls to Google's consent service that V11 does not list, and a revenue
 outcome in Europe the owner has not priced. The design's "no prompt" claim
 is about Apple's ATT, which is a different thing.
 CONSEQUENCE: An unattended builder either adds an unplanned screen or ships
-without it and the banner does not pay in the owner's own market. S16 is
+without it and the banner does not pay in the EEA or the UK. S16 is
 owner-judged with a live app id and will show a banner in a test region.
 THE FIX: Owner to confirm the requirement, then add to R39: "In regions
 where the ad network requires a consent form, the IcarusAds package shows
