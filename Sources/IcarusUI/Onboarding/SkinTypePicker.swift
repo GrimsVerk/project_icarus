@@ -43,6 +43,7 @@
                         .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
+                    .accessibilityIdentifier("skinType.\(row.type.rawValue)")
                 }
                 .toolbar {
                     ToolbarItem(placement: .primaryAction) {

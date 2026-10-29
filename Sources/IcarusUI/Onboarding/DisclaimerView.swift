@@ -22,6 +22,7 @@
                     Text(AppCopy.text(.disclaimer))
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
+                .accessibilityIdentifier("disclaimer.acknowledge")
                 .padding()
             }
         }

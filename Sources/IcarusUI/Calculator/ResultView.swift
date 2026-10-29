@@ -127,6 +127,17 @@
                     } label: {
                         Image(systemName: "checkmark.circle")
                     }
+                    .accessibilityIdentifier("result.didThis")
+                    // Lying down, the flip timer is the session clock (R11), and
+                    // starting it is the other way a plan becomes a record.
+                    if model.posture == .lyingTurning {
+                        NavigationLink {
+                            FlipTimerScreen(calculator: model)
+                        } label: {
+                            Image(systemName: "timer")
+                        }
+                        .accessibilityIdentifier("result.timer")
+                    }
                 }
             }
         }
@@ -143,6 +154,19 @@
                 showWarnings: model.stay,
                 timeZone: model.forecastStatus?.curve?.timeZone ?? .current
             )
+        }
+    }
+
+    /// The flip timer, holding its model for as long as the screen is open.
+    struct FlipTimerScreen: View {
+        @StateObject private var model: FlipTimerModel
+
+        init(calculator: CalculatorModel) {
+            _model = StateObject(wrappedValue: FlipTimerModel(env: calculator.env, calculator: calculator))
+        }
+
+        var body: some View {
+            FlipTimerView(model: model)
         }
     }
 

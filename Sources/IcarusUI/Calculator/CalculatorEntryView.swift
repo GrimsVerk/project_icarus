@@ -117,6 +117,7 @@
             } label: {
                 Image(systemName: "figure.walk")
             }
+            .accessibilityIdentifier("calculator.posture")
         }
 
         private var coverRow: some View {
@@ -142,6 +143,7 @@
             } label: {
                 Image(systemName: "arrow.forward.circle")
             }
+            .accessibilityIdentifier("calculator.compute")
         }
 
         /// The engine's enum does not enumerate itself for a picker, so the

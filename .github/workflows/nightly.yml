@@ -56,3 +56,12 @@ jobs:
           -scheme ProjectIcarus
           -destination 'platform=iOS Simulator,name=iPhone 16'
           CODE_SIGNING_ALLOWED=NO
+      # The screenshot walk runs by hand (screenshots.yml); building it here
+      # keeps it compiling.
+      - name: Build the screenshot tests
+        run: >
+          xcodebuild build-for-testing
+          -project ProjectIcarus.xcodeproj
+          -scheme Screenshots
+          -destination 'platform=iOS Simulator,name=iPhone 16'
+          CODE_SIGNING_ALLOWED=NO

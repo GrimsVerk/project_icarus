@@ -7,7 +7,7 @@ import UserNotifications
 /// inside the package, so the app target holds no logic and no copy.
 @main
 struct ProjectIcarusApp: App {
-    @StateObject private var appEnvironment = AppEnvironment.live()
+    @StateObject private var appEnvironment = Self.environment()
     @StateObject private var taps = NotificationTaps()
 
     var body: some Scene {
@@ -15,10 +15,47 @@ struct ProjectIcarusApp: App {
             RootTabs()
                 .environmentObject(appEnvironment)
                 .environmentObject(taps)
-                .onAppear { UNUserNotificationCenter.current().delegate = taps }
+                .onAppear {
+                    UNUserNotificationCenter.current().delegate = taps
+                    #if DEBUG
+                        taps.tapped = PreviewLaunch.tappedNotification
+                    #endif
+                }
         }
     }
+
+    private static func environment() -> AppEnvironment {
+        #if DEBUG
+            if let onboarded = PreviewLaunch.onboarded {
+                return AppEnvironment.preview(onboarded: onboarded)
+            }
+        #endif
+        return AppEnvironment.live()
+    }
 }
+
+#if DEBUG
+    /// The launch arguments the screenshot UI tests start the app with. Debug
+    /// builds only: a release build always runs on the live environment.
+    ///
+    /// `-IcarusPreview fresh` runs on `AppEnvironment.preview()` with no profile,
+    /// so onboarding opens; `-IcarusPreview onboarded` skips it.
+    /// `-IcarusTapNotification <identifier>` opens the app as if that
+    /// notification had been tapped, through the same route a real tap takes.
+    enum PreviewLaunch {
+        static var onboarded: Bool? {
+            switch UserDefaults.standard.string(forKey: "IcarusPreview") {
+            case "fresh": false
+            case "onboarded": true
+            default: nil
+            }
+        }
+
+        static var tappedNotification: String? {
+            UserDefaults.standard.string(forKey: "IcarusTapNotification")
+        }
+    }
+#endif
 
 /// The tapped notification's identifier, and nothing else.
 ///

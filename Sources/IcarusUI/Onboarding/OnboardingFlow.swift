@@ -114,6 +114,7 @@
                 } label: {
                     Image(systemName: "chevron.backward")
                 }
+                .accessibilityIdentifier("onboarding.back")
                 .disabled(page == .module)
                 Spacer()
                 if page == .permissions {
@@ -122,6 +123,7 @@
                     } label: {
                         Image(systemName: "checkmark.circle")
                     }
+                    .accessibilityIdentifier("onboarding.finish")
                     .disabled(!model.canComplete)
                 } else {
                     Button {
@@ -129,6 +131,7 @@
                     } label: {
                         Image(systemName: "chevron.forward")
                     }
+                    .accessibilityIdentifier("onboarding.forward")
                     .disabled(!canAdvance)
                 }
             }

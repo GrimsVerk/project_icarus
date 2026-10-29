@@ -117,12 +117,21 @@
         /// The environment previews and UI tests run on: the recorded Oslo
         /// forecast, nothing on disk, notifications that are granted and go
         /// nowhere, no ads, and a clock that does not move.
-        public static func preview() -> AppEnvironment {
+        ///
+        /// `onboarded` starts it with the starting profile saved and onboarding
+        /// done, for a UI test that begins past the first launch.
+        public static func preview(onboarded: Bool = false) -> AppEnvironment {
             let tunables = Tunables.current
             guard let fixture = try? FakeForecastProvider.fixture(named: previewFixture) else {
                 preconditionFailure("the preview fixture \(previewFixture) is missing from IcarusData")
             }
-            let profile = MemoryProfileStore(profile: nil)
+            let profile = MemoryProfileStore(profile: onboarded ? startingProfile : nil)
+            if onboarded {
+                var flags = profile.flags()
+                flags.onboardingComplete = true
+                flags.disclaimerAcknowledged = true
+                profile.setFlags(flags)
+            }
             return AppEnvironment(
                 forecast: ForecastService(
                     provider: FakeForecastProvider(fixture: fixture),
