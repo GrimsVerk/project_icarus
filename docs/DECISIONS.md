@@ -1,117 +1,12 @@
 # Decisions — project_icarus
 
-ADR-lite. One dated entry per decision, newest at the bottom. A recorded ruling
-is never silently reversed: to change one, argue it in chat, wait for the owner,
-then append a superseding entry. History is never rewritten.
+Settled decisions and owner rulings, oldest first (this file predates the
+template's newest-first default; keep appending at the bottom). Don't
+relitigate them; to change one, the owner rules and a superseding entry is
+added. Ids like `D-2026-09-03-F1` are cited from code, tests and docs.
 
-The entries below shipped with the template — rulings the template's owner made
-once so every generated project does not re-ask them. They bind here like any
-other entry: to change one for this project, supersede it.
-
-## 2026-08-16 — Waiting is mechanical, and belongs to the driver
-
-Resolves the open question `/deliver` step 4 used to carry (idle vs poll vs
-scheduled wake-up). The wait is not agentic: a **driver** — deterministic
-tooling, not a model — invokes one headless session per phase and waits between
-phases on `gh pr checks --watch`-style polling, so no model budget is spent
-watching CI. Run it locally (`.claude/scripts/deliver-loop.sh`) or from a
-Claude Code web session (`/deliver-loop`); the mode is chosen explicitly by
-which entry point you start. The exit condition stands as previously decided:
-wait until **no check is still pending**, never until the pull request is no
-longer open — a failing pull request never leaves the open state, so the second
-condition makes red indistinguishable from still-running.
-
-## 2026-08-16 — Mid-run authority: the design layer rules, the oracle rules it
-
-Plans derive only from the design layer. When new work surfaces mid-run, it
-enters through the chain — the oracle amends `docs/DESIGN.oracle.md` on its own
-pull request, a plan follows on its own pull request, then code — never
-directly. Uncertainties a plan raises are handled by risk class, judged by a
-contract test: **HIGH** if the candidate answers change slice boundaries,
-Signatures blocks, external formats or schemas, or anything expensive to
-reverse — and when unsure, that doubt itself makes it HIGH. High-risk: the
-planner files the question in `docs/BACKLOG.md` and waits for the oracle's
-ruling. Low-risk: the planner proceeds on a recorded default and the oracle
-reviews it next cycle. Attended runs keep the original behaviour: the owner
-rules. The owner steers unattended runs by editing `docs/VISION.md` and
-`docs/DESIGN.md`, and reviews at the end.
-
-## 2026-08-16 — Unattended runs act as a GitHub App, not as the owner
-
-A user PAT shares the owner's per-hour API budget with every tool acting as
-that user, and the built-in Actions token cannot trigger workflows from its own
-events — both were hit in practice. A GitHub App has its own rate-limit budget,
-its events fire workflows (so merged branches actually get deleted), and pull
-requests it opens are authored as the app, which makes "opened by the owner"
-(`.github/scripts/owner-authored.sh`) mean exactly that. Fallback when no App
-is configured: `AUTO_MERGE_TOKEN`, then the Actions token plus the nightly
-branch sweep.
-
-## 2026-08-16 — The budget ceiling is subscription percentage points, and it halts
-
-An unattended run stops — it does not degrade to a cheaper model or a smaller
-scope — when it has consumed its allowance, measured in percentage points of
-the owner's subscription rate limit from the run's start. Because that probe is
-best-effort, two hard backstops always also apply: a pull-request count and a
-wall-clock limit. A loop that quietly gets worse when it runs low is harder to
-diagnose than one that stops and says why.
-
-## 2026-08-18 — After a merge, the other open pull requests are updated for you
-
-Branch protection here requires branches to be up to date, so the moment one
-pull request merges every other open one becomes unmergeable however green it
-is. GitHub calls that `BEHIND`, and it is not a check — it never appears in the
-checks list, so the pull request shows a column of green ticks and simply does
-not merge. Auto-merge does not rescue it either.
-
-So `auto-merge.yml` updates them: on a merge, `gh pr update-branch` over every
-other open pull request in this repository. It **never fails** — a real conflict
-is reported and left for a human, not turned into a red check on a pull request
-that did nothing wrong — and it **will not run on the built-in Actions token**,
-because a push made with that token creates no workflow runs, so the branch
-would come up to date with its required checks permanently missing. That is
-worse than being behind. Configure the App (`scripts/setup-github.sh --app`);
-without it, the run summary says so and nothing is touched.
-
-## 2026-08-19 — Two credentials, total: the App, and the review token. No PATs.
-
-The owner's ruling, taken to reduce setup: a project configures exactly one
-GitHub credential — the App (`APP_ID` + `APP_PRIVATE_KEY`) — and one Anthropic
-credential — `CLAUDE_CODE_OAUTH_TOKEN` for the review gate. Everything GitHub
-needs beyond the built-in Actions token is minted from the App at use time:
-`template-sync` mints a read-only token scoped to the template repository
-(which is why the App must be installed there too), the driver mints its
-pull-request identity per request, and a web session mints `gh`'s token per
-turn. `TEMPLATE_TOKEN` and `AUTO_MERGE_TOKEN` are gone, deliberately without
-fallbacks — a fallback that must be set up defeats the point of having less to
-set up, PATs expire and fail every project at once, and a PAT acts as the
-owner, which hollows out `owner-authored.sh`. The App stays at exactly
-Contents RW, Pull requests RW, Checks RO: never Administration or Secrets, or
-the unattended driver could edit its own gates.
-
-## 2026-08-27 — The design hardening loop: pseudocode is the attended plan
-
-The owner's ruling set for the attended path, taken in one working session and
-built as `docs/design-flow.md`. Between the design doc and the build sit a
-conceptual adversarial review, one pseudocode pass over the whole design, the
-owner's batched rulings, and a tactical adversarial review of the settled
-result. Attended plans are pseudocode-bodied (`format: pseudocode`): a
-lint-capped header carries only what pseudocode cannot express — intent,
-non-goals, owner costs — and open questions never land in a plan; they are
-ruled in batch, folded in (losing fork branches deleted), and recorded here,
-the plan keeping a `Rulings:` receipt line. Each slice splits into a
-Signatures contract — all the blind test-writer sees, enforced structurally by
-`spawn-worker.sh --strip-internals` — and pseudocode Internals for the coder.
-Mid-pass, a structural fork (the HIGH-risk contract test) is branched locally
-with effort shrinking in branch count, a trunk chosen, and the pass continues
-on the trunk; five-plus plausible branches are listed with two-sentence cases,
-not implemented. Review cadence: one conceptual plus one tactical is standard;
-a level gets a second pass only when landing its feedback made structural
-changes; hard cap two per level, past it only the owner opens more. The
-claimed payoff — fewer mid-run oracle rulings — is measured: every run report
-carries `oracle-rulings: <n>`. The unattended path is unchanged throughout.
-
-<!-- Append project decisions below, newest at the bottom. -->
+The design-review files cited below (`docs/reviews/design/`) were removed when
+the project moved to template v2; they are in git history before that move.
 
 ## 2026-09-02 — Design revision 2: the owner's rulings on the stage 2 reviews
 
@@ -220,3 +115,7 @@ owner rulings, not agent defaults; do not reopen them.
 ## 2026-10-29 — Licence: PolyForm Shield 1.0.0 (owner ruling)
 
 - **D-2026-10-29-L1** — The owner licensed the project under PolyForm Shield 1.0.0 ahead of making the repository public. `LICENSE` carries the official text verbatim, preceded by `Required Notice: Copyright 2026 GrimsVerk (https://github.com/GrimsVerk)`. This is the owner-placed `LICENSE` the AGENTS.md licensing rule refers to: never remove or second-guess it. No `license` field is added elsewhere (Swift packages have none). Outside contributions need a CLA first; until one exists, no outside code merges.
+
+## 2026-10-29 — Moved to template v2
+
+- **D-2026-10-29-T1** — The project follows grimsverk-template v2 (v1.0.1): no unattended pipeline, oracle, review gate or ceremony checks; fresh sessions, `next-steps.md` as memory, plan mode. CI runs only on pushes to `main`: `ci.yml` (gitleaks, swiftformat and SwiftLint in pinned images, and `core-tests`: `swift test` plus `acceptance/S*.sh` in the official `swift:6.0.3-noble` image) and `nightly.yml` (Xcode build and tests on macOS). Why: summer CI ran 9-23 times per merged PR, and `swift-actions/setup-swift@v2` does not support the Ubuntu 26.04 runners. F6 still holds; its ruleset step is moot because no check gates PRs any more.

@@ -1,8 +1,8 @@
 # project_icarus — Architecture
 
-<!-- The living description of what exists RIGHT NOW. Updated at the end of every
-slice (AGENTS.md, "Architecture doc"), so it describes the system as built, never
-as planned. `docs/DESIGN.md` is the intent and doesn't change; this changes.
+<!-- The living description of what exists RIGHT NOW on main. Update it when
+components change, so it describes the system as built, never as planned.
+`docs/DESIGN.md` is the intent and doesn't change; this changes.
 
 Keep it at the level of LOGIC, NOT CODE. -->
 
@@ -597,9 +597,8 @@ the fixtures are written blind.
 files are regenerated and diffed byte for byte against the document, then the
 `IcarusContentTests` suite runs against the bundled files.
 
-The file names are `S<n>.sh` exactly: `.github/scripts/acceptance-criteria.sh`
-matches a criterion id to `acceptance/S<n>.sh` and runs nothing else, so a
-descriptive suffix would be a script the check never runs.
+The file names are `S<n>.sh` exactly, one per criterion id: CI runs every
+`acceptance/S*.sh` after `swift test` in the Linux `core-tests` job.
 
 ### Ask about a day's skin, once
 
