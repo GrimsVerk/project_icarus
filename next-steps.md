@@ -44,37 +44,29 @@ Branch rules: the `grimsverk-gates` ruleset makes `feat/**` PR-only after the
 first push and undeletable, so don't name work branches `feat/`. Its leftover
 `feat/screenshots` is merged and can only be deleted by the owner.
 
-## In flight (2026-10-29)
-
-- Copy draft for the owner (Verkmester's task): every line with no approved
-  `docs/APP_COPY.md` text (BL-2, the bare symbols, posture names, Result
-  labels, VoiceOver, the location purpose string) plus a privacy policy text,
-  as one local HTML file outside the repo (`../review/icarus-copy.html`
-  beside the GrimsVerk repos). Nothing goes into the app or `APP_COPY.md`
-  until the owner approves.
-- Record the owner's remove-ads ruling in `docs/DECISIONS.md` (small PR).
-
 ## Waiting on the owner
 
-- BL-2 copy (`docs/BACKLOG.md`): no approved `docs/APP_COPY.md`
-  lines for the skin-check answers and timings, the regions, the confounders,
-  the lasting-colour answers and the Learn tab title. Until then the views show
-  enum names as words. Copy is owner-approved line by line (S17).
-- More copy the screenshots show missing: every control is a bare symbol (the
-  Calculator's inputs, the tabs, History, Settings, the onboarding arrows, the
-  timer), the posture picker shows `upAndAbout` / `lyingTurning`, and the
-  Result's figures are labelled by key (`remainingBudget · front`). VoiceOver
-  labels (S9) need the same lines.
+- Copy (BL-2, S17): a draft of every missing line is with the owner as a
+  local file, `../review/icarus-copy.html` from this repo's parent folder,
+  outside every repo (it may be deleted once answered). It has 186 lines with
+  ids by screen (TAB, CALC, RES, FIG, FILL, SUN, PLACE, TIM, DID, SKIN, LC,
+  HIST, SET, ONB, QUIZ, LEARN, VO, PERM) plus the privacy policy text
+  (PRIV-1 to PRIV-11). The owner answers on the GrimsVerk Desk: "all OK" or
+  the ids to change. Then add the approved lines to `docs/APP_COPY.md` and
+  `CopyKey` and wire them in one planned change. Nothing is approved until
+  then. The lines tagged "needs a small code change" also need behaviour:
+  `{application}` renders the enum (`applied normal`), `{effect}` gets a bare
+  number, the skin-check questions have no headings, import replaces the
+  history with no warning, and Settings has no skin-type row, though the
+  approved `revisitSkinType` line sends the user there.
 - AdMob: the app id and banner unit id (`ADMOB_APP_ID`, `ADMOB_BANNER_UNIT_ID`
   in `project.yml`; now Google's test ids), and a GDPR consent message created
   in the AdMob console: without one Google's form never shows (R39, S16).
 - Signing: a real bundle id (`bundleIdPrefix` is `com.example`), a
   `DEVELOPMENT_TEAM`, and the WeatherKit capability on that App ID.
-- Privacy policy page URL (`PRIVACY_POLICY_URL`; now example.com) and its text
-  (R41).
-- The location permission's purpose string
-  (`INFOPLIST_KEY_NSLocationWhenInUseUsageDescription`): it is copy. Without it
-  iOS never asks and the app falls back to manual places.
+- Privacy policy page URL (`PRIVACY_POLICY_URL`; now example.com). Its text
+  and the location purpose string (PERM-1) are in the copy draft above. The
+  policy still needs the app's name and a contact address.
 - App icon (1024×1024; no asset catalog yet), the App Store listing copy, the
   privacy-label answers (`docs/release/privacy-labels.md` has one open
   question) and the device criteria S8, S9, S12, S13, S16
