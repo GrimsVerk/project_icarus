@@ -30,10 +30,15 @@
         @ObservedObject private var model: CalculatorModel
         @State private var showingResult = false
         private let adBanner: AnyView?
+        private let controls: AnyView?
 
-        public init(model: CalculatorModel, adBanner: AnyView?) {
+        /// `controls` go in this screen's navigation bar: the shell's History
+        /// and Settings buttons, which a row drawn outside this screen's
+        /// navigation stack could not be tapped through.
+        public init(model: CalculatorModel, adBanner: AnyView?, controls: AnyView? = nil) {
             self.model = model
             self.adBanner = adBanner
+            self.controls = controls
         }
 
         public var body: some View {
@@ -63,6 +68,11 @@
                 }
                 .navigationDestination(isPresented: $showingResult) {
                     ResultView(model: model)
+                }
+                .toolbar {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        controls
+                    }
                 }
             }
         }
