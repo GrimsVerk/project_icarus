@@ -24,12 +24,18 @@
             self.env = env
         }
 
+        /// A stack rather than a `List`: above the Calculator's form a list
+        /// takes half the screen even with nothing in it, and this card has to
+        /// take no room at all on a day with nothing due.
         public var body: some View {
-            List {
+            VStack(alignment: .leading, spacing: 0) {
                 ForEach(due.map(OpenPrompt.init)) { prompt in
                     Button { open = prompt } label: {
                         Text(words(for: prompt.prompt))
+                            .frame(maxWidth: .infinity, alignment: .leading)
                     }
+                    .padding()
+                    Divider()
                 }
             }
             .task { await reload() }

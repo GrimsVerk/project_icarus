@@ -8,9 +8,8 @@ import SwiftUI
 /// of `calculator-ui`, built once against the shared environment so the window
 /// the user entered survives a tab switch; the Learn tab is the module list. The
 /// tab items are system images: their titles wait for approved copy (R42, BL-2).
-/// Settings opens as a sheet from a control row above the Calculator (the entry
-/// screen owns its own navigation bar); History sits in the same row and opens
-/// over the Calculator. First launch opens onboarding over everything (R28).
+/// Settings opens as a sheet from the Calculator's navigation bar; History sits
+/// beside it and opens over the Calculator. First launch opens onboarding over everything (R28).
 struct RootTabs: View {
     @EnvironmentObject private var env: AppEnvironment
     @EnvironmentObject private var taps: NotificationTaps
@@ -33,31 +32,10 @@ struct RootTabs: View {
 
     var body: some View {
         TabView(selection: $tab) {
-            // The entry screen owns its own navigation stack, so the shell's
-            // controls sit in a row above it rather than in a bar it cannot
-            // reach. Settings is a sheet, not a third tab (R39).
-            CalculatorTab(env: env)
-                .safeAreaInset(edge: .top) {
-                    HStack {
-                        Spacer()
-                        // History is reached from the Calculator rather than
-                        // from a tab of its own: the record is what the user
-                        // already did, not a third thing they do (M6).
-                        Button {
-                            showingHistory = true
-                        } label: {
-                            Image(systemName: "clock.arrow.circlepath")
-                        }
-                        .accessibilityIdentifier("history")
-                        Button {
-                            settingsShown = true
-                        } label: {
-                            Image(systemName: "gearshape")
-                        }
-                        .accessibilityIdentifier("settings")
-                    }
-                    .padding(.horizontal)
-                }
+            // The entry screen owns its navigation stack, so the shell hands it
+            // its controls for that bar. Settings is a sheet, not a third tab
+            // (R39).
+            CalculatorTab(env: env, controls: AnyView(controls))
                 .tabItem { Image(systemName: "sun.max") }
                 .tag(Tab.calculator)
             LearnListView(adBanner: env.banner(width: Self.bannerWidth), path: $learnPath)
@@ -97,6 +75,26 @@ struct RootTabs: View {
         }
     }
 
+    /// History and Settings. History is reached from the Calculator rather
+    /// than from a tab of its own: the record is what the user already did,
+    /// not a third thing they do (M6).
+    private var controls: some View {
+        HStack {
+            Button {
+                showingHistory = true
+            } label: {
+                Image(systemName: "clock.arrow.circlepath")
+            }
+            .accessibilityIdentifier("history")
+            Button {
+                settingsShown = true
+            } label: {
+                Image(systemName: "gearshape")
+            }
+            .accessibilityIdentifier("settings")
+        }
+    }
+
     private enum Tab {
         case calculator
         case learn
@@ -124,17 +122,19 @@ private struct CalculatorTab: View {
     @StateObject private var model: CalculatorModel
     private let env: AppEnvironment
     private let banner: AnyView?
+    private let controls: AnyView
 
-    init(env: AppEnvironment) {
+    init(env: AppEnvironment, controls: AnyView) {
         _model = StateObject(wrappedValue: CalculatorModel(env: env))
         self.env = env
+        self.controls = controls
         // The banner slot is the entry screen's (R39); the provider decides
         // whether there is anything in it, and the no-op one says no.
         banner = env.banner(width: RootTabs.bannerWidth)
     }
 
     var body: some View {
-        CalculatorEntryView(model: model, adBanner: banner)
+        CalculatorEntryView(model: model, adBanner: banner, controls: controls)
     }
 }
 
