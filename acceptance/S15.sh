@@ -13,10 +13,11 @@
 # checked there instead, row by row, so the script still fails on a table that
 # lost a row rather than passing because it could not look.
 #
-# The AdMob provider's own assertions — the non-personalised flag before the
-# first request, the consent flow in a region that requires one, limited ads on
-# refusal — land with that provider in M7. Until then the no-op provider is what
-# every screen receives, and `IcarusAdsTests` asserts it.
+# The AdMob provider's own assertions — the non-personalised flag on every
+# request, the consent flow before the SDK starts in a region that requires one,
+# limited ads on refusal with the slot kept — are `AdMobConfigurationTests`. The
+# SDK is iOS only, so they run in the nightly Xcode job on the simulator, not
+# here; `NoAdsProviderTests` asserts the no-op provider previews and tests get.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 

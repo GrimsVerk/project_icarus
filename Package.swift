@@ -39,13 +39,39 @@ var targets: [Target] = [
         .package(url: "https://github.com/gonzalezreal/swift-markdown-ui", exact: "2.4.1"),
     ]
 
+    // The Google Mobile Ads SDK and its User Messaging Platform, for the one
+    // banner and the regional consent form (D-2026-09-03-DEP2, Google's
+    // licence). Pinned exactly; iOS only, because the SDK ships no macOS slice.
+    // Only IcarusAds links them (R40).
+    dependencies += [
+        .package(url: "https://github.com/googleads/swift-package-manager-google-mobile-ads", exact: "13.11.0"),
+        .package(
+            url: "https://github.com/googleads/swift-package-manager-google-user-messaging-platform",
+            exact: "3.1.0"
+        ),
+    ]
+
     products += [
         .library(name: "IcarusAds", targets: ["IcarusAds"]),
         .library(name: "IcarusUI", targets: ["IcarusUI"]),
     ]
 
     targets += [
-        .target(name: "IcarusAds"),
+        .target(
+            name: "IcarusAds",
+            dependencies: [
+                .product(
+                    name: "GoogleMobileAds",
+                    package: "swift-package-manager-google-mobile-ads",
+                    condition: .when(platforms: [.iOS])
+                ),
+                .product(
+                    name: "GoogleUserMessagingPlatform",
+                    package: "swift-package-manager-google-user-messaging-platform",
+                    condition: .when(platforms: [.iOS])
+                ),
+            ]
+        ),
         .target(
             name: "IcarusUI",
             dependencies: [

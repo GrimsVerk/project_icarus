@@ -22,5 +22,11 @@
         public var requestConfiguration: AdRequestConfiguration {
             AdRequestConfiguration(nonPersonalised: true, consentShown: false)
         }
+
+        @MainActor public var privacyOptionsRequired: Bool {
+            false
+        }
+
+        @MainActor public func presentPrivacyOptions() async {}
     }
 #endif
