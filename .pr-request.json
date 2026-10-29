@@ -1,5 +1,0 @@
-{
-  "base": "feat/data-layer",
-  "title": "learn-tab (M4) Slice 1: the twelve modules as data, citations, deep links",
-  "body": "Plan: `docs/plans/learn-tab.md`, Slice 1 only (the twelve modules as data, generated from `docs/LEARN_CONTENT.md` by `scripts/split-learn-content.sh` — D-2026-09-03-F4; citations parsed with their identifiers; deep links; `acceptance/S7.sh`). Slice 2 (the views) needs calculator-ui Slice 1's `ScreenManifest` and follows in its own pull request. Stacked on `feat/data-layer` (#16): this diff is Slice 1 alone. 447 Linux tests; S7 passes.\n\nAssembly: the code carried an undeclared `ExpressibleByIntegerLiteral` on `ModuleID` that broke the contract's failable init at the blind tests' call sites — removed; one blind test expected the inter-module `---` rule inside a module, which the contract drops — test filter (`9ae14c3`, comment-only formatting in `21a49e5`-style commits are documented per file). `acceptance/S7.sh`, not `S7-learn.sh`: the check runs only `S<n>.sh`.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nhttps://claude.ai/code/session_01YcAj6rStzSvKdhtjXi9csp\n"
-}
