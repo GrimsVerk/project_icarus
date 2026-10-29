@@ -59,8 +59,9 @@ final class ScreenshotTests: XCTestCase {
         compute.tap()
 
         let timer = app.buttons["result.timer"]
-        XCTAssertTrue(timer.waitForExistence(timeout: timeout))
+        _ = timer.waitForExistence(timeout: timeout)
         snap("04-result")
+        XCTAssertTrue(timer.exists)
         app.swipeUp()
         snap("04-result-scrolled")
 
@@ -76,7 +77,9 @@ final class ScreenshotTests: XCTestCase {
         compute.tap()
         // Log the planned session, so History has a row to show.
         let didThis = app.buttons["result.didThis"]
-        XCTAssertTrue(didThis.waitForExistence(timeout: timeout))
+        _ = didThis.waitForExistence(timeout: timeout)
+        snap("06-history-0-result")
+        XCTAssertTrue(didThis.exists)
         didThis.tap()
         app.navigationBars.buttons.element(boundBy: 0).tap()
 
