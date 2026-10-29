@@ -52,16 +52,16 @@
             }
         }
 
-        /// The range's two edges are not here. FIG-8 to FIG-10 call them
-        /// minutes, as R7 does, but the engine's range figures are SED, and a
-        /// dose labelled as minutes would be read as minutes. Until the engine
-        /// gives the range in minutes they keep the key they are a value of,
-        /// which is data (`next-steps.md`, "Waiting on the owner").
+        /// The range's edges are minutes on the recommendation (R7), so FIG-8
+        /// to FIG-10 name them as such; the clipped upper edge is its own key.
         private static let lines: [FigureKey: CopyKey] = [
             .headlineMinutes: .figHeadlineMinutes,
             .regionDose: .figRegionDose,
             .remainingBudget: .figRemainingBudget,
             .cycleDose: .figCycleDose,
+            .rangeLower: .figRangeLower,
+            .rangeUpper: .figRangeUpper,
+            .rangeUpperClipped: .figRangeUpperClipped,
             .uvaMultiple: .figUvaMultiple,
             .shortfall: .figShortfall,
             .extraIfCovered: .figExtraIfCovered,

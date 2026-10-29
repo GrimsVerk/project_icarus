@@ -511,6 +511,67 @@ final class PlannerPlateauTests: XCTestCase {
     }
 }
 
+// MARK: - R7: the range, in minutes on the recommendation
+
+/// R7, screen review F3: the range is the uncertainty in the threshold shown
+/// in minutes beside the number, never a dose per region; its upper edge stops
+/// at the minutes to `MED_personal` and then says so.
+final class PlannerRangeTests: XCTestCase {
+    private static let rangeKeys: [FigureKey] = [.rangeLower, .rangeUpper, .rangeUpperClipped]
+
+    private struct Edges {
+        let lower: Figure
+        let upper: Figure
+        let headline: Figure
+    }
+
+    private func edges(_ result: DoseResult) throws -> Edges {
+        let range = result.figures.filter { Self.rangeKeys.contains($0.key) }
+        XCTAssertEqual(range.count, 2, "one lower and one upper edge, not one per region")
+        return try Edges(
+            lower: XCTUnwrap(range.first { $0.key == .rangeLower }),
+            upper: XCTUnwrap(range.first { $0.key != .rangeLower }),
+            headline: XCTUnwrap(result.figures.first { $0.key == .headlineMinutes })
+        )
+    }
+
+    func testTheRangeIsMinutesAroundTheNumber() throws {
+        let found = try edges(Plans.beachPlan(minutes: 120))
+        for edge in [found.lower, found.upper] {
+            XCTAssertEqual(edge.unit, .minutes, "\(edge.key)")
+            XCTAssertNil(edge.region, "the range belongs to the recommendation, not to a region")
+        }
+        XCTAssertLessThan(found.lower.value, found.headline.value)
+        XCTAssertGreaterThan(found.upper.value, found.headline.value)
+    }
+
+    /// A calibrated type II at the standard scale: the range's upper edge in
+    /// SED passes the burn line, so in minutes it is the session the
+    /// aggressive scale (whose number is the burn line) would plan.
+    func testAClippedUpperEdgeIsTheMinutesToTheRednessLine() throws {
+        let standard = try edges(Plans.beachPlan(minutes: 120))
+        let atTheLine = try edges(Plans.beachPlan(minutes: 120, profile: Profile(skinType: .ii, ceiling: .aggressive)))
+        XCTAssertEqual(standard.upper.key, .rangeUpperClipped)
+        XCTAssertEqual(standard.upper.value, atTheLine.headline.value, accuracy: 0.05)
+        XCTAssertEqual(atTheLine.upper.value, atTheLine.headline.value, accuracy: 1e-9, "nothing past the line")
+    }
+
+    func testAnUpperEdgeBelowTheRednessLineIsNotMarkedClipped() throws {
+        let uncalibrated = PlannerFixture.state(reports: 0, redness: 0, bound: false)
+        let result = try Plans.beachPlan(minutes: 120, state: uncalibrated)
+        XCTAssertEqual(try edges(result).upper.key, .rangeUpper)
+    }
+
+    func testAnOutcomeWithoutAPlanShowsNoRange() throws {
+        let passed = Window(start: PlannerFixture.at(9), end: PlannerFixture.at(10))
+        let result = try Planner.plan(
+            Plans.request(curve: Plans.beach(), window: passed, now: PlannerFixture.at(12)),
+            tunables: .current
+        )
+        XCTAssertFalse(result.figures.contains { Self.rangeKeys.contains($0.key) })
+    }
+}
+
 // MARK: - R30: per-figure provenance
 
 /// R30: the estimate label belongs to the individual figure, and it is the

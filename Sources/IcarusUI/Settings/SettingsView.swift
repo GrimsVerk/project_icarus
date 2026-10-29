@@ -64,20 +64,21 @@
 
         // MARK: - The sections
 
-        /// The ceiling selector, by R6's names. The aggressive one is disabled
-        /// until the reports unlock it, with the approved line saying why (R7).
+        /// The ceiling selector, by R6's names. Only the aggressive option is
+        /// held back until the reports unlock it, with the approved line saying
+        /// why (R7); the model refuses it, so the rest stays selectable.
         private var ceilingSection: some View {
             Section {
                 Picker(selection: $model.ceiling) {
                     ForEach(Ceiling.allCases, id: \.self) { ceiling in
                         Text(CopyWords.ceiling(ceiling))
                             .tag(ceiling)
+                            .disabled(!model.isSelectable(ceiling))
                     }
                 } label: {
                     Text(AppCopy.text(.settingsCeilingHeading))
                 }
                 .pickerStyle(.segmented)
-                .disabled(!model.aggressiveUnlocked && model.ceiling == .aggressive)
                 footnote(.settingsCeilingFootnote)
                 if !model.aggressiveUnlocked {
                     Text(AppCopy.text(.aggressiveLocked, args: ["count": String(model.aggressiveUnlockCount)]))
