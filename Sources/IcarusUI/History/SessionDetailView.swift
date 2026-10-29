@@ -1,5 +1,6 @@
 #if canImport(SwiftUI)
     import Foundation
+    import IcarusContent
     import IcarusCore
     import SwiftUI
 
@@ -12,9 +13,8 @@
     /// A figure recomputed here would be a different number from the one the
     /// user acted on, so nothing here is computed at all (R22).
     ///
-    /// Every number goes through `FigureView`; every word is the record's own
-    /// vocabulary, split into words. Three field names carry the meaning of the
-    /// three figure groups, because no copy key names a column (R42, S11).
+    /// Every number goes through `FigureView`. The words are HIST-10 to HIST-14
+    /// in `docs/APP_COPY.md`.
     public struct SessionDetailView: View {
         private let session: SessionRecord
 
@@ -26,12 +26,18 @@
             List {
                 Section {
                     whatHappened
+                } header: {
+                    Text(AppCopy.text(.detailWhatYouDid))
                 }
                 Section {
                     whatYouWereShown
+                } header: {
+                    Text(AppCopy.text(.detailWhatYouWereShown))
                 }
                 Section {
                     theForecast
+                } header: {
+                    Text(AppCopy.text(.detailTheForecast))
                 }
             }
         }
@@ -40,13 +46,13 @@
 
         @ViewBuilder
         private var whatHappened: some View {
-            row("day", HistoryFormat.date(session.day))
-            row("window", windowText)
-            row("posture", HistoryFormat.words(session.posture.rawValue))
-            row("coverHeadAndShoulders", String(session.coverHeadAndShoulders))
-            row("intent", HistoryFormat.words(session.intent.rawValue))
-            row("sunscreen", HistoryFormat.sunscreen(session.sunscreen))
-            row("ceilingAtPlan", HistoryFormat.words(session.ceilingAtPlan.rawValue))
+            row(.detailDay, HistoryFormat.date(session.day))
+            row(.detailTime, windowText)
+            row(.detailPosition, CopyWords.posture(session.posture))
+            row(.detailCovered, CopyWords.yesNo(session.coverHeadAndShoulders))
+            row(.detailPlan, CopyWords.intent(session.intent))
+            row(.detailSunscreen, HistoryFormat.sunscreen(session.sunscreen))
+            row(.detailSetting, CopyWords.recordedCeiling(session.ceilingAtPlan))
         }
 
         // MARK: - What you were shown
@@ -55,8 +61,9 @@
         /// each region was shown under, and the dose that was stored against it.
         ///
         /// The factor is a multiple and the two doses are in SED, so each takes
-        /// the figure key of its own unit; the label is the record's field name,
-        /// which is what tells the three groups apart.
+        /// the figure key of its own unit; the label (HIST-13) is what tells the
+        /// three groups apart, so it leads the row. The adaptation factor reads
+        /// as "Tan protection, front ×1.4".
         @ViewBuilder
         private var whatYouWereShown: some View {
             ForEach(RegionValue.list(session.factorsShown)) { factor in
@@ -68,7 +75,8 @@
                         unit: .multiple,
                         reads: []
                     ),
-                    label: HistoryFormat.label("factorsShown", factor.region)
+                    label: figureLabel(.detailTanProtection, factor.region),
+                    labelFirst: true
                 )
             }
             ForEach(RegionValue.list(session.targetsShown)) { target in
@@ -80,7 +88,8 @@
                         unit: .sed,
                         reads: []
                     ),
-                    label: HistoryFormat.label("targetsShown", target.region)
+                    label: figureLabel(.detailTarget, target.region),
+                    labelFirst: true
                 )
             }
             ForEach(RegionValue.list(session.dosePerRegion)) { dose in
@@ -92,19 +101,24 @@
                         unit: .sed,
                         reads: []
                     ),
-                    label: HistoryFormat.label("dosePerRegion", dose.region)
+                    label: figureLabel(.detailReceived, dose.region),
+                    labelFirst: true
                 )
             }
+        }
+
+        private func figureLabel(_ key: CopyKey, _ region: Region) -> String {
+            AppCopy.text(key, args: ["region": CopyWords.region(region)])
         }
 
         // MARK: - The forecast it was made from
 
         @ViewBuilder
         private var theForecast: some View {
-            row("forecastPlace", HistoryFormat.place(session.forecastPlace))
-            row("forecastFetchedAt", HistoryFormat.time(session.forecastFetchedAt, in: zone))
-            row("peakUVI", HistoryFormat.decimal(peakUVI))
-            row("timeZoneID", session.curveUsed.timeZoneID)
+            row(.detailForecastFor, HistoryFormat.place(session.forecastPlace))
+            row(.detailForecastFetched, HistoryFormat.time(session.forecastFetchedAt, in: zone))
+            row(.detailPeakUVI, HistoryFormat.decimal(peakUVI))
+            row(.detailTimeZone, session.curveUsed.timeZoneID)
         }
 
         /// The strongest hour on the curve the plan was made from. It is a stored
@@ -123,10 +137,10 @@
             HistoryFormat.window(session.actualWindow ?? session.plannedWindow, in: zone)
         }
 
-        /// One field of the record: its name, and its value as data.
-        private func row(_ field: String, _ value: String) -> some View {
+        /// One field of the record: its name, and its value.
+        private func row(_ field: CopyKey, _ value: String) -> some View {
             HStack(alignment: .firstTextBaseline) {
-                Text(HistoryFormat.words(field))
+                Text(AppCopy.text(field))
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                 Spacer()

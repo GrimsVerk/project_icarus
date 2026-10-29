@@ -421,4 +421,35 @@
             XCTAssertEqual(row.showsFigures, SettingsView.showsFigures)
         }
     }
+
+    // MARK: - The provisional lines Settings needed code for (D-2026-10-29-C1)
+
+    @MainActor
+    final class SettingsCopyTests: XCTestCase {
+        /// Before any report there is nothing learned, and the screen says so
+        /// (SET-7) rather than "0% less sensitive ... based on 0 skin reports";
+        /// with no session at all, no day is unreported (SET-11).
+        func testAFreshRecordSaysThereIsNothingLearnedAndNothingUnreported() async throws {
+            let harness = try await Harness.make()
+            let model = SettingsModel(env: harness.environment)
+            await model.refresh()
+
+            XCTAssertEqual(model.sensitivitySentence, AppCopy.text(.sensitivityNoReports))
+            XCTAssertEqual(model.unreportedSentence, AppCopy.text(.unreportedNone))
+        }
+
+        /// The skin-type row the approved revisitSkinType line points to
+        /// (SET-21) changes the type and nothing else in the profile.
+        func testChangingTheSkinTypeKeepsTheCeilingAndTheOverride() async throws {
+            let stored = Profile(skinType: .iii, ceiling: .conservative, manualMultiplier: 1.2)
+            let harness = try await Harness.make(profile: stored)
+            let model = SettingsModel(env: harness.environment)
+
+            await model.setSkinType(.v)
+
+            let expected = Profile(skinType: .v, ceiling: .conservative, manualMultiplier: 1.2)
+            XCTAssertEqual(harness.profiles.load(), expected)
+            XCTAssertEqual(model.skinType, .v)
+        }
+    }
 #endif

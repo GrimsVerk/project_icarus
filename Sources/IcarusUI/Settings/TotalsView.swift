@@ -1,5 +1,6 @@
 #if canImport(SwiftUI)
     import Foundation
+    import IcarusContent
     import IcarusCore
     import IcarusData
     import SwiftUI
@@ -16,10 +17,8 @@
     /// already recorded — so its `reads` are empty and the estimate badge never
     /// appears on one.
     ///
-    /// No approved line names either span or any region (R42), so the sections
-    /// are headed by a symbol and each row is labelled by the region's own name
-    /// as words. That name is data, split mechanically out of the raw value the
-    /// same way the prompt options are: it is not a sentence this file made up.
+    /// The two spans are headed SET-12 and SET-13, and each row reads like a
+    /// History total, "2.3 SED on your front" (HIST-7).
     public struct TotalsView: View {
         private let totals: Totals
 
@@ -31,12 +30,12 @@
             Section {
                 rows(totals.week)
             } header: {
-                Image(systemName: "calendar.day.timeline.left")
+                Label(AppCopy.text(.settingsWeekHeading), systemImage: "calendar.day.timeline.left")
             }
             Section {
                 rows(totals.cycle)
             } header: {
-                Image(systemName: "calendar")
+                Label(AppCopy.text(.settingsCycleHeading), systemImage: "calendar")
             }
         }
 
@@ -49,7 +48,7 @@
             ForEach(Region.allCases, id: \.self) { region in
                 FigureView(
                     figure: figure(region, dose: doses[region] ?? 0),
-                    label: PromptWords.words(region.rawValue)
+                    label: HistoryFormat.dose(region)
                 )
             }
         }

@@ -18,26 +18,45 @@
     public struct FigureView: View {
         private let figure: Figure
         private let label: String
+        private let labelFirst: Bool
 
-        public init(figure: Figure, label: String) {
+        /// `labelFirst` puts the label at the start of the row and the number
+        /// at its end, as a field of a record reads ("Target SED, front 2.4");
+        /// otherwise the label follows its number ("33 minutes in total").
+        public init(figure: Figure, label: String, labelFirst: Bool = false) {
             self.figure = figure
             self.label = label
+            self.labelFirst = labelFirst
         }
 
         public var body: some View {
             HStack(alignment: .firstTextBaseline, spacing: 6) {
-                Text(value)
-                    .font(.headline)
-                    .monospacedDigit()
-                Text(label)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                if labelFirst {
+                    labelText
+                    Spacer()
+                    valueText
+                } else {
+                    valueText
+                    labelText
+                }
                 if figure.isEstimate {
                     Image(systemName: "questionmark.circle")
                         .accessibilityLabel(Text(assumptions))
                 }
             }
             .accessibilityElement(children: .combine)
+        }
+
+        private var valueText: some View {
+            Text(labelFirst && figure.unit == .multiple ? "×" + value : value)
+                .font(.headline)
+                .monospacedDigit()
+        }
+
+        private var labelText: some View {
+            Text(label)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
         }
 
         /// The number as the unit it is in: minutes are whole, doses and

@@ -51,11 +51,11 @@
                         x: .value("date", point.id),
                         y: .value("sed", point.cumulativeSED)
                     )
-                    .foregroundStyle(by: .value("region", point.region.rawValue))
+                    .foregroundStyle(by: .value("region", CopyWords.region(point.region)))
                 }
                 ForEach(noticeLines, id: \.region) { line in
                     RuleMark(y: .value("notice", line.value))
-                        .foregroundStyle(by: .value("region", line.region.rawValue))
+                        .foregroundStyle(by: .value("region", CopyWords.region(line.region)))
                         .lineStyle(StrokeStyle(lineWidth: 1, dash: [4, 4]))
                 }
             }
@@ -71,12 +71,12 @@
             }
         }
 
-        /// The title, then where each region stands. Every part of it is data:
-        /// the region names are the enum's own words and the numbers are doses.
+        /// The title, then where each region stands: the region's name (FILL-1)
+        /// and its dose.
         private var summary: String {
             let parts = Region.allCases.compactMap { region -> String? in
                 guard let last = points.last(where: { $0.region == region }) else { return nil }
-                return "\(PromptWords.words(region.rawValue)) \(number(last.cumulativeSED)) \(unit)"
+                return "\(CopyWords.region(region)) \(number(last.cumulativeSED)) \(unit)"
             }
             return ([AppCopy.text(.trajectoryTitle)] + parts).joined(separator: ". ")
         }

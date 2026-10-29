@@ -31,6 +31,9 @@
         /// The quiz total, once the user has answered anything. Nil means the
         /// quiz was never opened, or nothing in it was answered.
         @Published public var quizScore: Int?
+        /// The type the last confirmed questionnaire pointed to, which the
+        /// table page names (QUIZ-3). The user may still pick another row.
+        @Published public private(set) var quizSuggestion: SkinType?
 
         private let store: any ProfileStore
 
@@ -49,7 +52,9 @@
         /// choice the user may already have made in the table is left alone.
         public func applyQuiz() {
             guard let score = quizScore else { return }
-            skinType = FitzpatrickQuiz.skinType(forScore: score)
+            let suggested = FitzpatrickQuiz.skinType(forScore: score)
+            skinType = suggested
+            quizSuggestion = suggested
         }
 
         /// Saves the profile and the flags, and hands the profile back.

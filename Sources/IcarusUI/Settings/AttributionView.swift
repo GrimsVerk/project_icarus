@@ -1,15 +1,15 @@
 #if canImport(SwiftUI)
     import Foundation
+    import IcarusContent
     import IcarusData
     import SwiftUI
 
     /// The weather attribution Apple requires beside any WeatherKit data (R29).
     ///
-    /// Two parts, and neither of them is ours to write: Apple's mark, and the
-    /// link to Apple's own legal page. Both come from WeatherKit; until it has
+    /// Two parts: Apple's mark, which VoiceOver names (SET-18), and the link to
+    /// Apple's own legal page (SET-19). Both come from WeatherKit; until it has
     /// answered (or where it cannot, as in previews) the mark is a system symbol
-    /// and the link is absent, where a placeholder sentence would be copy nobody
-    /// approved (R42).
+    /// and the link is absent.
     public struct AttributionView: View {
         private let attribution: WeatherAttribution?
         @Environment(\.colorScheme) private var colorScheme
@@ -27,11 +27,13 @@
                         Image(systemName: "apple.logo")
                     }
                     .frame(height: 14)
+                    .accessibilityLabel(Text(AppCopy.text(.attributionMark)))
                     Link(destination: attribution.legalPageURL) {
-                        Image(systemName: "info.circle")
+                        Label(AppCopy.text(.attributionLink), systemImage: "info.circle")
                     }
                 } else {
                     Image(systemName: "apple.logo")
+                        .accessibilityLabel(Text(AppCopy.text(.attributionMark)))
                 }
             }
             .font(.footnote)

@@ -253,35 +253,4 @@
 
         private static let regions: [ReportRegion] = [.allExposed, .front, .back, .headAndShoulders]
     }
-
-    /// An enum case as the words a picker shows.
-    ///
-    /// There is no approved copy for the answer options — R20 names them in the
-    /// design, but `docs/APP_COPY.md` carries no key for any of them — so the
-    /// words shown are the case names split mechanically: data the enum already
-    /// carries, never a sentence written here. The missing keys are a gap for
-    /// the owner to close, not something this layer may invent (R42).
-    enum PromptWords {
-        /// "clearlyPink" → "Clearly pink".
-        static func words(_ raw: String) -> String {
-            var out = ""
-            for character in raw {
-                if character.isUppercase, !out.isEmpty {
-                    out.append(" ")
-                    out.append(Character(character.lowercased()))
-                } else {
-                    out.append(character)
-                }
-            }
-            return out.prefix(1).uppercased() + out.dropFirst()
-        }
-
-        /// `Exposure` has no raw value: it is a case with a side inside it.
-        static func words(for exposure: Exposure) -> String {
-            switch exposure {
-            case .upAndAbout: words("upAndAbout")
-            case let .lying(side): words("lying") + " " + words(side.rawValue).lowercased()
-            }
-        }
-    }
 #endif

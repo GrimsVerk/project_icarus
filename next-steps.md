@@ -52,16 +52,6 @@ Branch rules: the `grimsverk-gates` ruleset makes `feat/**` PR-only after the
 first push and undeletable, so don't name work branches `feat/`. Its leftover
 `feat/screenshots` is merged and can only be deleted by the owner.
 
-## In flight (2026-10-29, icarus-copy agent, branch `copy/*`)
-
-Put the owner's provisional copy in the app (D-2026-10-29-C1): every line of
-`../review/icarus-copy.html` into `docs/APP_COPY.md` with its id, `CopyKey`
-and the views (VoiceOver, PERM-1 too); the small code changes the lines need
-({application}, {effect}, skin-check headings, import confirmation, the
-Settings skin-type row); the privacy policy as `docs/privacy-policy.md`
-(unpublished); a script that regenerates the review file from APP_COPY.md.
-Small PRs; never touch README.md (icarus-screens owns it today).
-
 ## Waiting on the owner
 
 - Screen review (2026-10-29): every screen of Screenshots run 40924394592
@@ -74,20 +64,26 @@ Small PRs; never touch README.md (icarus-screens owns it today).
   bugs found in the code while scoring: F6 (tapping 100% before aggressive
   unlocks saves it, then disables the whole selector) and F3 (the range is
   per-region SED, R7 says minutes on the recommendation).
+  The review predates the copy (#40 to #43): its screens had no words.
 
-- Copy (BL-2, S17): a draft of every missing line is with the owner as a
-  local file, `../review/icarus-copy.html` from this repo's parent folder,
-  outside every repo (it may be deleted once answered). It has 186 lines with
-  ids by screen (TAB, CALC, RES, FIG, FILL, SUN, PLACE, TIM, DID, SKIN, LC,
-  HIST, SET, ONB, QUIZ, LEARN, VO, PERM) plus the privacy policy text
-  (PRIV-1 to PRIV-11). The owner answers on the GrimsVerk Desk: "all OK" or
-  the ids to change. Then add the approved lines to `docs/APP_COPY.md` and
-  `CopyKey` and wire them in one planned change. Nothing is approved until
-  then. The lines tagged "needs a small code change" also need behaviour:
-  `{application}` renders the enum (`applied normal`), `{effect}` gets a bare
-  number, the skin-check questions have no headings, import replaces the
-  history with no warning, and Settings has no skin-type row, though the
-  approved `revisitSkinType` line sends the user there.
+- Copy (D-2026-10-29-C1): all 186 draft lines are in the app, **provisional**
+  (owner OK 2026-10-29, work in progress): `docs/APP_COPY.md` by id,
+  `docs/privacy-policy.md`, and PERM-1 in `project.yml`. The owner settles
+  lines by id on the Desk; a changed line keeps its id. Then run
+  `scripts/build-app-copy.sh` and regenerate the owner's list,
+  `python3 scripts/copy-review.py ../review/icarus-copy.html` (add
+  `--screenshots <dir>` with an unzipped Screenshots artifact). S17 is not
+  met while a line is provisional. For the owner:
+  - FIG-8 to FIG-10 say "minutes", but the range figures are SED (R7 says
+    minutes; screen review F3). Either the engine gives the range in minutes
+    or the lines change; until then the two range figures keep their key.
+  - FILL-6 ("your location") does not fit `staleFarFromCache` ("The saved
+    forecast is for {place}, which is not where you are"); that line shows
+    the cached coordinate instead.
+  - Agent defaults to confirm: TIM-7's `{side}` is TIM-3/TIM-4 in lower case;
+    the skin check's other-product pickers reuse SUN-2 to SUN-6; the Settings
+    skin-type page (SET-21) is titled ONB-5 and changes the type without a
+    warning; lasting colour stays open after an answer to show LC-4.
 - AdMob: the app id and banner unit id (`ADMOB_APP_ID`, `ADMOB_BANNER_UNIT_ID`
   in `project.yml`; now Google's test ids), and a GDPR consent message created
   in the AdMob console: without one Google's form never shows (R39, S16).
@@ -96,9 +92,11 @@ Small PRs; never touch README.md (icarus-screens owns it today).
   and the WeatherKit capability on that App ID. A free Personal Team can
   already run it on the owner's iPhone, without a forecast (README, "Run on
   your iPhone").
-- Privacy policy page URL (`PRIVACY_POLICY_URL`; now example.com). Its text
-  and the location purpose string (PERM-1) are in the copy draft above. The
-  policy still needs the app's name and a contact address.
+- Privacy policy: the text is `docs/privacy-policy.md` (provisional, not
+  published). It needs the app's name, a contact address and the date; then
+  it is served from this repo's GitHub Pages (turning Pages on is a repo
+  setting, the owner's) and `PRIVACY_POLICY_URL` (now example.com) points
+  there.
 - App icon (1024×1024; no asset catalog yet), the App Store listing copy, the
   privacy-label answers (`docs/release/privacy-labels.md` has one open
   question) and the device criteria S8, S9, S12, S13, S16

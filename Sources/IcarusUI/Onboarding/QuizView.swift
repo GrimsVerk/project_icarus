@@ -36,13 +36,14 @@
                     }
                 }
             }
+            .navigationTitle(AppCopy.text(.quizTitle))
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Button {
                         model.applyQuiz()
                         dismiss()
                     } label: {
-                        Image(systemName: "checkmark.circle")
+                        Text(AppCopy.text(.quizDone))
                     }
                     .disabled(model.quizScore == nil)
                 }
