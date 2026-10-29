@@ -28,7 +28,9 @@ struct ProjectIcarusApp: App {
     /// The system's scheme, except in a debug preview launched dark.
     private static var colorScheme: ColorScheme? {
         #if DEBUG
-            if PreviewLaunch.dark { return .dark }
+            if PreviewLaunch.dark {
+                return .dark
+            }
         #endif
         return nil
     }
