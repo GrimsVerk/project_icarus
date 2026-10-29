@@ -37,8 +37,11 @@ The two September docs branches are on `main` too (BL-2 in
 
 ## Next
 
-- Screenshots: a manual CI job (GitHub-hosted macOS) that runs the app in a
+- In progress (branch `feat/screenshots`): a manual CI job (GitHub-hosted macOS) that runs the app in a
   simulator and uploads every main screen as a run artifact. Run it, look,
-  fix what is clearly broken.
+  fix what is clearly broken. Found before the first run: nothing opens
+  onboarding, the Learn list (the tab is `Color.clear`) or the flip timer, and
+  the `icarus://` scheme the Result's Learn links use is not registered. Wiring
+  them in the same branch.
 - M7 release readiness (`docs/plans/release-readiness.md`) as far as it goes
   without the owner's inputs.
