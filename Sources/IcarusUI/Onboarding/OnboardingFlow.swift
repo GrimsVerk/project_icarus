@@ -74,45 +74,55 @@
         /// Neither request blocks and neither is required: a denial is an answer
         /// the app lives with, so the finishing button is offered either way.
         private var permissions: some View {
-            VStack(alignment: .leading, spacing: 24) {
-                permissionRow(
-                    reason: AppCopy.text(.onboardingWhyLocation),
-                    symbol: "location.circle",
-                    request: OnboardingPermissions.requestLocation
-                )
-                permissionRow(
-                    reason: AppCopy.text(.onboardingWhyNotifications),
-                    symbol: "bell.circle",
-                    request: OnboardingPermissions.requestNotifications
-                )
-                Spacer(minLength: 0)
+            ScrollView {
+                VStack(alignment: .leading, spacing: 24) {
+                    Text(AppCopy.text(.onboardingPermissionsHeading))
+                        .font(.title2.bold())
+                    permissionRow(
+                        reason: AppCopy.text(.onboardingWhyLocation),
+                        button: AppCopy.text(.onboardingAllowLocation),
+                        symbol: "location.circle",
+                        request: OnboardingPermissions.requestLocation
+                    )
+                    permissionRow(
+                        reason: AppCopy.text(.onboardingWhyNotifications),
+                        button: AppCopy.text(.onboardingAllowNotifications),
+                        symbol: "bell.circle",
+                        request: OnboardingPermissions.requestNotifications
+                    )
+                    Text(AppCopy.text(.onboardingPermissionsFootnote))
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding()
             }
-            .padding()
         }
 
-        private func permissionRow(reason: String, symbol: String, request: @escaping () -> Void) -> some View {
-            HStack(alignment: .top, spacing: 12) {
+        private func permissionRow(
+            reason: String,
+            button: String,
+            symbol: String,
+            request: @escaping () -> Void
+        ) -> some View {
+            VStack(alignment: .leading, spacing: 8) {
                 Text(reason)
-                    .frame(maxWidth: .infinity, alignment: .leading)
                 Button(action: request) {
-                    Image(systemName: symbol)
-                        .imageScale(.large)
+                    Label(button, systemImage: symbol)
                 }
-                .accessibilityLabel(Text(reason))
+                .buttonStyle(.bordered)
             }
         }
 
         // MARK: - Moving through the flow
 
-        /// Back, and either forward or finish. Both are symbols: no approved
-        /// copy names them, and a made-up word here would be copy the owner
-        /// never saw (R42).
+        /// Back, and either Next or Start (ONB-1, ONB-2).
         private var controls: some View {
             HStack {
                 Button {
                     page = Page(rawValue: page.rawValue - 1) ?? .module
                 } label: {
-                    Image(systemName: "chevron.backward")
+                    Label(AppCopy.text(.onboardingBack), systemImage: "chevron.backward")
                 }
                 .accessibilityIdentifier("onboarding.back")
                 .disabled(page == .module)
@@ -121,7 +131,7 @@
                     Button {
                         onComplete(model.complete())
                     } label: {
-                        Image(systemName: "checkmark.circle")
+                        Label(AppCopy.text(.onboardingStart), systemImage: "checkmark.circle")
                     }
                     .accessibilityIdentifier("onboarding.finish")
                     .disabled(!model.canComplete)
@@ -129,13 +139,12 @@
                     Button {
                         page = Page(rawValue: page.rawValue + 1) ?? page
                     } label: {
-                        Image(systemName: "chevron.forward")
+                        Label(AppCopy.text(.onboardingNext), systemImage: "chevron.forward")
                     }
                     .accessibilityIdentifier("onboarding.forward")
                     .disabled(!canAdvance)
                 }
             }
-            .imageScale(.large)
         }
 
         /// What the page the user is on still needs before it is answered.

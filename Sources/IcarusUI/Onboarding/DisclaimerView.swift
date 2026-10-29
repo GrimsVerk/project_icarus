@@ -5,10 +5,9 @@
 
     /// The medical disclaimer, and the acknowledgement of it (R29).
     ///
-    /// The words are the approved `disclaimer` copy and they are the toggle's
-    /// own label: the thing being acknowledged and the acknowledgement are one
-    /// control, so there is no second sentence for this screen to invent and
-    /// nothing for VoiceOver to read twice (R35, R42).
+    /// The page is headed ONB-3, the approved `disclaimer` copy is the text,
+    /// and the toggle under it has a short label of its own (ONB-4), so
+    /// VoiceOver reads the disclaimer once and the switch as a switch (R35).
     public struct DisclaimerView: View {
         @ObservedObject private var model: OnboardingModel
 
@@ -18,11 +17,16 @@
 
         public var body: some View {
             ScrollView {
-                Toggle(isOn: $model.disclaimerAcknowledged) {
+                VStack(alignment: .leading, spacing: 16) {
+                    Text(AppCopy.text(.onboardingDisclaimerHeading))
+                        .font(.title2.bold())
                     Text(AppCopy.text(.disclaimer))
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                    Toggle(isOn: $model.disclaimerAcknowledged) {
+                        Text(AppCopy.text(.onboardingAcknowledge))
+                    }
+                    .accessibilityIdentifier("disclaimer.acknowledge")
                 }
-                .accessibilityIdentifier("disclaimer.acknowledge")
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .padding()
             }
         }

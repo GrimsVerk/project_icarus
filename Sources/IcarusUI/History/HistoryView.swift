@@ -1,5 +1,6 @@
 #if canImport(SwiftUI)
     import Foundation
+    import IcarusContent
     import IcarusCore
     import SwiftUI
 
@@ -16,9 +17,8 @@
     /// `ScreenTable` already records that pair, and `acceptance/S15.sh` checks
     /// the row against this declaration.
     ///
-    /// No heading here is copy. No approved key names a column, and a view may
-    /// not invent one (R42), so what the screen shows is the data: dates, clock
-    /// times, stored numbers, and the record's own case names as words.
+    /// Its words are HIST-1 to HIST-9 in `docs/APP_COPY.md`; the rest is data:
+    /// dates, clock times and stored numbers.
     public struct HistoryView: View, ScreenManifest {
         public nonisolated static let hasBannerSlot = false
         public nonisolated static let showsFigures = true
@@ -45,6 +45,14 @@
                     Section {
                         TrajectoryChart(points: trajectory.points)
                     }
+                    // Only "I did this" and the flip timer log a session (R45),
+                    // and the empty log says so.
+                    if model.loaded, model.days.isEmpty {
+                        Section {
+                            Text(AppCopy.text(.historyEmpty))
+                                .foregroundStyle(.secondary)
+                        }
+                    }
                     ForEach(model.days) { day in
                         Section {
                             sessions(of: day)
@@ -56,6 +64,7 @@
                         }
                     }
                 }
+                .navigationTitle(AppCopy.text(.historyTitle))
                 // The record's own two actions: take it out, or put one back
                 // (R25). They sit here rather than only in Settings, because
                 // this is the screen the record is on.
@@ -94,18 +103,18 @@
                         unit: .sed,
                         reads: []
                     ),
-                    label: HistoryFormat.label("dosePerRegion", total.region)
+                    label: HistoryFormat.dose(total.region)
                 )
             }
         }
 
-        /// What the user answered about that day's skin, as the answer's own
-        /// name. A day with no report says nothing rather than saying "none":
-        /// an unanswered question is not an answer.
+        /// What the user answered about that day's skin (HIST-8). A day with no
+        /// report says nothing rather than saying "none": an unanswered
+        /// question is not an answer.
         @ViewBuilder
         private func outcome(of day: DaySummaryRow) -> some View {
             if let report = day.report {
-                Text(HistoryFormat.words(report.answer.rawValue))
+                Text(AppCopy.text(.historySkinAnswer, args: ["answer": CopyWords.answer(report.answer)]))
             }
         }
     }

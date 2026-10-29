@@ -330,6 +330,35 @@
 
     @MainActor
     final class ExportImportImportTests: XCTestCase {
+        /// Picking a file changes nothing until the warning is accepted
+        /// (HIST-4, HIST-5): an import replaces everything on the phone, so
+        /// silent data loss on the tap that picked the file is never intended.
+        func testPickingAFileReplacesNothingUntilTheWarningIsAccepted() async throws {
+            let harness = ExportHarness.make()
+            try await harness.seedTwoDaysAndAReport()
+            let before = try await harness.storedHistory()
+            let url = try writeTemporaryFile(exportFileData(history: fileHistory()))
+            let model = harness.model
+
+            model.choose(url)
+            XCTAssertEqual(model.pendingImport, url)
+            let afterPicking = try await harness.storedHistory()
+            XCTAssertEqual(ExportFixture.ordered(afterPicking), ExportFixture.ordered(before))
+
+            model.cancelImport()
+            let nothing = try await model.confirmImport()
+            XCTAssertNil(nothing)
+            let afterCancelling = try await harness.storedHistory()
+            XCTAssertEqual(ExportFixture.ordered(afterCancelling), ExportFixture.ordered(before))
+
+            model.choose(url)
+            let summary = try await model.confirmImport()
+            XCTAssertEqual(summary?.sessions, 1)
+            XCTAssertNil(model.pendingImport)
+            let landed = try await harness.storedHistory()
+            XCTAssertEqual(ExportFixture.ordered(landed), ExportFixture.ordered(fileHistory()))
+        }
+
         /// The import replaces the record whole and says what it landed.
         func testImportingAFileReplacesTheRecordAndReportsWhatItLanded() async throws {
             let harness = ExportHarness.make()

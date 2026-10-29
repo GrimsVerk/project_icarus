@@ -1,6 +1,7 @@
 #if canImport(SwiftUI)
     import Combine
     import Foundation
+    import IcarusContent
     import IcarusCore
     import IcarusData
     import SwiftUI
@@ -40,6 +41,9 @@
     public final class HistoryModel: ObservableObject {
         /// Newest day first.
         @Published public private(set) var days: [DaySummaryRow] = []
+        /// True once `reload` has run, so an empty list can say there is no
+        /// session yet (HIST-6) without saying it before the store was asked.
+        @Published public private(set) var loaded = false
 
         let env: AppEnvironment
 
@@ -57,6 +61,7 @@
         /// A store that cannot be read leaves an empty list rather than a stale
         /// one, because a half-old log reads as a complete one.
         public func reload(now _: Date) async {
+            defer { loaded = true }
             guard let history = try? await env.history.history() else {
                 days = []
                 return
@@ -99,21 +104,10 @@
         }
     }
 
-    /// How the History screens turn record data into short strings.
-    ///
-    /// Every one of these is data — a date, a clock time, a coordinate, a stored
-    /// number, or the name of a case in the record's own vocabulary — so none of
-    /// it is app copy and none of it goes through `AppCopy` (R42, S11). A case
-    /// name is split at its capitals so "headAndShoulders" reads as words rather
-    /// than as an identifier; the words are the data's, not the app's.
+    /// How the History screens turn record data into short strings: a date, a
+    /// clock time, a coordinate or a stored number, which are data, and the
+    /// record's words, which are lines of `docs/APP_COPY.md` (HIST-7, HIST-9).
     enum HistoryFormat {
-        /// "headAndShoulders" → "Head and shoulders". The prompts already split
-        /// a case name this way and there is only one right answer, so this is
-        /// their splitter rather than a second one.
-        static func words(_ raw: String) -> String {
-            PromptWords.words(raw)
-        }
-
         /// The zone the day was decided in — the same instant is two different
         /// days in two different places, so the record's own zone is the one.
         static func zone(_ day: DayKey) -> TimeZone {
@@ -140,20 +134,23 @@
             String(format: "%.2f, %.2f", coordinate.latitude, coordinate.longitude)
         }
 
-        /// The pair the user confirmed at logging, or the case name for none.
+        /// The pair the user confirmed at logging, "SPF 30, normally", or "No
+        /// sunscreen" (HIST-9).
         static func sunscreen(_ choice: SunscreenChoice?) -> String {
-            guard let choice else { return words("none") }
-            return "SPF \(choice.spfLabel) · \(words(choice.application.rawValue))"
+            guard let choice else { return AppCopy.text(.historyNoSunscreen) }
+            return AppCopy.text(.historySunscreen, args: [
+                "spf": String(choice.spfLabel),
+                "application": CopyWords.application(choice.application),
+            ])
         }
 
         static func decimal(_ value: Double) -> String {
             String(format: "%.1f", value)
         }
 
-        /// A label for one region's figure: the record's field name and the
-        /// region, both as their own words.
-        static func label(_ field: String, _ region: Region) -> String {
-            "\(words(field)) · \(words(region.rawValue))"
+        /// The label after a region's stored dose: "SED on your front" (HIST-7).
+        static func dose(_ region: Region) -> String {
+            AppCopy.text(.historyDayDose, args: ["region": CopyWords.region(region)])
         }
 
         private static func formatter(

@@ -1,5 +1,6 @@
 #if canImport(SwiftUI)
     import Foundation
+    import IcarusContent
     import IcarusCore
     import SwiftUI
 
@@ -10,8 +11,8 @@
     /// goes through `FigureView`, which is where the estimate badge lives (R22,
     /// R30); the doses on a record read no assumed constant, so no badge shows.
     ///
-    /// The words are the record's own: a window is two clock times, a posture is
-    /// the case name of the posture that was chosen. None of it is app copy.
+    /// A window is two clock times; the posture and the sunscreen are in the
+    /// words the Plan screen and the skin check use (CALC-5, CALC-6, HIST-9).
     public struct SessionRow: View {
         private let session: SessionRecord
 
@@ -23,7 +24,7 @@
             VStack(alignment: .leading, spacing: 4) {
                 Text(windowText)
                     .font(.headline)
-                Text(HistoryFormat.words(session.posture.rawValue))
+                Text(CopyWords.posture(session.posture))
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                 Text(HistoryFormat.sunscreen(session.sunscreen))
@@ -38,7 +39,7 @@
                             unit: .sed,
                             reads: []
                         ),
-                        label: HistoryFormat.label("dosePerRegion", dose.region)
+                        label: HistoryFormat.dose(dose.region)
                     )
                 }
             }

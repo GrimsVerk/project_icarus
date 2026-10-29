@@ -31,6 +31,11 @@
         /// screen can never report a summary from an earlier file.
         @Published public private(set) var lastSummary: ImportSummary?
 
+        /// The file the user picked, waiting for them to confirm the warning
+        /// (HIST-4). An import replaces everything on the phone, so picking a
+        /// file never imports it: only `confirmImport()` does.
+        @Published public private(set) var pendingImport: URL?
+
         private let env: AppEnvironment
 
         public init(env: AppEnvironment) {
@@ -80,6 +85,25 @@
             }
         }
 
+        /// Hold a picked file until the warning is answered.
+        public func choose(_ url: URL) {
+            pendingImport = url
+        }
+
+        /// The warning was refused: nothing is imported.
+        public func cancelImport() {
+            pendingImport = nil
+        }
+
+        /// The warning was accepted: import the file that was picked. With no
+        /// file waiting there is nothing to do.
+        @discardableResult
+        public func confirmImport() async throws -> ImportSummary? {
+            guard let url = pendingImport else { return nil }
+            pendingImport = nil
+            return try await importFile(url)
+        }
+
         /// Record a failure the picker itself reported — a file that could not
         /// be opened never reaches `importFile`, and the user is owed the same
         /// answer either way.
@@ -111,15 +135,16 @@
 
     /// The two actions, as a pair of toolbar buttons for the History screen.
     ///
-    /// No approved copy key names either action (R42), so each is its system
-    /// symbol and nothing else — the same choice the Calculator toolbar makes
-    /// for History itself. The only words on screen are the import's answer,
-    /// which is the owner's: `importApplied` with the counts filled in, or
-    /// `importFailed`, which says in the owner's words that nothing changed.
+    /// Each is its symbol in the bar, as iOS draws toolbar buttons, and
+    /// VoiceOver reads its line (HIST-2, HIST-3). A picked file is imported
+    /// only once the user accepts the warning that it replaces everything
+    /// (HIST-4, HIST-5); the answer is then `importApplied` with the counts
+    /// filled in, or `importFailed`, which says that nothing changed.
     public struct ExportImportView: View {
         @StateObject private var model: ExportImportModel
         @State private var exported: URL?
         @State private var picking = false
+        @State private var warning = false
         @State private var answering = false
 
         /// On the main actor because the model it builds is, and because the
@@ -135,7 +160,8 @@
                 Button {
                     picking = true
                 } label: {
-                    Image(systemName: "square.and.arrow.down")
+                    Label(AppCopy.text(.historyImport), systemImage: "square.and.arrow.down")
+                        .labelStyle(.iconOnly)
                 }
             }
             .task {
@@ -144,6 +170,7 @@
             .fileImporter(isPresented: $picking, allowedContentTypes: [.json]) { result in
                 handle(result)
             }
+            .importWarning(isPresented: $warning, confirm: confirm, cancel: { model.cancelImport() })
             .alert(Text(answer), isPresented: $answering) {}
         }
 
@@ -155,10 +182,26 @@
         @ViewBuilder
         private var share: some View {
             if let exported {
-                ShareLink(item: exported)
+                ShareLink(item: exported) {
+                    Label(AppCopy.text(.historyExport), systemImage: "square.and.arrow.up")
+                        .labelStyle(.iconOnly)
+                }
             } else {
-                Image(systemName: "square.and.arrow.up")
+                Label(AppCopy.text(.historyExport), systemImage: "square.and.arrow.up")
+                    .labelStyle(.iconOnly)
                     .foregroundStyle(.secondary)
+            }
+        }
+
+        private func confirm() {
+            Task {
+                // The throw is already recorded on the model, and the alert
+                // reads the model rather than the error.
+                _ = try? await model.confirmImport()
+                answering = true
+                // The record on disk is a different record now, so the file
+                // the share sheet offers must be too.
+                await refreshExport()
             }
         }
 
@@ -180,15 +223,8 @@
         private func handle(_ result: Result<URL, Error>) {
             switch result {
             case let .success(url):
-                Task {
-                    // The throw is already recorded on the model, and the alert
-                    // reads the model rather than the error.
-                    _ = try? await model.importFile(url)
-                    answering = true
-                    // The record on disk is a different record now, so the file
-                    // the share sheet offers must be too.
-                    await refreshExport()
-                }
+                model.choose(url)
+                warning = true
             case let .failure(error):
                 model.failed(with: error)
                 answering = true
@@ -197,6 +233,30 @@
 
         private func refreshExport() async {
             exported = try? await model.exportURL()
+        }
+    }
+
+    extension View {
+        /// The warning before an import overwrites the record (HIST-4), with
+        /// its two answers (HIST-5). History and Settings both import, and
+        /// both ask this. Only the first answer imports.
+        func importWarning(
+            isPresented: Binding<Bool>,
+            confirm: @escaping @MainActor () -> Void,
+            cancel: @escaping @MainActor () -> Void
+        ) -> some View {
+            confirmationDialog(
+                Text(AppCopy.text(.importWarning)),
+                isPresented: isPresented,
+                titleVisibility: .visible
+            ) {
+                Button(role: .destructive, action: confirm) {
+                    Text(AppCopy.text(.importConfirm))
+                }
+                Button(role: .cancel, action: cancel) {
+                    Text(AppCopy.text(.importCancel))
+                }
+            }
         }
     }
 #endif

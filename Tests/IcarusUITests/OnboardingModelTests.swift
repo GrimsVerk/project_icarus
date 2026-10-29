@@ -130,6 +130,21 @@
             XCTAssertEqual(model.skinType, .vi)
         }
 
+        /// The table names the type the questionnaire pointed to (QUIZ-3), and
+        /// a row picked afterwards still wins.
+        func testTheQuizSuggestionIsNamedAndARowPickedAfterItWins() {
+            let model = makeModel()
+            XCTAssertNil(model.quizSuggestion)
+
+            model.quizScore = 15
+            model.applyQuiz()
+            XCTAssertEqual(model.quizSuggestion, .iii)
+
+            model.skinType = .iv
+            XCTAssertEqual(model.skinType, .iv)
+            XCTAssertEqual(model.quizSuggestion, .iii)
+        }
+
         /// The mapping is the questionnaire's, not the model's own: every band
         /// boundary lands where `FitzpatrickQuiz` says it lands.
         func testEveryBandBoundaryIsMappedThroughTheQuestionnaire() {
