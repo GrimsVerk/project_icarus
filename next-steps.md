@@ -3,53 +3,44 @@
 Work in flight. Write a task here before starting it; delete it when done.
 Keep this short enough to read in one go.
 
-## State (2026-10-29, after the move to template v2)
+## State (2026-10-29)
 
-On `main`: M1 core engine, M2 data layer, M4 Learn slice 1 (modules as data).
-Built in the 2026-09-03 run but not merged, each branch stacked on the one
-before (commits, not PRs; cut before the v2 move, so expect conflicts in
-`.github/`, `AGENTS.md` and removed docs: keep v2's side there):
+On `main`, built and tested on macOS (nightly) and Linux (CI), all green:
+M1 core engine, M2 data layer, M3 calculator UI (slices 1-4), M4 Learn
+(slices 1-2), M5 logging and calibration (S10), M6 history.
 
-1. `feat/calculator-ui`: M3 slice 1 (copy as data, ad protocol, manifest).
-2. `feat/learn-tab-2`: M4 slice 2 (Learn views, swift-markdown-ui, DEP1).
-3. `feat/calculator-ui-2`: M3 slices 2-4 (onboarding, calculator, result, timer, Settings).
-4. `feat/logging-calibration`: M5 (S10).
-5. `feat/history`: M6; carries everything above.
-6. `docs/run-followups-20260903` (BL-2: no approved copy for skin-check answers,
-   regions, confounders, Learn tab title) and `docs/plan-corrections-20260903`
-   (plan fixes, WeatherKit mapping seam). Their pipeline rows (ESC-*) are moot.
+The five stacked UI branches from the 2026-09-03 run landed as three merge PRs
+(#26, #28, #29) plus one lint fix (#27): `feat/calculator-ui` already held
+`feat/learn-tab-2`, and `feat/logging-calibration` already held `feat/history`.
+Fixes needed: two swiftformat 0.64.4 rewrites, one SwiftLint brace, jq in the
+`core-tests` job (S11 needs it), and one macOS test (a one-ulp span end, fixed
+by the run's own `18bf77c`). The old `feat/*` branches are fully contained in
+`main` and can be deleted.
 
-IcarusUI, IcarusAds and `App/` on those branches have never been compiled
-(written on Linux). Merge them one at a time; the first Xcode build (nightly or
-a Mac) will need fix rounds. Plans for them: `docs/plans/`.
+Local format and lint without Docker or Swift: the Linux release binaries of
+swiftformat 0.64.4 and SwiftLint 0.65.1 (`gh release download`) match CI. Tests
+need CI: `gh workflow run ci.yml --ref <branch>` and `gh workflow run
+nightly.yml --ref <branch>` both work on any branch.
 
-## In progress (2026-10-29): bring the UI branches onto `main`
-
-Order: calculator-ui, learn-tab-2, calculator-ui-2, logging-calibration,
-history. Findings so far: `feat/calculator-ui` already contains
-`feat/learn-tab-2` (PR #19 was merged into it; identical trees), and
-`feat/logging-calibration` already contains `feat/history` (PR #21, plus later
-fixes). So three real merges; learn-tab-2 and history get checked as no-ops.
-
-Method per branch: new branch `merge/<name>` off `main`, merge the feature
-branch (a rebase would replay dozens of cascade merges), keep v2's side for
-`.github/`, `AGENTS.md`, README and drop the summer process files, then
-`gh workflow run ci.yml --ref merge/<name>` and `gh workflow run nightly.yml
---ref merge/<name>` (no local Swift or Docker on the Linux box), fix until
-green, then PR and `gh pr merge --merge --delete-branch`.
-
-- [x] calculator-ui (+ learn-tab-2): macOS build and tests green first time;
-  Linux needed one swiftformat fix and jq in `core-tests`.
-  Local format/lint without Docker: the Linux release binaries of swiftformat
-  0.64.4 and SwiftLint 0.65.1 (`gh release download`) match CI.
-- [x] calculator-ui-2: one macOS test failure (flip timer, a one-ulp span
-  end), fixed by cherry-picking logging-calibration's `18bf77c`.
-- [ ] logging-calibration (+ history)
+Still unmerged: `docs/run-followups-20260903` (BL-2) and
+`docs/plan-corrections-20260903` (plan fixes, WeatherKit mapping seam). Their
+pipeline rows (ESC-*) are moot.
 
 ## Waiting on the owner
 
 - BL-1 ruling (`docs/BACKLOG.md`).
+- BL-2 copy (on `docs/run-followups-20260903`): no approved `docs/APP_COPY.md`
+  lines for the skin-check answers and timings, the regions, the confounders,
+  the lasting-colour answers and the Learn tab title. Until then the views show
+  enum names as words. Copy is owner-approved line by line (S17).
+- M7 release inputs: AdMob app id, WeatherKit entitlement and signing,
+  privacy-policy URL, and a real bundle id (`project.yml` has `com.example`).
 
 ## Next
-- M7 release readiness needs the owner's inputs: AdMob app id, WeatherKit
-  entitlement and signing, privacy-policy URL.
+
+- Land the two docs branches (merge onto `main`, drop summer process files,
+  bring BL-2 into `docs/BACKLOG.md`).
+- Run the app in a simulator once and look at it: the tests pass, but no one has
+  seen the screens yet.
+- M7 release readiness (`docs/plans/release-readiness.md`) as far as it goes
+  without the owner's inputs.
