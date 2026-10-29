@@ -37,13 +37,16 @@
             )
         }
 
-        /// FIG-8 to FIG-10 say minutes; the engine's range is in SED. A dose
-        /// must never sit beside the word "minutes".
-        func testTheRangeInSEDIsNeverLabelledAsMinutes() {
-            for key in [FigureKey.rangeLower, .rangeUpper] {
-                let figure = Figure(key: key, region: .front, value: 2.4, unit: .sed, reads: [])
-                XCTAssertFalse(FigureLabels.label(for: figure).contains("minutes"), key.rawValue)
+        /// F3: the range is minutes on the recommendation (R7), labelled by
+        /// FIG-8 to FIG-10, with the clipped upper edge saying redness is
+        /// likely beyond it.
+        func testTheRangeEdgesAreMinutesWithTheOwnersLabels() {
+            let labels = [FigureKey.rangeLower, .rangeUpper, .rangeUpperClipped].map {
+                FigureLabels.label(for: Figure(key: $0, value: 25, unit: .minutes, reads: []))
             }
+            XCTAssertEqual(labels, [
+                AppCopy.text(.figRangeLower), AppCopy.text(.figRangeUpper), AppCopy.text(.figRangeUpperClipped),
+            ])
         }
 
         func testTheEstimateBadgeNamesEachAssumptionOnceInWords() {

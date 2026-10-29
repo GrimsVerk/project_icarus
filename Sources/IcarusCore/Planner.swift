@@ -197,6 +197,14 @@ private struct Reads {
     }
 }
 
+/// The range around the number, as the minutes at each of its edges (R7).
+private struct RangeMinutes {
+    let lower: Double
+    let upper: Double
+    /// True when the upper edge is the minutes to `MED_personal`.
+    let clipped: Bool
+}
+
 // MARK: - One plan in progress
 
 /// The planner's working state for one request. It is a value, built up in the
@@ -368,6 +376,11 @@ private extension Context {
     /// The session itself, solved against the maintained budgets. Nil when
     /// there is no session to plan, which is the budget-spent outcome.
     mutating func solve() -> ExposurePlan? {
+        solve(against: targets)
+    }
+
+    /// The session solved against the given budgets, recording what it read.
+    mutating func solve(against budgets: [Region: RegionTarget]) -> ExposurePlan? {
         let request = request
         let exposure = ExposureRequest(
             window: request.window,
@@ -376,13 +389,37 @@ private extension Context {
             firstSide: request.firstSide,
             coverHeadAndShoulders: request.coverHeadAndShoulders,
             intent: request.intent,
-            targets: targets,
+            targets: budgets,
             doseToday: request.state.regions.mapValues(\.doseToday),
             curve: curve
         )
         let (plan, solveReads) = Planner.tracked(tunables) { ExposureModel.solve(exposure, tunables: $0) }
         reads.solve.formUnion(solveReads)
         return plan
+    }
+
+    /// The range around the number, in minutes on the recommendation (R7):
+    /// the same session solved again with every region's budget at each edge
+    /// of its threshold range. The upper edge is where the range was clipped
+    /// at `MED_personal` when it was, and its key says so (FIG-10). The number
+    /// always sits inside its range.
+    mutating func rangeMinutes(_ plan: ExposurePlan) -> RangeMinutes {
+        let atLower = budgets(at: { $0.range.lowerBound })
+        let atUpper = budgets(at: { $0.range.upperBound })
+        let lower = solve(against: atLower)?.totalMinutes ?? 0
+        let upper = solve(against: atUpper)?.totalMinutes ?? plan.totalMinutes
+        return RangeMinutes(
+            lower: min(lower, plan.totalMinutes),
+            upper: max(upper, plan.totalMinutes),
+            clipped: targets[plan.limitingRegion]?.rangeClipped ?? false
+        )
+    }
+
+    /// Every region's budget moved to one edge of its own range.
+    func budgets(at edge: (RegionTarget) -> SED) -> [Region: RegionTarget] {
+        targets.mapValues { target in
+            target.target > 0 ? target.scaled(by: edge(target) / target.target) : target
+        }
     }
 
     /// The sunscreen answer, judged on the region the whole window pushes
@@ -426,6 +463,7 @@ private extension Context {
     /// order.
     mutating func finish(_ outcome: Outcome, plan: ExposurePlan? = nil) -> DoseResult {
         let focus = plan?.limitingRegion ?? focusRegion
+        let range = plan.map { rangeMinutes($0) }
         let region = request.state.regions[focus] ?? RegionState()
         let skinType = request.profile.skinType
         let now = request.now
@@ -452,7 +490,7 @@ private extension Context {
             outcome: outcome,
             targets: targets,
             notices: notices,
-            figures: figures(outcome: outcome, plan: plan),
+            figures: figures(outcome: outcome, plan: plan, range: range),
             copyKeys: copyKeys(outcome: outcome, plan: plan, notices: notices, focus: focus),
             cycleDose: request.state.regions.mapValues(\.doseInCycle),
             attenuationRegion: attenuationRegion,
@@ -462,10 +500,14 @@ private extension Context {
 
     /// Every number the result shows, each declaring the constants its own
     /// value depended on (R30).
-    func figures(outcome: Outcome, plan: ExposurePlan?) -> [Figure] {
+    func figures(
+        outcome: Outcome,
+        plan: ExposurePlan?,
+        range: RangeMinutes?
+    ) -> [Figure] {
         var out = [Figure]()
         if let plan {
-            out += planFigures(plan)
+            out += planFigures(plan, range: range)
         }
         if case let .tooWeak(shortfall, _) = outcome {
             out.append(Figure(
@@ -483,14 +525,22 @@ private extension Context {
         return sweep(out)
     }
 
-    /// The session's own numbers: how long it runs, how long each side runs,
-    /// what each region takes, and how much longer it could run covered.
-    func planFigures(_ plan: ExposurePlan) -> [Figure] {
+    /// The session's own numbers: how long it runs and the range around that,
+    /// how long each side runs, what each region takes, and how much longer it
+    /// could run covered.
+    func planFigures(_ plan: ExposurePlan, range: RangeMinutes?) -> [Figure] {
         let derived = reads.target.union(reads.solve)
         var out = [Figure(
             key: .headlineMinutes, value: plan.totalMinutes, unit: .minutes,
             reads: derived.union(reads.viability)
         )]
+        if let range {
+            out.append(Figure(key: .rangeLower, value: range.lower, unit: .minutes, reads: derived))
+            out.append(Figure(
+                key: range.clipped ? .rangeUpperClipped : .rangeUpper, value: range.upper, unit: .minutes,
+                reads: derived
+            ))
+        }
         if plan.sides.count > 1 {
             out += plan.sides.map {
                 Figure(
@@ -513,21 +563,15 @@ private extension Context {
         return out
     }
 
-    /// What is left of each region's budget, the range around its target, and
-    /// the dose it has taken since its cycle began — the last of these is the
-    /// figure the escalation message shows beside itself (R13).
+    /// What is left of each region's budget and the dose it has taken since
+    /// its cycle began — the second is the figure the escalation message shows
+    /// beside itself (R13).
     func budgetFigures() -> [Figure] {
         var out = [Figure]()
         for region in Region.allCases {
             guard let target = targets[region] else { continue }
             out.append(Figure(
                 key: .remainingBudget, region: region, value: target.remaining, unit: .sed, reads: reads.target
-            ))
-            out.append(Figure(
-                key: .rangeLower, region: region, value: target.range.lowerBound, unit: .sed, reads: reads.target
-            ))
-            out.append(Figure(
-                key: .rangeUpper, region: region, value: target.range.upperBound, unit: .sed, reads: reads.target
             ))
             out.append(Figure(
                 key: .cycleDose, region: region, value: request.state.regions[region]?.doseInCycle ?? 0,

@@ -9,6 +9,8 @@ public enum FigureKey: String, Codable, Sendable, CaseIterable {
     case cycleDose
     case rangeLower
     case rangeUpper
+    /// The upper edge where it is clipped at the redness line (R7).
+    case rangeUpperClipped
     case uvaMultiple
     case shortfall
     case extraIfCovered

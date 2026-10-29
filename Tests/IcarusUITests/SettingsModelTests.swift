@@ -217,6 +217,48 @@
             XCTAssertFalse(onFew.aggressiveUnlocked, "four reports is not five")
             XCTAssertFalse(onCalm.aggressiveUnlocked, "five reports that never reddened bound nothing")
         }
+
+        /// Screen review F6: picking a locked aggressive used to save it and
+        /// then disable the whole selector, so 75% and 90% could not be picked
+        /// again. Now the pick is refused and nothing else is held back.
+        func testALockedAggressiveIsRefusedAndTheOtherCeilingsStaySelectable() async throws {
+            let harness = try await Harness.make(profile: Profile(skinType: .iii, ceiling: .standard))
+            let model = SettingsModel(env: harness.environment)
+            XCTAssertFalse(model.aggressiveUnlocked)
+
+            model.ceiling = .aggressive
+
+            XCTAssertEqual(model.ceiling, .standard, "the selector stays where it was")
+            XCTAssertEqual(harness.profiles.load()?.ceiling, .standard, "a locked aggressive is never saved")
+            XCTAssertFalse(model.isSelectable(.aggressive))
+            XCTAssertTrue(model.isSelectable(.conservative))
+            XCTAssertTrue(model.isSelectable(.standard))
+            model.ceiling = .conservative
+            XCTAssertEqual(harness.profiles.load()?.ceiling, .conservative)
+        }
+
+        /// A profile already stuck at a locked aggressive (saved by the old
+        /// bug, or imported) can still move back down.
+        func testAProfileStuckAtALockedAggressiveCanMoveBack() async throws {
+            let harness = try await Harness.make(profile: Profile(skinType: .iii, ceiling: .aggressive))
+            let model = SettingsModel(env: harness.environment)
+            XCTAssertFalse(model.aggressiveUnlocked)
+
+            model.ceiling = .standard
+
+            XCTAssertEqual(harness.profiles.load()?.ceiling, .standard)
+        }
+
+        func testAnUnlockedAggressiveCanBePicked() async throws {
+            let history = try Fixed.history(loggedDays: 6, reports: 5, redness: true)
+            let harness = try await Harness.make(history: history)
+            let model = SettingsModel(env: harness.environment)
+            await settled(model, unreportedDays: 1)
+
+            model.ceiling = .aggressive
+
+            XCTAssertEqual(harness.profiles.load()?.ceiling, .aggressive)
+        }
     }
 
     // MARK: - The sensitivity sentence (R21, S10)

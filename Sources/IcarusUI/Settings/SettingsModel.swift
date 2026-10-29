@@ -20,10 +20,16 @@
         private let env: AppEnvironment
 
         /// How close to the tanning dose the engine plans. Setting it saves the
-        /// profile: this selector is the profile, not a copy of it.
+        /// profile: this selector is the profile, not a copy of it. A locked
+        /// aggressive is refused and the choice stays where it was, so picking
+        /// it can never strand the selector (R7, screen review F6).
         @Published public var ceiling: Ceiling {
             didSet {
                 guard ceiling != oldValue else { return }
+                guard isSelectable(ceiling) else {
+                    ceiling = oldValue
+                    return
+                }
                 save { $0.ceiling = self.ceiling }
             }
         }
@@ -92,6 +98,12 @@
             return !TanningGoal.effectiveScale(
                 profile: asked, state: state, tunables: env.tunables
             ).aggressiveRefused
+        }
+
+        /// Whether the selector offers this ceiling now: every one but a
+        /// locked aggressive.
+        public func isSelectable(_ ceiling: Ceiling) -> Bool {
+            ceiling != .aggressive || aggressiveUnlocked
         }
 
         /// How many reports the aggressive scale waits for — the number the
