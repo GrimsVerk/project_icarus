@@ -7,8 +7,8 @@
     /// The History screen: the record, newest day first (R24, R25).
     ///
     /// One section per day. The section is headed by the day itself, carries one
-    /// row per logged session, and closes with that day's totals per region and
-    /// the answer the user gave about their skin, when they gave one. A
+    /// row per logged session, and its footer holds that day's totals per region
+    /// and the answer the user gave about their skin, when they gave one. A
     /// discarded session is nowhere on it — the model drops those — and neither
     /// is a planned one.
     ///
@@ -25,6 +25,7 @@
 
         @StateObject private var model: HistoryModel
         @StateObject private var trajectory: TrajectoryModel
+        @Environment(\.dismiss) private var dismiss
         private let env: AppEnvironment
 
         /// On the main actor because the model it builds is: the screen owns one
@@ -54,23 +55,38 @@
                         }
                     }
                     ForEach(model.days) { day in
+                        // The day's totals close the day as its footer, so
+                        // they never read as a second session (screen review
+                        // F13).
                         Section {
                             sessions(of: day)
-                            totals(of: day)
                         } header: {
                             Text(HistoryFormat.date(day.id))
                         } footer: {
-                            outcome(of: day)
+                            VStack(alignment: .leading, spacing: 4) {
+                                totals(of: day)
+                                outcome(of: day)
+                            }
                         }
                     }
                 }
                 .navigationTitle(AppCopy.text(.historyTitle))
                 // The record's own two actions: take it out, or put one back
                 // (R25). They sit here rather than only in Settings, because
-                // this is the screen the record is on.
+                // this is the screen the record is on. Done takes the trailing
+                // corner, so they move to the leading one.
                 .toolbar {
-                    ToolbarItem(placement: .topBarTrailing) {
+                    ToolbarItem(placement: .topBarLeading) {
                         ExportImportView(env: env)
+                    }
+                    // A visible way out; the sheet could only be swiped away
+                    // (SET-2, screen review F15).
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button {
+                            dismiss()
+                        } label: {
+                            Text(AppCopy.text(.settingsDone))
+                        }
                     }
                 }
             }

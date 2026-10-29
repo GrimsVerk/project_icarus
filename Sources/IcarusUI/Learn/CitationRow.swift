@@ -48,9 +48,11 @@
                         .font(.callout)
                 }
                 if !venueLine.isEmpty {
+                    // The system's grey, not a paler shade of the link's
+                    // tint, which read at about 2:1 (screen review F8).
                     Text(venueLine)
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Color.secondary)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)

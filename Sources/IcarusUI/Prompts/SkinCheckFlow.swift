@@ -23,6 +23,7 @@
         @ObservedObject private var model: SkinCheckModel
         @State private var page: Page = .sessions
         @State private var confirmation: Confirmation?
+        @Environment(\.dismiss) private var dismiss
 
         public init(model: SkinCheckModel) {
             self.model = model
@@ -42,6 +43,17 @@
                     }
                 }
                 .navigationTitle(AppCopy.text(.skinCheckTitle))
+                .toolbar {
+                    // A visible way out; the sheet could only be swiped away
+                    // (SET-2, screen review F15).
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button {
+                            dismiss()
+                        } label: {
+                            Text(AppCopy.text(.settingsDone))
+                        }
+                    }
+                }
             }
             .task {
                 await model.load()

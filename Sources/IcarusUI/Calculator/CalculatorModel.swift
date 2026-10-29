@@ -32,7 +32,18 @@
         /// The forecast behind the result, kept so the result screen can show
         /// the place and the age for every outcome, including the ones with no
         /// number at all.
-        @Published public private(set) var forecastStatus: ForecastResult?
+        @Published public private(set) var forecastStatus: ForecastResult? {
+            didSet {
+                if let zone = forecastStatus?.curve?.timeZone {
+                    timeZone = zone
+                }
+            }
+        }
+        /// The zone the slot's times are shown in: the forecast place's, as on
+        /// the Result and in History, because the forecast and its day belong
+        /// to the place (screen review F1). The phone's until a forecast is
+        /// cached.
+        @Published public private(set) var timeZone: TimeZone = .current
         /// The name of the place the user typed, while the app is pinned to
         /// one; nil while it follows the phone. The result screen names the
         /// place by it (RES-3), and says "your location" otherwise (RES-2).
@@ -47,6 +58,14 @@
             self.env = env
             let start = Self.nextQuarterHour(after: env.clock())
             window = Window(start: start, end: start.addingTimeInterval(Self.defaultWindowSeconds))
+        }
+
+        /// Show the slot in the cached forecast's zone before anything is
+        /// computed. Reads the cache only.
+        public func loadTimeZone() async {
+            if let zone = await env.forecast.cached().curve?.timeZone {
+                timeZone = zone
+            }
         }
 
         // MARK: - The request

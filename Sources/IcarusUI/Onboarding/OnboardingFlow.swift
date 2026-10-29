@@ -57,9 +57,8 @@
         private var content: some View {
             switch page {
             case .module:
-                NavigationStack {
-                    ModuleView(module: OnboardingModel.module1)
-                }
+                // No navigation bar: the module's heading is its title.
+                ModuleView(module: OnboardingModel.module1)
             case .disclaimer:
                 DisclaimerView(model: model)
             case .skinType:

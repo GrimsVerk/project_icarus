@@ -144,6 +144,8 @@
         private var askedTimes: some View {
             Section {
                 IntervalEditor(intervals: $intervals)
+                    // The session's own place's clock, as everywhere else.
+                    .environment(\.timeZone, zone)
                 Button { onYes(intervals, wore) } label: {
                     Label(AppCopy.text(.promptSave), systemImage: "checkmark.circle")
                 }

@@ -653,18 +653,16 @@ private extension Context {
     }
 
     /// What the session itself implies: the option to cover up and run longer,
-    /// which side goes first, a side whose budget is already spent, and the
-    /// warnings the solve produced.
+    /// a side whose budget is already spent, and the warnings the solve
+    /// produced. Which side goes first is the flip timer's question, asked
+    /// where it can be answered (R11, screen review F2).
     func planKeys(_ plan: ExposurePlan) -> [CopyKey] {
         var keys = [CopyKey]()
         if plan.extraMinutesIfCovered.values.contains(where: { $0 > 0 }) {
             keys.append(.coverToRunLonger)
         }
-        if request.posture == .lyingTurning {
-            keys.append(.whichSideFirst)
-            if plan.sides.contains(where: { $0.window.minutes <= 0 }) {
-                keys.append(.oneSideSpent)
-            }
+        if request.posture == .lyingTurning, plan.sides.contains(where: { $0.window.minutes <= 0 }) {
+            keys.append(.oneSideSpent)
         }
         for warning in plan.warnings {
             switch warning {

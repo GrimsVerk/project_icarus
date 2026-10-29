@@ -21,10 +21,14 @@
         /// deep link can open one (R27); without it the list keeps its own.
         private let externalPath: Binding<[ModuleID]>?
         @State private var ownPath: [ModuleID] = []
+        /// The shell's History and Settings buttons, for this tab's bar: the
+        /// disclaimer must be findable from every tab (R29).
+        private let controls: AnyView?
 
-        public init(adBanner: AnyView?, path: Binding<[ModuleID]>? = nil) {
+        public init(adBanner: AnyView?, path: Binding<[ModuleID]>? = nil, controls: AnyView? = nil) {
             self.adBanner = adBanner
             externalPath = path
+            self.controls = controls
         }
 
         public var body: some View {
@@ -48,6 +52,13 @@
                     }
                 }
                 .navigationTitle(AppCopy.text(.learnTitle))
+                .toolbar {
+                    if let controls {
+                        ToolbarItem(placement: .topBarTrailing) {
+                            controls
+                        }
+                    }
+                }
             }
         }
     }

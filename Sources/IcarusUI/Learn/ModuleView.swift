@@ -17,11 +17,9 @@
         public nonisolated static let hasBannerSlot = false
         public nonisolated static let showsFigures = false
 
-        private let title: String
         private let render: ModuleRenderModel
 
         public init(module: LearnModule) {
-            title = module.title
             render = ModuleRenderModel(module: module)
         }
 
@@ -37,8 +35,10 @@
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding()
             }
-            // The module's own heading, which is Learn content and not app copy.
-            .navigationTitle(title)
+            // No bar title: the module's own heading is the first line of its
+            // text, and a second copy in the bar repeated it, cut short
+            // (screen review F9). The bar keeps only the way back.
+            .navigationBarTitleDisplayMode(.inline)
         }
     }
 #endif

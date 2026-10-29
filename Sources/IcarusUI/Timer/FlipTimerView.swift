@@ -79,17 +79,26 @@
             Button {
                 start(ignoringNotifications: false)
             } label: {
-                Label(AppCopy.text(.timerStart), systemImage: "play.circle.fill").font(.title2)
+                Label(AppCopy.text(.timerStart), systemImage: "play.circle.fill")
+                    .font(.title2)
+                    .frame(maxWidth: .infinity, minHeight: Self.minimumTarget)
             }
+            .buttonStyle(.borderedProminent)
         }
 
         private var startAnyway: some View {
             Button {
                 start(ignoringNotifications: true)
             } label: {
-                Label(AppCopy.text(.timerStartWithoutAlerts), systemImage: "play.circle").font(.title3)
+                Label(AppCopy.text(.timerStartWithoutAlerts), systemImage: "play.circle")
+                    .font(.title3)
+                    .frame(maxWidth: .infinity, minHeight: Self.minimumTarget)
             }
+            .buttonStyle(.bordered)
         }
+
+        /// Apple's smallest comfortable tap target, in points (screen review F5).
+        private static let minimumTarget: CGFloat = 44
 
         /// The side that is up, the time left on it, and the time left in the
         /// session. On the last side the big clock runs to the session's end,
@@ -118,8 +127,11 @@
                 Button {
                     Task { try? await model.stop(now: Date()) }
                 } label: {
-                    Label(AppCopy.text(.timerStop), systemImage: "stop.circle.fill").font(.title2)
+                    Label(AppCopy.text(.timerStop), systemImage: "stop.circle.fill")
+                        .font(.title2)
+                        .frame(maxWidth: .infinity, minHeight: Self.minimumTarget)
                 }
+                .buttonStyle(.bordered)
                 // Stopping shortens the record (R11): people should know
                 // before they tap.
                 Text(AppCopy.text(.timerStopFootnote))

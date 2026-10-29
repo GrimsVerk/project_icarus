@@ -52,6 +52,13 @@
                         y: .value("sed", point.cumulativeSED)
                     )
                     .foregroundStyle(by: .value("region", CopyWords.region(point.region)))
+                    // A line needs two sessions; the point shows the first one
+                    // on its own (screen review F14).
+                    PointMark(
+                        x: .value("date", point.id),
+                        y: .value("sed", point.cumulativeSED)
+                    )
+                    .foregroundStyle(by: .value("region", CopyWords.region(point.region)))
                 }
                 ForEach(noticeLines, id: \.region) { line in
                     RuleMark(y: .value("notice", line.value))
