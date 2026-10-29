@@ -217,11 +217,11 @@ final class ReplayCalibrationSimulationTests: XCTestCase {
 
     func testAUserWhoTansLessThanModelledStaysNearOne() throws {
         let run = try Fold.user(trueGainScale: 0.7).run(SimulatedUser.weekdays(weeks: 6), from: Fold.start)
-        // BL-1 (docs/BACKLOG.md): S3 asks for 0.10; with the ruled constants
+        // S3's bound here is 0.15 (D-2026-10-29-S3): with the ruled constants
         // the estimate settles near 0.88 because the app's escalating dose
         // crosses the slower-adapting user's line and two faint-pink reports
         // move the multiplier, which is the design's own attribution rule.
-        // The bound is held at 0.15 until the oracle rules; it errs short.
+        // It errs short.
         XCTAssertEqual(run.multiplier, 1.0, accuracy: 0.15)
     }
 

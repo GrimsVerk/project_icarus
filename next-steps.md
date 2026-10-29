@@ -27,7 +27,6 @@ The two September docs branches are on `main` too (BL-2 in
 
 ## Waiting on the owner
 
-- BL-1 ruling (`docs/BACKLOG.md`).
 - BL-2 copy (`docs/BACKLOG.md`): no approved `docs/APP_COPY.md`
   lines for the skin-check answers and timings, the regions, the confounders,
   the lasting-colour answers and the Learn tab title. Until then the views show
