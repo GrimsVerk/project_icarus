@@ -20,7 +20,7 @@ An iOS app that plans sun exposure for a durable tan while staying under the use
 
 - Non-trivial work: plan it in plan mode first. `/adversarial-review` attacks a plan before you build it (optional).
 - A feature too big for one context: `/orchestrate`.
-- Work on a branch, never on `main`. Run the checks below locally, then open a PR and merge it (`gh pr merge --squash --delete-branch`). CI runs only on `main`; a red `main` is the next task.
+- Work on a branch, never on `main`. Run the checks below locally, then open a PR and merge it (`gh pr merge --rebase --delete-branch`). CI runs only on `main`; a red `main` is the next task.
 - Never force-push, rewrite pushed history, or skip hooks (`--no-verify`).
 - Paths in repo files are relative, so any computer can resume the work. Machine-specific values go in one gitignored local file with a committed `.example`.
 - No new dependency without the owner's approval, recorded in `docs/DECISIONS.md` (what for, why not the standard library, licence).
