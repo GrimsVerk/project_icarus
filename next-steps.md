@@ -42,7 +42,7 @@ green, then PR and `gh pr merge --merge --delete-branch`.
   Linux needed one swiftformat fix and jq in `core-tests`.
   Local format/lint without Docker: the Linux release binaries of swiftformat
   0.64.4 and SwiftLint 0.65.1 (`gh release download`) match CI.
-- [ ] calculator-ui-2
+- [ ] calculator-ui-2: branch `merge/calculator-ui-2`, merged cleanly, in CI
 - [ ] logging-calibration (+ history)
 
 ## Waiting on the owner
