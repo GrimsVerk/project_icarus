@@ -47,5 +47,12 @@
 
         /// The flags every request is made with.
         var requestConfiguration: AdRequestConfiguration { get }
+
+        /// Whether Settings has to offer the network's privacy options, where a
+        /// user who answered the consent form changes the answer.
+        @MainActor var privacyOptionsRequired: Bool { get }
+
+        /// Shows the network's privacy options form.
+        @MainActor func presentPrivacyOptions() async
     }
 #endif

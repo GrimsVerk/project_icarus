@@ -32,6 +32,16 @@
         /// somewhere to fetch for even when the answer this time is a denial.
         public private(set) var lastCoordinate: Coordinate?
 
+        /// The owner's privacy policy page (R41), or nil where none is set.
+        public var privacyPolicyURL: URL?
+
+        /// Apple's weather attribution (R29). Nothing outside the live
+        /// environment asks WeatherKit for it.
+        public var weatherAttribution: @Sendable () async -> WeatherAttribution? = { nil }
+
+        /// Whether the ad provider has been prepared this run.
+        private var adsPrepared = false
+
         public init(
             forecast: ForecastService,
             location: LocationService,
@@ -71,6 +81,20 @@
             _ = try? await history.discardPlanned(before: now)
         }
 
+        /// Runs the ad network's consent flow where it is required, once per run
+        /// and never before onboarding is done, and records that it was shown.
+        /// The banners load once this has answered (R39).
+        public func prepareAds() async {
+            guard !adsPrepared, profile.flags().onboardingComplete else { return }
+            adsPrepared = true
+            _ = await ads.prepare(region: .none)
+            if ads.requestConfiguration.consentShown {
+                var flags = profile.flags()
+                flags.adConsentDone = true
+                profile.setFlags(flags)
+            }
+        }
+
         /// The destination a URL names, or nil when it names none.
         public func handle(_ url: URL) -> DeepLink? {
             DeepLink(url: url)
@@ -88,8 +112,8 @@
         /// The environment the app runs on: WeatherKit behind the forecast
         /// service, the forecast cached in Application Support, CoreLocation with
         /// Apple's geocoder for manual entry, the SwiftData history, the profile
-        /// in `UserDefaults`, the system notification centre, and — until M7 —
-        /// no ads at all.
+        /// in `UserDefaults`, the system notification centre, the AdMob banner
+        /// for the ad unit and the privacy policy the app's Info.plist names.
         public static func live() -> AppEnvironment {
             let tunables = Tunables.current
             let profile = UserDefaultsProfileStore()
@@ -98,7 +122,7 @@
                 tunables: tunables,
                 profileProvider: { profile.load() ?? AppEnvironment.startingProfile }
             )
-            return AppEnvironment(
+            let environment = AppEnvironment(
                 forecast: ForecastService(
                     provider: WeatherKitProvider(),
                     cache: FileForecastCache(directory: cacheDirectory()),
@@ -108,10 +132,15 @@
                 history: history,
                 profile: profile,
                 prompts: PromptScheduler(port: UserNotificationAdapter(), tunables: tunables),
-                ads: NoAdsProvider(),
+                ads: IcarusAds.liveProvider(),
                 tunables: tunables,
                 clock: { Date() }
             )
+            environment.weatherAttribution = { await WeatherKitProvider.attribution() }
+            if let page = Bundle.main.object(forInfoDictionaryKey: "IcarusPrivacyPolicyURL") as? String {
+                environment.privacyPolicyURL = URL(string: page)
+            }
+            return environment
         }
 
         /// The environment previews and UI tests run on: the recorded Oslo

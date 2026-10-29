@@ -60,6 +60,21 @@ public enum WeatherKitMapping {
     }
 }
 
+/// What Apple requires beside any WeatherKit data: its mark, in both
+/// appearances, and the link to its legal page (R29). WeatherKit hands these
+/// out; the app writes none of them.
+public struct WeatherAttribution: Sendable, Equatable {
+    public let legalPageURL: URL
+    public let markLightURL: URL
+    public let markDarkURL: URL
+
+    public init(legalPageURL: URL, markLightURL: URL, markDarkURL: URL) {
+        self.legalPageURL = legalPageURL
+        self.markLightURL = markLightURL
+        self.markDarkURL = markDarkURL
+    }
+}
+
 // MARK: - The live provider
 
 #if canImport(WeatherKit) && canImport(CoreLocation)
@@ -89,6 +104,17 @@ public enum WeatherKitMapping {
         public let name = "WeatherKit"
 
         public init() {}
+
+        /// Apple's attribution, or nil when WeatherKit cannot be reached (no
+        /// entitlement, no network).
+        public static func attribution() async -> WeatherAttribution? {
+            guard let given = try? await WeatherService.shared.attribution else { return nil }
+            return WeatherAttribution(
+                legalPageURL: given.legalPageURL,
+                markLightURL: given.combinedMarkLightURL,
+                markDarkURL: given.combinedMarkDarkURL
+            )
+        }
 
         public func forecast(at location: Coordinate, days: Int) async throws(ProviderError) -> ProviderForecast {
             let place = CLLocation(latitude: location.latitude, longitude: location.longitude)
@@ -133,6 +159,11 @@ public enum WeatherKitMapping {
     /// that it cannot answer here.
     public struct WeatherKitProvider: UVForecastProvider {
         public let name = "WeatherKit"
+
+        /// There is no attribution where there is no WeatherKit.
+        public static func attribution() async -> WeatherAttribution? {
+            nil
+        }
 
         public init() {}
 

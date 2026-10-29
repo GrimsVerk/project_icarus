@@ -48,6 +48,11 @@ struct RootTabs: View {
         .fullScreenCover(isPresented: $onboarding) {
             OnboardingCover(env: env) { onboarding = false }
         }
+        // The ad consent flow, once onboarding is behind the user: never over
+        // the disclaimer or the skin-type table (R39).
+        .task(id: onboarding) {
+            await env.prepareAds()
+        }
         .sheet(isPresented: $settingsShown) {
             SettingsView(model: SettingsModel(env: env))
         }

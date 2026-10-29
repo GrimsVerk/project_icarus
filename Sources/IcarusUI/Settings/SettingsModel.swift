@@ -38,6 +38,13 @@
         /// logged record every time it is asked.
         @Published public private(set) var totals = Totals(week: [:], cycle: [:])
 
+        /// Apple's weather attribution, once WeatherKit has given it (R29).
+        @Published public private(set) var attribution: WeatherAttribution?
+
+        /// Whether the ad network's privacy options are offered (R39): only
+        /// where its consent form applies.
+        @Published public private(set) var privacyOptionsRequired = false
+
         public init(env: AppEnvironment) {
             self.env = env
             ceiling = env.profile.load()?.ceiling ?? AppEnvironment.startingProfile.ceiling
@@ -51,6 +58,20 @@
             state = await (try? env.history.state(now: now)) ?? DerivedState()
             history = await (try? env.history.history()) ?? History()
             totals = await (try? env.history.totals(now: now)) ?? Totals(week: [:], cycle: [:])
+            privacyOptionsRequired = env.ads.privacyOptionsRequired
+            attribution = await env.weatherAttribution()
+        }
+
+        /// The owner's privacy policy page (R41).
+        public var privacyPolicyURL: URL? {
+            env.privacyPolicyURL
+        }
+
+        /// Opens the ad network's privacy options form, where a user changes
+        /// their consent answer.
+        public func showPrivacyOptions() async {
+            await env.ads.presentPrivacyOptions()
+            privacyOptionsRequired = env.ads.privacyOptionsRequired
         }
 
         // MARK: - What the screen says

@@ -20,18 +20,38 @@ targets:
         product: IcarusContent
     # Generated at `xcodegen generate` and merged with the generated keys below.
     # It holds what no INFOPLIST_KEY_ setting can: the icarus:// scheme the
-    # Learn deep links use (R27, DeepLink.scheme).
+    # Learn deep links use (R27, DeepLink.scheme), and the owner's values below.
     info:
       path: App/Info.plist
       properties:
         CFBundleURLTypes:
           - CFBundleURLName: learn
             CFBundleURLSchemes: [icarus]
+        GADApplicationIdentifier: $(ADMOB_APP_ID)
+        IcarusAdUnitID: $(ADMOB_BANNER_UNIT_ID)
+        IcarusPrivacyPolicyURL: $(PRIVACY_POLICY_URL)
+        # Google's own SKAdNetwork id; AdMob lists more for mediation, which
+        # this app does not use.
+        SKAdNetworkItems:
+          - SKAdNetworkIdentifier: cstr6suwn9.skadnetwork
+        ITSAppUsesNonExemptEncryption: false
+    entitlements:
+      path: App/ProjectIcarus.entitlements
+      properties:
+        com.apple.developer.weatherkit: true
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        MARKETING_VERSION: "1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        # The owner's inputs (next-steps.md, "Waiting on the owner"). Until
+        # they arrive these are Google's published test ids, which only ever
+        # serve test ads, and a placeholder page.
+        ADMOB_APP_ID: ca-app-pub-3940256099942544~1458002511
+        ADMOB_BANNER_UNIT_ID: ca-app-pub-3940256099942544/2435281174
+        PRIVACY_POLICY_URL: https://example.com/privacy
   ProjectIcarusTests:
     type: bundle.unit-test
     platform: iOS

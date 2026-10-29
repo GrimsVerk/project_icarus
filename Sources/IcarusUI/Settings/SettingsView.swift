@@ -43,8 +43,8 @@
                 TotalsView(totals: model.totals)
                 recordSection
                 Section {
-                    AttributionView(legalURL: nil)
-                    Text(AppCopy.text(.privacyOptions))
+                    AttributionView(attribution: model.attribution)
+                    privacyRows
                     Text(AppCopy.text(.disclaimer))
                         .font(.footnote)
                 }
@@ -56,6 +56,25 @@
         }
 
         // MARK: - The sections
+
+        /// The ad network's privacy options, which open its own form where its
+        /// consent applies, and the privacy policy page (R39, R41). The link
+        /// is a symbol: no approved line names it yet.
+        @ViewBuilder
+        private var privacyRows: some View {
+            Button {
+                Task { await model.showPrivacyOptions() }
+            } label: {
+                Text(AppCopy.text(.privacyOptions))
+            }
+            .disabled(!model.privacyOptionsRequired)
+            if let policy = model.privacyPolicyURL {
+                Link(destination: policy) {
+                    Image(systemName: "hand.raised")
+                }
+                .accessibilityIdentifier("settings.privacyPolicy")
+            }
+        }
 
         /// The ceiling selector. Each option is named by the share of the
         /// binding threshold it plans at, which is a figure and not copy; the
