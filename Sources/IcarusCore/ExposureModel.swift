@@ -483,7 +483,7 @@ private extension ExposureModel {
             sides: sides,
             perRegionDose: perRegion,
             limitingRegion: attenuationRegion(raw: perRegion, targets: request.targets) ?? .front,
-            span: Window(start: shape.start, end: shape.start.addingTimeInterval(total * 60)),
+            span: Window(start: shape.start, end: shape.windows().last?.end ?? shape.start),
             totalMinutes: total,
             showTwoFigures: twoFigures(shape, tunables: tunables),
             extraMinutesIfCovered: extraIfCovered(shape, request, tunables: tunables),

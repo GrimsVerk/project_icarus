@@ -70,7 +70,6 @@ answer.
 | `IcarusData` / `ExportService` | The export file (version 1), the atomic import, and the recomputation that proves a session record is enough on its own. |
 | `IcarusData` / `PromptScheduler` | Every prompt the app makes: the skin check about a day's sessions, the lasting-colour question about a report, the flip timer's alerts, and the in-app fallback for anything the system never delivered. |
 | `IcarusData` / `NotificationPort` | The system notification centre, as the only four things this layer needs from it. `FakeNotificationPort` records; `UserNotificationAdapter` is the real one, and exists only where `UserNotifications` does. |
-| `IcarusContent` | Placeholder. Will own generated copy and Learn content (M3). |
 | `IcarusContent` | The text the app shows, as data: the twelve Learn modules, their citations, the app's deep links, and — since M3 — the app's own copy, the skin-type table and the quiz. Imports Foundation and `IcarusCore`, for the copy keys the engine names. |
 | `IcarusContent` / `LearnSource` | Reading `docs/LEARN_CONTENT.md`. `split` cuts it into its twelve sections verbatim, markers kept; `normalise` removes exactly the build annotations — every `[VERIFY]` token with its backticks, the preamble above Module 1 — and trailing whitespace. Nothing else is ever changed: no text is edited, paraphrased or summarised. |
 | `IcarusContent` / `LearnModule` | One module: its id (1...12, a `ModuleID`), its heading title, its body with the markers stripped, and its citations. Built from the text of one bundled file. |
@@ -90,9 +89,23 @@ answer.
 | `IcarusUI` / `ModuleView` | One module: its body rendered by MarkdownUI — tables and blockquotes included — then its citations as rows. No banner, no figure. |
 | `IcarusUI` / `ModuleRenderModel` | What reaches a module screen: the body with the `> **Sources**` blockquote removed, and the citations as data. A value, not a view, so what is rendered can be asserted without rendering. `Theme.icarus` (MarkdownUI's GitHub theme) is the markdown styling. |
 | `IcarusUI` / `CitationRow` | One citation as a row: a `Link` when its identifier resolves — a DOI through doi.org, a PMID through PubMed, a URL as given — and text with the identifier beside it when it does not. Never hidden for the lack of a link. |
+| `IcarusUI` / `OnboardingModel` | What first launch knows and the one rule that ends it: the disclaimer acknowledgement, the chosen skin type, the optional quiz total, and `canComplete`, true only once the first two are answered. `applyQuiz()` turns the total into a type through `FitzpatrickQuiz`; `complete()` saves the profile and sets the onboarding and disclaimer flags. It also holds Module 1, so what the first page shows is data anything can assert. |
+| `IcarusUI` / `OnboardingFlow` | First launch in four pages — Module 1, the disclaimer, the skin-type table, the two permissions — with back and forward controls that are symbols only, because no approved copy names them. Advancing is gated per page. No banner, no figure (R39). |
+| `IcarusUI` / `DisclaimerView`, `SkinTypePicker`, `QuizView` | The three middle pages. The disclaimer is the approved `disclaimer` copy used as the acknowledgement toggle's own label. The picker lists the six `SkinTypeTable` rows, name and description, with a checkmark on the chosen one and the questionnaire behind a toolbar symbol. The quiz is ten `FitzpatrickQuiz` questions, each a picker over its own answers. |
+| `IcarusUI` / `CalculatorModel` | The Calculator's state and its four actions. It holds the four inputs — window, posture, cover, "staying the whole window" — assembles the one `PlanRequest` both the result and the flip timer plan from, computes a result, keeps exactly one planned session for it, refreshes the forecast on demand, re-solves the sunscreen alternative, and logs the session on "I did this". No arithmetic of its own: it carries values between the engine, the history store and the prompt scheduler. |
+| `IcarusUI` / `CalculatorEntryView` | The entry screen: the window, the posture, the two toggles, a compute button and the ad slot. No figure at all (R39), and no question about sunscreen (R15). Its controls carry system images because no approved copy key names an input. |
+| `IcarusUI` / `ResultView`, `ResultCopy` | The whole answer for one window. The forecast line — place, "change place", "refresh" — renders outside the outcome, so it is there even when there is no number. `ResultCopy` turns the result's `copyKeys` into lines, resolving each through `AppCopy` and filling its `{arguments}` from the same result's own numbers; it drops the two warning lines unless the user marked that they will stay. |
+| `IcarusUI` / `FigureView` | One number with its label and, when the engine says the number rests on an assumed constant, the estimate badge whose VoiceOver label names those assumptions. Every figure the app shows goes through it, and only the Result screen uses it. |
+| `IcarusUI` / `SunscreenAlternativeSheet` | "I don't have that SPF": the SPF ladder and the three applications, the engine's re-solve for the pair chosen, and the confirmation that makes the logged dose that pair's rather than the raw window's. |
+| `IcarusUI` / `ManualLocationSheet` | "Change place": typed text through a `PlaceResolver` — Apple's geocoder on a device — and the chosen place pinned on the location service, which then refetches and recomputes. |
 | `IcarusAds` | The ad banner behind a protocol (R40); the only package that will import the SDK. Not built on Linux. |
 | `IcarusAds` / `AdBannerProvider`, `NoAdsProvider` | The whole surface the app has on advertising: prepare for a region (which is where the consent flow will live), a banner view for a width or nil, and the flags every request carries. `NoAdsProvider` shows nothing, asks for nothing, and reports non-personalised — it is what previews, tests, CI and the app itself use until M7. |
-| `App/` | The iOS app shell. Depends only on `IcarusUI`. `ProjectIcarusApp` builds the live environment; `RootTabs` is the two-tab shell with the foreground hook and the deep-link hook. It holds no logic and no copy. |
+| `App/` | The iOS app shell. Depends only on `IcarusUI`. `ProjectIcarusApp` builds the live environment; `RootTabs` is the two-tab shell with the foreground hook, the deep-link hook and a control row above the Calculator that opens Settings (and, from M6, History) as sheets; its Calculator tab owns the one `CalculatorModel` the entry and result screens share. It holds no logic and no copy, and it never names the ad provider: `AppEnvironment.banner(width:)` hands it a view. |
+| `IcarusUI` / `FlipTimerModel` | The session clock for a lying-down session (R11). It plans nothing itself: the calculator builds the request, this model moves the window's start to the real clock, scales every target by the confirmed sunscreen's effective SPF so the plan spans the covered window, and hands it to the `Planner`. A non-plan outcome is a refusal (`TimerError.cannotStart`); notifications that are denied are a refusal too, before anything is written, and the same start is offered again with that refusal waived. It logs the session at the start from the plan's intervals and again, in place and shorter, from the intervals it actually ran. `ScaledGoal` is the one-line goal wrapper that does the SPF scaling. |
+| `IcarusUI` / `FlipTimerView` | The timer screen: which side is up first, the time left on this side and on the session, a stop button, and the refusal lines. No banner, figures yes (R39). Every sentence is a copy key; the sides, the buttons and the clock are symbols and numbers, because no approved line names them. |
+| `IcarusUI` / `SettingsModel` | Everything Settings can change or say: the ceiling (which is the profile), the sensitivity sentence and the manual override, the count of session days with no report, the export file, the import, and deleting the record. The replayed state lives behind an actor, so the model keeps a snapshot of it and refreshes after every write. |
+| `IcarusUI` / `SettingsView` | The list: the ceiling selector (each option named by the share of the threshold it plans at, the aggressive one disabled with the approved line until it unlocks), the sensitivity sentence with a stepper and a reset, the unreported-days line, the record's export, import and delete-with-warning, the WeatherKit attribution, the privacy row (wired in M7) and the disclaimer. |
+| `IcarusUI` / `AttributionView` | Apple's mark and the link to Apple's legal page (R29). The URL arrives with the forecast in M7; until then the link is absent rather than a placeholder sentence. |
 
 Two things follow from the layout and are deliberate. `IcarusCore` depends on
 nothing, so the engine is testable on Linux and in CI without a simulator. And
@@ -595,6 +608,61 @@ temporary directory and diffs them byte for byte against the committed ones, so
 an edit to the document that was never regenerated, or an edit to a module file
 that was never made in the document, fails before it ships.
 
+### Ask the Calculator about a window
+
+1. The entry screen holds four inputs and nothing else: the window, the posture,
+   the cover toggle and "staying the whole window". It shows no figure, because
+   it is one of the two screens that carries the ad banner (R39), and it never
+   asks what sunscreen the user has, because that is the engine's answer (R15).
+2. The compute button calls `CalculatorModel.compute()`. It asks the location
+   service where the user is and reads the **cached** forecast. Only an empty
+   cache fetches, and only when there is a coordinate to fetch for, so dragging
+   a window costs no request (R1). The refresh button on the result is the one
+   deliberate fetch.
+3. With no coordinate at all, the request is built with whatever curve the cache
+   held and, when it held none, the "no location" failure. The outcome is then
+   `missingForecast(.noLocation)` — the one answer with no number — and the
+   result screen still offers the manual place that would fix it (R2).
+4. Otherwise `request(window:firstSide:now:)` assembles the one `PlanRequest`
+   the flip timer will also plan from: the same profile, the same replayed
+   state, the same staleness, the same intent and the same cover. `Planner.plan`
+   turns it into a `DoseResult`.
+5. A `.plan` outcome becomes today's one planned session (R45). It carries the
+   plan's intervals, the pair the result prescribed, the ceiling and manual
+   multiplier as they stood, and the day's slice of the curve it was solved on.
+   `upsertPlanned` replaces the session this model planned before rather than
+   adding a second, and `PromptScheduler.sessionsChanged` moves the day's skin
+   check to the end of the last session on it.
+6. `confirmedSunscreen` becomes `.asPrescribed` exactly when the sunscreen is
+   the headline and there is a pair to wear; anything else leaves it `.none`.
+
+### Show one result
+
+1. The forecast line renders first and outside the outcome: the place the curve
+   is for, a button that refetches, and a button that opens the manual place.
+   Every outcome gets it, including the ones with no number (R3).
+2. `ResultCopy` walks the result's `copyKeys` in the order the engine put them
+   in, resolves each through `AppCopy` for the user's skin type, and fills its
+   `{arguments}` from the same result's numbers — the minutes, the shortfall,
+   the cycle dose, the SPF pair, the reapplication times. It shows the two
+   warning lines only when the user marked that they will stay (R19).
+3. `[Module N]` in a resolved line becomes a link to that module's deep link,
+   labelled with the module's own title (R27).
+4. Every figure the result carries renders through `FigureView`, which adds the
+   estimate badge when — and only when — `Figure.isEstimate` says the number
+   rested on an assumed constant (R22, R30).
+5. "I don't have that SPF" opens the alternative sheet, which re-solves through
+   `SunscreenSolver.alternative` against the same region and the same remaining
+   budget the prescription used, over the window clipped at now. Confirming
+   records the pair on the model.
+6. "I did this" logs the planned session. A bare answer logs the block the plan
+   solved with the plan's own doses. A confirmed pair — prescribed or the
+   alternative — logs the entered window instead, halved by side when lying
+   down, with the whole-window dose divided by that pair's effective SPF. An
+   outcome with no realistic product confirms nothing, so it logs the solved
+   block: the raw whole window is never written down, because nobody received
+   it (R15, R45).
+
 ### Show a line of the app's own words
 
 1. The owner writes or approves the line in `docs/APP_COPY.md`, under a `###`
@@ -608,6 +676,34 @@ that was never made in the document, fails before it ships.
 4. `acceptance/S11.sh` regenerates the JSON and diffs it, checks the enum and
    the document against each other in both directions, and greps the UI and the
    app target for a literal at a copy-bearing call site.
+
+### Take a new user through onboarding
+
+All three flow flags false is a first launch, and onboarding is what runs then
+(R28, R29).
+
+1. Page one is Module 1, rendered by the same `ModuleView` the Learn tab uses.
+   The text is the module's own — "there is no safe tan" arrives unsoftened,
+   because nothing here retells it.
+2. Page two is the medical disclaimer. The approved `disclaimer` copy is the
+   label of the toggle that acknowledges it, so the sentence being agreed to and
+   the agreement are one control. The flow will not advance until it is on.
+3. Page three is the skin-type table: the six `SkinTypeTable` rows, each its
+   name and its plain description, the chosen one marked with a checkmark. A
+   user who cannot place themselves opens the questionnaire from the toolbar.
+   It scores every answered question through the published bands, and the score
+   becomes the chosen type only when the user confirms — so they end up looking
+   at the same table, with a row marked.
+4. Page four gives the reason for each permission before asking for it: the
+   location line, then the notification line, each next to the button that
+   requests it. Neither request is waited on and neither is required. A denial
+   is an answer the app lives with — the location service and the prompt
+   scheduler each read the real state where it matters.
+5. Finishing saves a `Profile` at the standard ceiling with no manual
+   multiplier, sets `onboardingComplete` and `disclaimerAcknowledged` in the
+   store's flags, and hands the profile to the caller. The button is offered
+   only once both required answers are in; asking for it earlier is a
+   programmer error and traps.
 
 ### Come back to the app
 
@@ -630,6 +726,57 @@ that was never made in the document, fails before it ships.
 2. A URL that parses selects the Learn tab, which is the module list. Pushing
    the named module's screen on top of that list lands with the router slice
    that owns the shell's navigation state.
+
+### Run a session on the flip timer
+
+1. The user picks which side is up first (face up by default,
+   D-2026-09-03-F8) and starts the timer.
+2. `FlipTimerModel.start(now:)` asks the calculator for the same request the
+   result was computed from — same profile, same replayed state, same stale
+   level, same maintenance scaling — with the window's start moved to the real
+   clock.
+3. If the user confirmed the prescribed sunscreen (or named an alternative),
+   every target is scaled by the pair's effective SPF, so the solve spans the
+   covered window: the same skin budget reached through a product that divides
+   the dose takes about that many times as long.
+4. `Planner.plan` answers. Anything but `.plan` is `TimerError.cannotStart`
+   carrying the outcome, and the screen shows that outcome's own line as the
+   reason.
+5. The scheduler is asked whether alerts are allowed. Denied is
+   `TimerError.notificationsDenied`, thrown before anything is written, and the
+   screen offers to start anyway (R11).
+6. The session is logged straight away from the plan's intervals, with the dose
+   attenuated by the pair it is being run under, so a session that is running is
+   a logged session and not a planned one (R45).
+7. The alerts are scheduled as one set: the first side's end when there are two
+   sides, each reapplication time inside the span, and the session's end.
+8. `tick(now:)` moves the phase to the second side at the flip and to finished
+   at the planned end.
+9. `stop(now:)` clips the plan's intervals at the stop time, recomputes the dose
+   those intervals delivered over the same curve, attenuates it, logs the same
+   record again — shorter — and cancels every timer alert.
+10. `foregrounded(now:)` past the session day's local midnight stops the timer at
+    its planned end instead, and the screen says so (R11).
+
+### Change a setting, or move the record
+
+1. `SettingsModel` reads the ceiling out of the profile and takes a snapshot of
+   the replayed state and the record.
+2. Changing the ceiling saves the profile. The aggressive option is offered only
+   when `TanningGoal.effectiveScale` does not refuse it — enough reports, and one
+   of them bounding a region in the current cycle (R7).
+3. The sensitivity sentence is the approved line filled from the snapshot: the
+   distance of the multiplier from one as a percentage, the direction, and the
+   number of reports behind it.
+4. An override writes `manualMultiplier` into the profile and invalidates the
+   store's memo, so the next `state(now:)` answers under it without any write to
+   the history. Resetting clears it and the learned value takes over again.
+5. Export asks `ExportService` for the whole record under the current profile and
+   writes it to a temporary file the share sheet hands on.
+6. Import reads the file, lands it whole or not at all, applies the profile the
+   file carried, invalidates the memo and refreshes the snapshot.
+7. Delete shows the R44 warning first, then empties the record — which is what
+   deletes the calibration, the tan state and today's budget with it.
 
 ## State and storage
 
@@ -747,6 +894,10 @@ The file names are `S<n>.sh` exactly, one per criterion id: CI runs every
    (`"timer-end"`).
 2. `cancelTimer` cancels the same prefix. Stopping the timer therefore takes no
    record of what was pending.
+3. `authorization()` answers what the port says, so the timer can warn *before*
+   it starts that it cannot alert with the screen locked (R11) rather than
+   discovering it when a request is silently dropped. It is the only read of the
+   port outside scheduling, and it keeps the port itself inside this layer.
 
 ## Known rough edges
 
@@ -759,6 +910,15 @@ The file names are `S<n>.sh` exactly, one per criterion id: CI runs every
   grounds it did not quite use. The alternative — dropping the key — would break
   the stronger promise that a recording `Tunables` sees exactly what the figures
   declare, and that promise is the one the provenance rests on.
+- `SettingsModel` reads the replayed state through a snapshot, because the store
+  is an actor and the properties the screen reads are synchronous. The snapshot
+  is taken at init and after every write, and the screen refreshes it when it
+  appears; a state changed by something else while Settings is open is one
+  refresh behind until then.
+- The flip timer logs at the start against the planned session the calculator
+  created. If there is none — a timer started without a computed result — the
+  timer still runs and writes nothing, rather than refusing a session the engine
+  said was fine.
 - The cloud-cover caveat is always false. Nothing in a `PlanRequest` carries
   cloud cover; the data layer supplies it when it exists (M2).
 - A result with no forecast carries no figures and no notices beyond the
@@ -886,3 +1046,24 @@ The file names are `S<n>.sh` exactly, one per criterion id: CI runs every
   `trailingCommas` rule adds exactly what it removes, and both run in CI; and
   it excludes the short names the design fixes (skin types `i`–`vi`, the
   lasting-colour answer `no`, the calibration constant `k`).
+- Onboarding's navigation, its permission buttons and the way into the quiz are
+  SF Symbols with no words at all. That is not a style choice: no approved copy
+  key names any of them, and a word invented here would be copy the owner never
+  saw (R42, S11). Where a symbol needs a spoken name, it borrows content data —
+  the permission reason, the quiz's first question — rather than a new sentence.
+- The quiz keeps its answers as question id → option index, not as points, so
+  two answers worth the same score stay distinguishable and the picker shows
+  the one actually chosen. An unanswered question scores nothing, which is also
+  its most sensitive answer; the total only means something once every question
+  has been answered, and the user decides that by confirming.
+- Onboarding asks for the two permissions directly — `CLLocationManager` and
+  `UNUserNotificationCenter`, each behind its own `canImport` — rather than
+  through `AppEnvironment`. The model takes only a `ProfileStore`, which is what
+  keeps the completion rule testable without a whole environment; the services
+  read the real authorization state later anyway, so nothing here caches an
+  answer. The location manager is held for the life of the app: one released
+  before the user answers takes its dialog with it.
+- Nothing in this slice has been compiled. `IcarusUI` does not exist on Linux,
+  so `swift build`, `swift test`, S11 and S15 all pass without ever looking at
+  these five files; the first real evidence is the macOS CI job, and the first
+  evidence that the flow reads well is the owner's S9 on a device.
