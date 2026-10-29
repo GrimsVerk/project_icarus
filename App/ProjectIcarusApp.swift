@@ -15,6 +15,7 @@ struct ProjectIcarusApp: App {
             RootTabs()
                 .environmentObject(appEnvironment)
                 .environmentObject(taps)
+                .preferredColorScheme(Self.colorScheme)
                 .onAppear {
                     UNUserNotificationCenter.current().delegate = taps
                     #if DEBUG
@@ -22,6 +23,14 @@ struct ProjectIcarusApp: App {
                     #endif
                 }
         }
+    }
+
+    /// The system's scheme, except in a debug preview launched dark.
+    private static var colorScheme: ColorScheme? {
+        #if DEBUG
+            if PreviewLaunch.dark { return .dark }
+        #endif
+        return nil
     }
 
     private static func environment() -> AppEnvironment {
@@ -44,6 +53,7 @@ struct ProjectIcarusApp: App {
     /// `noforecast` is onboarded with no forecast to be had.
     /// `-IcarusTapNotification <identifier>` opens the app as if that
     /// notification had been tapped, through the same route a real tap takes.
+    /// `-IcarusAppearance dark` runs it in dark mode (screen review F4).
     enum PreviewLaunch {
         private static var mode: String? {
             UserDefaults.standard.string(forKey: "IcarusPreview")
@@ -63,6 +73,10 @@ struct ProjectIcarusApp: App {
             case "noforecast": .noForecast
             default: .plain
             }
+        }
+
+        static var dark: Bool {
+            UserDefaults.standard.string(forKey: "IcarusAppearance") == "dark"
         }
 
         static var tappedNotification: String? {
