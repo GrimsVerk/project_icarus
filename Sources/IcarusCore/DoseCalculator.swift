@@ -61,8 +61,7 @@ public enum DoseCalculator {
         targetSED: SED,
         tunables _: Tunables
     ) -> Window? {
-        guard let usable = clip(within, toStartNoEarlierThan: now) else { return nil }
-        guard let coarse = bestStart(
+        guard let usable = clip(within, toStartNoEarlierThan: now), let coarse = bestStart(
             curve: curve, searching: usable, step: 60, targetSED: targetSED, notAfter: usable.end
         ) else { return nil }
         // The minute grid finds the right minute; a second pass at one-second
