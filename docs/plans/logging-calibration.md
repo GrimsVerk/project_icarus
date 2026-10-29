@@ -90,7 +90,7 @@ DuePromptsCard reads env.prompts.dueInApp on appear and on foreground; AppEnviro
 ## Slice 3 — Totals in the store and the sensitivity sentence in Settings, end to end
 
 - **Delivers:** Weekly and cycle-to-date totals per region are computed from the history and shown in Settings; the sensitivity sentence renders from the replayed multiplier and report count; the S3 simulation is re-run through the real store so the whole loop is exercised end to end, and S18's use case 7 fixture passes from its own fixture file.
-- **Files:** `Sources/IcarusUI/Settings/TotalsView.swift`, `Tests/IcarusDataTests/EndToEndCalibrationTests.swift`, `Tests/IcarusCoreTests/Fixtures/UseCaseLogging.swift`, `acceptance/S10-logging.sh`
+- **Files:** `Sources/IcarusUI/Settings/TotalsView.swift`, `Tests/IcarusDataTests/EndToEndCalibrationTests.swift`, `Tests/IcarusCoreTests/Fixtures/UseCaseLogging.swift`, `acceptance/S10.sh`
 - **Estimate:** ~260 lines
 
 ### Signatures
@@ -99,7 +99,7 @@ DuePromptsCard reads env.prompts.dueInApp on appear and on foreground; AppEnviro
 public struct TotalsView: View { public init(totals: Totals) }
 // EndToEndCalibrationTests: a SimulatedUser through HistoryStore.upsertPlanned/log/addReport with the S3 reporter; the S3 bounds hold against store.state(now); TZ=UTC and TZ=Europe/Oslo
 // UseCaseLogging.swift: use case 7's fixture, registered with the S18 runner without touching UseCases.swift
-// acceptance/S10-logging.sh: `swift test --filter 'IcarusDataTests|IcarusUITests'` and prints the S10 checklist
+// acceptance/S10.sh: `swift test --filter 'IcarusDataTests|IcarusUITests'` and prints the S10 checklist
 ```
 
 ### Internals
