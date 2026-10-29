@@ -93,18 +93,33 @@ answer.
 | `IcarusUI` / `OnboardingFlow` | First launch in four pages — Module 1, the disclaimer, the skin-type table, the two permissions — with back and forward controls that are symbols only, because no approved copy names them. Advancing is gated per page. No banner, no figure (R39). |
 | `IcarusUI` / `DisclaimerView`, `SkinTypePicker`, `QuizView` | The three middle pages. The disclaimer is the approved `disclaimer` copy used as the acknowledgement toggle's own label. The picker lists the six `SkinTypeTable` rows, name and description, with a checkmark on the chosen one and the questionnaire behind a toolbar symbol. The quiz is ten `FitzpatrickQuiz` questions, each a picker over its own answers. |
 | `IcarusUI` / `CalculatorModel` | The Calculator's state and its four actions. It holds the four inputs — window, posture, cover, "staying the whole window" — assembles the one `PlanRequest` both the result and the flip timer plan from, computes a result, keeps exactly one planned session for it, refreshes the forecast on demand, re-solves the sunscreen alternative, and logs the session on "I did this". No arithmetic of its own: it carries values between the engine, the history store and the prompt scheduler. |
-| `IcarusUI` / `CalculatorEntryView` | The entry screen: the window, the posture, the two toggles, a compute button and the ad slot. No figure at all (R39), and no question about sunscreen (R15). Its controls carry system images because no approved copy key names an input. |
+| `IcarusUI` / `CalculatorEntryView` | The entry screen: the window, the posture, the two toggles, a compute button and the ad slot, with the due-prompts card above the inputs so an unanswered question is asked on the next launch (R20). No figure at all (R39), and no question about sunscreen (R15). Its controls carry system images because no approved copy key names an input. |
 | `IcarusUI` / `ResultView`, `ResultCopy` | The whole answer for one window. The forecast line — place, "change place", "refresh" — renders outside the outcome, so it is there even when there is no number. `ResultCopy` turns the result's `copyKeys` into lines, resolving each through `AppCopy` and filling its `{arguments}` from the same result's own numbers; it drops the two warning lines unless the user marked that they will stay. |
 | `IcarusUI` / `FigureView` | One number with its label and, when the engine says the number rests on an assumed constant, the estimate badge whose VoiceOver label names those assumptions. Every figure the app shows goes through it, and only the Result screen uses it. |
 | `IcarusUI` / `SunscreenAlternativeSheet` | "I don't have that SPF": the SPF ladder and the three applications, the engine's re-solve for the pair chosen, and the confirmation that makes the logged dose that pair's rather than the raw window's. |
 | `IcarusUI` / `ManualLocationSheet` | "Change place": typed text through a `PlaceResolver` — Apple's geocoder on a device — and the chosen place pinned on the location service, which then refetches and recomputes. |
 | `IcarusAds` | The ad banner behind a protocol (R40); the only package that will import the SDK. Not built on Linux. |
 | `IcarusAds` / `AdBannerProvider`, `NoAdsProvider` | The whole surface the app has on advertising: prepare for a region (which is where the consent flow will live), a banner view for a width or nil, and the flags every request carries. `NoAdsProvider` shows nothing, asks for nothing, and reports non-personalised — it is what previews, tests, CI and the app itself use until M7. |
+| `IcarusUI` / `SkinCheckModel` | One day's skin check, as state: the sessions still to account for, Q1, Q2, the region and the confounders, and the one report they become. "Yes" on a session sums the confirmed intervals through `ExposureModel` and logs the attenuated dose; "no" discards it. `canSubmit` holds only with something logged that day, Q1 answered, and Q2 answered whenever Q1 named redness. Submitting writes the report, has the store say what it did to the calibration, and schedules the lasting-colour question. `confirmationKey(for:)` maps that effect to the line the user is shown. |
+| `IcarusUI` / `SkinCheckFlow` | The day-after check in R20's order: the unaccounted sessions, then how the skin looks, when the colour showed up, which region, and anything unusual — then the confirmation line. A day with nothing logged is a dead end that records nothing. No banner, no figure, no MED or SED. |
+| `IcarusUI` / `DidYouDoThisView`, `IntervalEditor` | One planned session's question. "Yes" asks what was worn — the prescribed pair, another product, or none — and then offers the planned times to correct before the session is logged; "no" discards it. The editor moves a start or an end and never lets one cross the other. A session with no prescription is never offered "as prescribed". |
+| `IcarusUI` / `NotificationRouting`, `RoutedPromptView` | A tapped notification's identifier turned into a question: `PromptScheduler` reads the day back out of it and the prefix says which question. An identifier the app did not build routes to the in-app card instead, so a tap never opens the wrong day. |
+| `IcarusUI` / `DuePromptsCard` | What is due right now, in the app: the scheduler's `dueInApp` as rows, each opening its flow — the skin check or the lasting-colour question — re-read when one closes, so an answered question leaves the card. The fallback for a notification that was never allowed or never answered, and it sits above the inputs on the Calculator entry screen. |
+| `IcarusUI` / `LastingColourModel` | One day's lasting-colour answer, as state: the day it is about, how the question was reached, and the answer once given. Submitting writes the answer against that day's existing report at the answer's own time, days after the report's; a day with no report is refused by the store. It decides nothing about the calibration. |
+| `IcarusUI` / `LastingColourFlow` | The question itself: one page, the day it is about, and the three answers — yes, a little, no. Answering closes the flow. No banner, no figure, no MED or SED. No approved copy names the question or its answers, so the page shows the day as a date and the answers through `PromptWords`; the missing keys are a gap for the owner. |
+| `IcarusUI` / `PromptWords` | An enum case as the words a picker shows — a mechanical camel-case split of the case name. The answer options R20 names have no approved copy key, so the flow shows the data the enum carries rather than inventing a sentence (R42). |
+| `IcarusUI` / `HistoryModel`, `DaySummaryRow` | The session log as data. `reload(now:)` reads the whole history from the store, keeps the sessions whose state is `logged`, groups them by the day they belong to, attaches that day's skin report when there is one, and sums each day's stored per-region dose. Days come back newest first and the sessions inside a day newest first. A discarded session and a planned one are both absent: the log is what happened. It derives nothing — the doses are the ones the records already carry (R22) — and `days` is empty until `reload` has run. |
+| `IcarusUI` / `HistoryView` | The History screen: one section per day, headed by the date, holding one row per logged session, then that day's totals per region, then the answer the user gave about their skin when they gave one. No banner and figures throughout, which is the `ScreenTable` row `acceptance/S15.sh` checks. Reached from the Calculator's toolbar and opened over it, and its own toolbar carries the export and import actions. |
+| `IcarusUI` / `SessionRow` | One logged session in the list: the window actually faced, the posture, the sunscreen confirmed at logging, and the stored dose per region through `FigureView`. Tapping it opens the detail. |
+| `IcarusUI` / `SessionDetailView` | One session's stored record, recomputing nothing: the day, the window, the posture, the cover flag, the intent, the sunscreen and the ceiling that was in force; then what the user was shown at the time — the adaptation factor and target per region, beside the dose that was stored (R22); then the forecast it was planned from — the place as coordinates, when it was fetched, the strongest hour on the stored curve, and the curve's zone. |
+| `IcarusUI` / `ExportImportModel`, `ExportImportView` | History's own two record actions (R25). The model writes the whole record, the profile and the constant set to a temporary JSON file through `ExportService.export` and answers with its URL; it reads a picked file back through `ExportService.import`, saves the profile the file carried, drops the store's replay memo, and keeps the summary. An import that throws changes nothing — the service validates every record before writing any — and the model keeps the error instead of a summary. The view is the pair of toolbar buttons: a `ShareLink` over the exported file, and a `.json` file importer whose answer is an alert reading `importApplied` with the counts filled in, or `importFailed`. No approved key names either action, so each button is its system symbol alone. |
+| `IcarusUI` / `HistoryFormat` | How the History screens turn record data into short strings: a date and a clock time in the day's own zone, a coordinate as two numbers, a sunscreen pair as its label and application, a stored number to one decimal, and a case name split into words by the prompts' own splitter. All of it is data, so none of it goes through `AppCopy` (R42). |
 | `App/` | The iOS app shell. Depends only on `IcarusUI`. `ProjectIcarusApp` builds the live environment; `RootTabs` is the two-tab shell with the foreground hook, the deep-link hook and a control row above the Calculator that opens Settings (and, from M6, History) as sheets; its Calculator tab owns the one `CalculatorModel` the entry and result screens share. It holds no logic and no copy, and it never names the ad provider: `AppEnvironment.banner(width:)` hands it a view. |
 | `IcarusUI` / `FlipTimerModel` | The session clock for a lying-down session (R11). It plans nothing itself: the calculator builds the request, this model moves the window's start to the real clock, scales every target by the confirmed sunscreen's effective SPF so the plan spans the covered window, and hands it to the `Planner`. A non-plan outcome is a refusal (`TimerError.cannotStart`); notifications that are denied are a refusal too, before anything is written, and the same start is offered again with that refusal waived. It logs the session at the start from the plan's intervals and again, in place and shorter, from the intervals it actually ran. `ScaledGoal` is the one-line goal wrapper that does the SPF scaling. |
 | `IcarusUI` / `FlipTimerView` | The timer screen: which side is up first, the time left on this side and on the session, a stop button, and the refusal lines. No banner, figures yes (R39). Every sentence is a copy key; the sides, the buttons and the clock are symbols and numbers, because no approved line names them. |
-| `IcarusUI` / `SettingsModel` | Everything Settings can change or say: the ceiling (which is the profile), the sensitivity sentence and the manual override, the count of session days with no report, the export file, the import, and deleting the record. The replayed state lives behind an actor, so the model keeps a snapshot of it and refreshes after every write. |
-| `IcarusUI` / `SettingsView` | The list: the ceiling selector (each option named by the share of the threshold it plans at, the aggressive one disabled with the approved line until it unlocks), the sensitivity sentence with a stepper and a reset, the unreported-days line, the record's export, import and delete-with-warning, the WeatherKit attribution, the privacy row (wired in M7) and the disclaimer. |
+| `IcarusUI` / `SettingsModel` | Everything Settings can change or say: the ceiling (which is the profile), the sensitivity sentence and the manual override, the count of session days with no report, the weekly and cycle-to-date totals per region, the export file, the import, and deleting the record. The replayed state, the record and the totals live behind an actor, so the model keeps a snapshot of all three and refreshes after every write. |
+| `IcarusUI` / `SettingsView` | The list: the ceiling selector (each option named by the share of the threshold it plans at, the aggressive one disabled with the approved line until it unlocks), the sensitivity sentence with a stepper and a reset, the unreported-days line, the totals, the record's export, import and delete-with-warning, the WeatherKit attribution, the privacy row (wired in M7) and the disclaimer. |
+| `IcarusUI` / `TotalsView` | The dose the record holds, in two sections of three rows: the last seven days, and everything since each region's tan cycle opened (R24). It sums nothing — `HistoryStore.totals` does that from the logged sessions alone — and it draws every number through `FigureView`, with no estimate badge, because a sum of recorded doses rests on no assumed constant. No approved line names either span or any region, so a symbol heads each section and `PromptWords` names each row from the region's own case. |
 | `IcarusUI` / `AttributionView` | Apple's mark and the link to Apple's legal page (R29). The URL arrives with the forecast in M7; until then the link is absent rather than a placeholder sentence. |
 
 Two things follow from the layout and are deliberate. `IcarusCore` depends on
@@ -761,7 +776,7 @@ All three flow flags false is a first launch, and onboarding is what runs then
 ### Change a setting, or move the record
 
 1. `SettingsModel` reads the ceiling out of the profile and takes a snapshot of
-   the replayed state and the record.
+   the replayed state, the record and the totals.
 2. Changing the ceiling saves the profile. The aggressive option is offered only
    when `TanningGoal.effectiveScale` does not refuse it — enough reports, and one
    of them bounding a region in the current cycle (R7).
@@ -771,11 +786,16 @@ All three flow flags false is a first launch, and onboarding is what runs then
 4. An override writes `manualMultiplier` into the profile and invalidates the
    store's memo, so the next `state(now:)` answers under it without any write to
    the history. Resetting clears it and the learned value takes over again.
-5. Export asks `ExportService` for the whole record under the current profile and
+5. The totals are `HistoryStore.totals(now:)`: the week is every logged session
+   whose actual window ended inside the last seven days, summed per region; the
+   cycle is every logged session since that region's cycle opened, and a region
+   whose cycle has not opened shows nothing but zero. Both are read out of the
+   record on each refresh, never stored.
+6. Export asks `ExportService` for the whole record under the current profile and
    writes it to a temporary file the share sheet hands on.
-6. Import reads the file, lands it whole or not at all, applies the profile the
+7. Import reads the file, lands it whole or not at all, applies the profile the
    file carried, invalidates the memo and refreshes the snapshot.
-7. Delete shows the R44 warning first, then empties the record — which is what
+8. Delete shows the R44 warning first, then empties the record — which is what
    deletes the calibration, the tan state and today's budget with it.
 
 ## State and storage
@@ -844,6 +864,12 @@ rather than failed.
 `ScreenManifest.swift` one at a time instead, so a table that lost a row fails
 there too. Both platforms then run the `FigureView` grep.
 
+`acceptance/S10.sh` runs the logging suites and prints the twelve-line S10
+checklist beside the result. The filter is `IcarusDataTests` on Linux and
+`IcarusDataTests|IcarusUITests` on macOS, because `IcarusUI` is not built on
+Linux: the script says which half it could not observe rather than passing
+quietly, and an empty selection fails, as in S18.
+
 The file names are `S<n>.sh` exactly, one per criterion id: CI runs every
 `acceptance/S*.sh` after `swift test` in the Linux `core-tests` job.
 
@@ -867,6 +893,51 @@ The file names are `S<n>.sh` exactly, one per criterion id: CI runs every
    day it is about, because `DayKey.id` carries its own time zone and round-trips
    whatever zone the host is in. That is how a tapped notification knows which
    day it is asking about.
+
+### Answer the day-after skin check
+
+1. The user taps the notification, or a row on the in-app card. The shell knows
+   only the identifier: `NotificationRouting` turns it into the day and the
+   question, and anything it does not recognise opens the card instead.
+2. `SkinCheckModel` reads the day out of the store: which sessions are still
+   planned, and whether anything on the day is logged already.
+3. Each still-planned session is asked about in turn. "Yes" asks what was worn,
+   then offers the planned intervals to correct; the dose is the sum over those
+   intervals through `ExposureModel.dose`, attenuated once by the pair confirmed
+   and by the cover, and the store logs it with the factors and targets the
+   session was planned under. "No" discards the session. Either way it leaves
+   the list.
+4. With nothing left planned, a day that has something logged goes on to Q1; a
+   day that has nothing says so and records nothing at all — there is no dose
+   for the report to be evidence about (D-2026-09-03-T4).
+5. Q1 is the five answers; Q2 is asked only after one that names redness, and a
+   report is not submittable without it. Then the region, which defaults to "all
+   exposed", and the confounders, any number of them.
+6. Submitting writes one `SkinReport` for the day. The store folds it into the
+   replay and answers with the `CalibrationEffect` that report produced; a
+   second report for the same day is refused and shown the "already reported"
+   line. Recording it also schedules the lasting-colour question, four days
+   after this answer.
+7. The confirmation is the line the effect chose: the clamp asks the user to
+   revisit their skin type, a blister correction suggests the pause and names
+   its length, immediate darkening explains itself, a day with no dose says so,
+   and everything else is "report saved".
+
+### Answer the lasting-colour question
+
+1. The question is due four days after a report, by notification, or from the
+   in-app card inside its own window. Either way the identifier or the row names
+   one day — the day the report is about, never the day the question is asked.
+2. `LastingColourModel` carries that day and nothing else it has to load: the
+   report already exists, because a report is the only thing that makes this
+   question due.
+3. The user answers yes, a little, or no. The store attaches the answer to that
+   day's report and stamps it with the moment it was given, which is days after
+   the report's own timestamp and is what the replay reads (R14).
+4. A day whose report is gone is refused by the store, nothing is written, and
+   the page stays open — there is no approved line to explain it with.
+5. The flow then closes, the card re-reads what is due, and the answered day is
+   no longer a row on it.
 
 ### When the system will not alert
 
@@ -899,8 +970,107 @@ The file names are `S<n>.sh` exactly, one per criterion id: CI runs every
    discovering it when a request is silently dropped. It is the only read of the
    port outside scheduling, and it keeps the port itself inside this layer.
 
+### Read back the session log
+
+1. The clock symbol in the Calculator's toolbar opens `HistoryView` over the
+   Calculator (R24). History is not a third tab: the record is what the user
+   already did, not a third thing they do.
+2. The screen appears and asks `HistoryModel.reload(now:)` once. The model reads
+   the whole history from `HistoryStore`, drops every session that is not
+   `logged`, and groups the rest by `DayKey` — the day the record itself names,
+   in the zone it was decided in.
+3. Each day gets that day's `SkinReport` when one exists, and the sum of its
+   sessions' stored per-region doses. Nothing is replayed: the numbers on screen
+   are the numbers the user acted on (R22).
+4. Days sort newest first, and so do the sessions inside a day. A store that
+   cannot be read leaves an empty list rather than a stale one.
+5. A row shows the window faced, the posture, the sunscreen confirmed, and each
+   region's dose through `FigureView`. Tapping it pushes `SessionDetailView`,
+   which adds the factors and targets the user was shown, and the forecast the
+   plan came from — place, fetch time, peak UVI, zone.
+6. No heading on either screen is copy: no approved key names a column, so the
+   screens show dates, clock times, stored numbers and case names as words.
+### Chart the dose of a tan cycle
+
+1. `TrajectoryModel.reload(now:)` reads the whole record once and the replayed
+   state once. A store that cannot be read leaves an empty chart: History is a
+   record screen and nothing on it is a figure the user acts on.
+2. It keeps the logged sessions that actually faced something and orders them by
+   the end of their actual window, oldest first. Planned and discarded sessions
+   are not a record of dose and never reach the chart.
+3. Each region has its own cycle. The cycle opens at that region's `cycleStart`
+   in the replayed state, or — for a region the replay left outside a cycle — at
+   the most recent entry of `cycleStarts`. A session that ended before its
+   region's cycle opened is skipped for that region alone.
+4. Within the cycle the model adds the session's stored `dosePerRegion` to a
+   running sum per region and emits one `TrajectoryPoint` per session per
+   region: the instant the session ended, the region, and the sum so far. So the
+   line only ever rises inside a cycle, and it restarts at each cycle start,
+   region by region.
+5. The escalation-notice line is not guessed at from the dose. For each point
+   the model replays the state to that instant and asks `AdaptationModel` for
+   the region's notice; the first instant the answer is "risen" fixes that
+   region's notice dose. A region that never earned one has no line.
+6. `TrajectoryChart` draws a `LineMark` per region over date and cumulative SED,
+   coloured by region, with a dashed `RuleMark` at each region's notice dose.
+   The y axis is labelled with the unit, which is data and not copy.
+7. The words above the chart are the `trajectoryTitle` copy and they are the
+   point of the screen: this is a record of dose, not a measurement of colour.
+   Nothing here plots pigment.
+8. The chart is one accessibility element. It reads that title and then, per
+   region, the region's own words and the last cumulative dose — the numbers a
+   VoiceOver user is asking for when they ask what the chart says.
+
+### Take the record out, and put one back
+
+1. History's toolbar carries `ExportImportView`. When the screen appears the
+   model writes the export once, so the share sheet has a file the moment the
+   user asks for it; until it is written the symbol is there and does nothing.
+2. The export is `ExportService.export` over the whole store, the profile, and
+   the constant set, written into the temporary directory under a name stamped
+   with the instant it was taken. Before onboarding has saved a profile the file
+   records the conservative starting profile — the one the app was replaying
+   under — rather than refusing to export.
+3. Import opens the system file picker restricted to JSON. The chosen file may
+   live outside the sandbox, so the model takes the security-scoped grant for
+   the read alone and gives it straight back.
+4. `ExportService.import` decodes, refuses a format version this build does not
+   write, validates every record, and only then replaces the history whole. So a
+   corrupt file writes nothing at all.
+5. On success the model saves the profile the file carried — a record replayed
+   under a different profile is not the record that was exported — drops the
+   store's replay memo so every screen recomputes, and keeps the summary. The
+   export is then rewritten, because the record on disk is a different record.
+6. The user is answered either way: `importApplied` with the session and report
+   counts filled in, or `importFailed`, which says in the owner's words that
+   nothing was changed. A failure the picker itself reports is answered the same
+   way, since it is the same thing to say.
+7. The file the export writes is the file the import accepts: one format, one
+   version, both sides of `ExportService` (S10).
+
 ## Known rough edges
 
+- The History toolbar item is attached in `RootTabs`, outside the navigation
+  stack `CalculatorEntryView` owns, because the entry screen is another slice's
+  file. A toolbar declared outside its stack may not draw; nothing on Linux can
+  see either way, so this needs a look on a simulator, and the fix — if it is
+  needed — is one modifier moved inside that screen.
+- A session's factors and targets are shown under the figure keys closest to
+  their units, `uvaMultiple` and `rangeUpper`, because `FigureKey` has no case
+  for either. The label carries the meaning; the key does not. A case per stored
+  display figure is the tidy fix.
+- The skin check's answer options — Q1's five, Q2's four, the four regions and
+  the five confounders — have no copy key. `docs/APP_COPY.md` carries the
+  questions but not the answers, so the pickers show the enum case names split
+  into words. That is data rather than an invented sentence, but the words the
+  user reads are not words the owner approved: the keys are a gap in the plan
+  for the owner to close.
+- A `Planner.plan` call solves the session twice over: once to learn which
+  constants the solve reads and once for the answer. It is bounded — the worst
+  case measured here, a ten-hour lying window on a cached curve, is about 13 ms
+  in a debug build against the 100 ms R38 allows — but it is a doubling, and the
+  reason for it is the sink-replacing shape of `Tunables.recording(_:)` rather
+  than anything the planner wants.
 - A `Planner.plan` call solves each step once, through a `Tunables` copy that
   reports every constant it reads both to the caller's observer and to the
   planner's own bookkeeping (`Tunables.alsoRecording`), so provenance costs

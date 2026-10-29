@@ -39,6 +39,11 @@
         public var body: some View {
             NavigationStack {
                 VStack(spacing: 0) {
+                    // The questions that are due right now, above the inputs: the
+                    // in-app fallback for a notification that was never allowed or
+                    // never answered (R20). It shows nothing on a day with nothing
+                    // due, and no figure ever.
+                    DuePromptsCard(env: model.env)
                     Form {
                         Section {
                             windowRows
