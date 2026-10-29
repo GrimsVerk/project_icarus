@@ -63,6 +63,8 @@ final class ScreenshotTests: XCTestCase {
         XCTAssertTrue(app.navigationBars.buttons.firstMatch.waitForExistence(timeout: timeout))
         sleep(1)
         snap("04-result")
+        app.swipeUp()
+        snap("04-result-middle")
         // The actions close a long list, and a row off screen does not exist yet.
         XCTAssertTrue(scroll(app, to: timer))
         snap("04-result-scrolled")
@@ -70,9 +72,23 @@ final class ScreenshotTests: XCTestCase {
         timer.tap()
         sleep(1)
         snap("05-flip-timer")
+
+        // TIM-1 in docs/APP_COPY.md.
+        let start = app.buttons["Start"]
+        XCTAssertTrue(start.waitForExistence(timeout: timeout))
+        start.tap()
+        sleep(2)
+        snap("05-flip-timer-running")
     }
 
     func test03History() {
+        let empty = launch(preview: "onboarded")
+        let opener = empty.buttons["history"]
+        XCTAssertTrue(opener.waitForExistence(timeout: timeout))
+        opener.tap()
+        sleep(1)
+        snap("06-history-empty")
+
         let app = launch(preview: "onboarded")
         let compute = app.buttons["calculator.compute"]
         XCTAssertTrue(compute.waitForExistence(timeout: timeout))
@@ -89,6 +105,14 @@ final class ScreenshotTests: XCTestCase {
         history.tap()
         sleep(1)
         snap("06-history")
+
+        // A session that has ended, which is what the chart plots.
+        let past = launch(preview: "yesterday")
+        let pastHistory = past.buttons["history"]
+        XCTAssertTrue(pastHistory.waitForExistence(timeout: timeout))
+        pastHistory.tap()
+        sleep(1)
+        snap("06-history-past-session")
     }
 
     func test04Settings() {
@@ -129,13 +153,127 @@ final class ScreenshotTests: XCTestCase {
         snap("11-lasting-colour")
     }
 
+    /// The skin check's real questions: the preview logs a session the day
+    /// before, with no report yet.
+    func test08SkinCheckQuestions() {
+        _ = launch(preview: "yesterday", tapping: "skin-2026-06-14@Europe/Oslo")
+        sleep(2)
+        snap("10-skin-check-questions")
+    }
+
+    /// The two sheets the Result opens: the place and the other SPF.
+    func test09ResultSheets() {
+        let app = launch(preview: "onboarded")
+        let compute = app.buttons["calculator.compute"]
+        XCTAssertTrue(compute.waitForExistence(timeout: timeout))
+        compute.tap()
+
+        // RES-4 and RES-7 in docs/APP_COPY.md.
+        let place = app.buttons["Change place"]
+        XCTAssertTrue(place.waitForExistence(timeout: timeout))
+        place.tap()
+        sleep(1)
+        snap("12-sheet-change-place")
+        app.swipeDown(velocity: .fast)
+        sleep(1)
+
+        let otherSPF = app.buttons["I don't have that SPF"]
+        XCTAssertTrue(scroll(app, to: otherSPF))
+        otherSPF.tap()
+        sleep(1)
+        snap("12-sheet-no-such-spf")
+    }
+
+    func test10Quiz() {
+        let app = launch(preview: "fresh")
+        let forward = app.buttons["onboarding.forward"]
+        XCTAssertTrue(forward.waitForExistence(timeout: timeout))
+        forward.tap()
+        let acknowledge = app.switches["disclaimer.acknowledge"]
+        XCTAssertTrue(acknowledge.waitForExistence(timeout: timeout))
+        acknowledge.coordinate(withNormalizedOffset: CGVector(dx: 0.93, dy: 0.5)).tap()
+        forward.tap()
+
+        // ONB-7 in docs/APP_COPY.md.
+        let quiz = app.buttons["Take the questionnaire"]
+        XCTAssertTrue(quiz.waitForExistence(timeout: timeout))
+        quiz.tap()
+        sleep(1)
+        snap("13-quiz")
+    }
+
+    /// What the phone shows today: no WeatherKit, so no forecast.
+    func test11NoForecast() {
+        let app = launch(preview: "noforecast")
+        let compute = app.buttons["calculator.compute"]
+        XCTAssertTrue(compute.waitForExistence(timeout: timeout))
+        compute.tap()
+        sleep(2)
+        snap("14-result-no-forecast")
+    }
+
+    func test12DarkMode() {
+        XCUIDevice.shared.appearance = .dark
+        defer { XCUIDevice.shared.appearance = .light }
+        walkMainScreens(prefix: "15-dark")
+    }
+
+    func test13LargestText() {
+        let fresh = launch(preview: "fresh", textSize: Self.largestText)
+        let forward = fresh.buttons["onboarding.forward"]
+        XCTAssertTrue(forward.waitForExistence(timeout: timeout))
+        forward.tap()
+        sleep(1)
+        snap("16-large-onboarding-disclaimer")
+        walkMainScreens(prefix: "16-large", textSize: Self.largestText)
+    }
+
     // MARK: - Inside
 
-    private func launch(preview: String, tapping notification: String? = nil) -> XCUIApplication {
+    /// The largest accessibility text size, as UIKit names it.
+    private static let largestText = "UICTContentSizeCategoryAccessibilityXXXL"
+
+    /// The Calculator, the Result top and bottom, and Settings top, middle and
+    /// end, on the preview with a session the day before: the screens a
+    /// dark-mode or text-size check needs (screen review F4).
+    private func walkMainScreens(prefix: String, textSize: String? = nil) {
+        let app = launch(preview: "yesterday", textSize: textSize)
+        let compute = app.buttons["calculator.compute"]
+        XCTAssertTrue(compute.waitForExistence(timeout: timeout))
+        snap("\(prefix)-calculator")
+        XCTAssertTrue(scroll(app, to: compute))
+        compute.tap()
+        XCTAssertTrue(app.navigationBars.buttons.firstMatch.waitForExistence(timeout: timeout))
+        sleep(1)
+        snap("\(prefix)-result")
+        app.swipeUp()
+        app.swipeUp()
+        snap("\(prefix)-result-scrolled")
+        app.navigationBars.buttons.element(boundBy: 0).tap()
+
+        let settings = app.buttons["settings"]
+        XCTAssertTrue(settings.waitForExistence(timeout: timeout))
+        settings.tap()
+        sleep(1)
+        snap("\(prefix)-settings")
+        app.swipeUp()
+        snap("\(prefix)-settings-scrolled")
+        app.swipeUp()
+        snap("\(prefix)-settings-end")
+    }
+
+    private func launch(
+        preview: String,
+        tapping notification: String? = nil,
+        textSize: String? = nil
+    ) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["-IcarusPreview", preview]
         if let notification {
             app.launchArguments += ["-IcarusTapNotification", notification]
+        }
+        if let textSize {
+            app.launchArguments += ["-UIPreferredContentSizeCategoryName", textSize]
         }
         app.launch()
         return app
