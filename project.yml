@@ -16,6 +16,17 @@ targets:
     dependencies:
       - package: Icarus
         product: IcarusUI
+      - package: Icarus
+        product: IcarusContent
+    # Generated at `xcodegen generate` and merged with the generated keys below.
+    # It holds what no INFOPLIST_KEY_ setting can: the icarus:// scheme the
+    # Learn deep links use (R27, DeepLink.scheme).
+    info:
+      path: App/Info.plist
+      properties:
+        CFBundleURLTypes:
+          - CFBundleURLName: learn
+            CFBundleURLSchemes: [icarus]
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES
@@ -27,6 +38,19 @@ targets:
     sources: [Tests/AppTests]
     dependencies:
       - target: ProjectIcarus
+  # Walks the app on the preview environment and attaches a screenshot of every
+  # main screen. Its own scheme, run by .github/workflows/screenshots.yml; the
+  # nightly test run leaves it out.
+  ProjectIcarusScreenshots:
+    type: bundle.ui-testing
+    platform: iOS
+    sources: [Tests/Screenshots]
+    dependencies:
+      - target: ProjectIcarus
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_TARGET_NAME: ProjectIcarus
 schemes:
   ProjectIcarus:
     build:
@@ -40,3 +64,11 @@ schemes:
         - package: Icarus/IcarusContentTests
         - package: Icarus/IcarusUITests
         - package: Icarus/IcarusAdsTests
+  Screenshots:
+    build:
+      targets:
+        ProjectIcarus: all
+    test:
+      config: Debug
+      targets:
+        - ProjectIcarusScreenshots

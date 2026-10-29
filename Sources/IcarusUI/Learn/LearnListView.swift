@@ -19,18 +19,24 @@
         public nonisolated static let showsFigures = false
 
         private let adBanner: AnyView?
+        /// The modules open on top of the list. The shell passes its own so a
+        /// deep link can open one (R27); without it the list keeps its own.
+        private let externalPath: Binding<[ModuleID]>?
+        @State private var ownPath: [ModuleID] = []
 
-        public init(adBanner: AnyView?) {
+        public init(adBanner: AnyView?, path: Binding<[ModuleID]>? = nil) {
             self.adBanner = adBanner
+            externalPath = path
         }
 
         public var body: some View {
-            NavigationStack {
+            NavigationStack(path: externalPath ?? $ownPath) {
                 VStack(spacing: 0) {
                     List(ModuleIndex.all) { module in
                         NavigationLink(value: module.id) {
                             Text(module.title)
                         }
+                        .accessibilityIdentifier("learn.module.\(module.id.rawValue)")
                     }
                     .navigationDestination(for: ModuleID.self) { id in
                         // A destination for an id outside 1...12 cannot be

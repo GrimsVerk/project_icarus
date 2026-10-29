@@ -1,3 +1,4 @@
+import IcarusContent
 import IcarusUI
 import SwiftUI
 
@@ -5,14 +6,11 @@ import SwiftUI
 ///
 /// Nothing is decided here. The Calculator tab is the entry screen from Slice 3
 /// of `calculator-ui`, built once against the shared environment so the window
-/// the user entered survives a tab switch. The Learn list arrives with Slice 2
-/// of `learn-tab`; until then that tab is empty rather than filled with a
-/// placeholder sentence, because a user-visible sentence would have to be a
-/// `CopyKey` the owner approved (R42) and no key stands for "not built yet". The
-/// tab items are system images for the same reason; their titles land with the
-/// copy for them. Settings opens as a sheet from a control row above the
-/// Calculator (the entry screen owns its own navigation bar); History sits in the
-/// same row and opens over the Calculator.
+/// the user entered survives a tab switch; the Learn tab is the module list. The
+/// tab items are system images: their titles wait for approved copy (R42, BL-2).
+/// Settings opens as a sheet from a control row above the Calculator (the entry
+/// screen owns its own navigation bar); History sits in the same row and opens
+/// over the Calculator. First launch opens onboarding over everything (R28).
 struct RootTabs: View {
     @EnvironmentObject private var env: AppEnvironment
     @EnvironmentObject private var taps: NotificationTaps
@@ -27,6 +25,11 @@ struct RootTabs: View {
     @State private var settingsShown = false
     /// Whether the History screen is open over the Calculator (M6).
     @State private var showingHistory = false
+    /// The Learn modules open on top of the list, so a deep link can open one.
+    @State private var learnPath: [ModuleID] = []
+    /// Whether onboarding is open. Decided once, on appear, from the profile's
+    /// flags: finishing it is what sets them.
+    @State private var onboarding = false
 
     var body: some View {
         TabView(selection: $tab) {
@@ -45,22 +48,27 @@ struct RootTabs: View {
                         } label: {
                             Image(systemName: "clock.arrow.circlepath")
                         }
+                        .accessibilityIdentifier("history")
                         Button {
                             settingsShown = true
                         } label: {
                             Image(systemName: "gearshape")
                         }
+                        .accessibilityIdentifier("settings")
                     }
                     .padding(.horizontal)
                 }
                 .tabItem { Image(systemName: "sun.max") }
                 .tag(Tab.calculator)
-            // `Color.clear` and not `EmptyView`: a tab whose content is empty is
-            // not a tab at all, and the tab structure is what Slice 1
-            // delivered. The Learn list replaces this line in its own slice.
-            Color.clear
+            LearnListView(adBanner: env.banner(width: Self.bannerWidth), path: $learnPath)
                 .tabItem { Image(systemName: "book") }
                 .tag(Tab.learn)
+        }
+        .onAppear {
+            onboarding = !env.profile.flags().onboardingComplete
+        }
+        .fullScreenCover(isPresented: $onboarding) {
+            OnboardingCover(env: env) { onboarding = false }
         }
         .sheet(isPresented: $settingsShown) {
             SettingsView(model: SettingsModel(env: env))
@@ -70,10 +78,10 @@ struct RootTabs: View {
             HistoryView(env: env)
         }
         .onOpenURL { url in
-            // Every deep link the app registers is a Learn module (R27), so the
-            // tab is the whole route until the Learn list can open one.
-            if env.handle(url) != nil {
+            // Every deep link the app registers is a Learn module (R27).
+            if case let .learn(id) = env.handle(url) {
                 tab = .learn
+                learnPath = [id]
             }
         }
         .onChange(of: scenePhase) { _, phase in
@@ -93,6 +101,10 @@ struct RootTabs: View {
         case calculator
         case learn
     }
+
+    /// A width for the adaptive banner. The AdMob provider that actually uses it
+    /// lands in M7; the no-op provider ignores it.
+    static let bannerWidth: CGFloat = 320
 
     /// One tapped identifier, as the sheet's item. The identifier is its own
     /// identity: two taps on the same prompt are the same sheet.
@@ -118,14 +130,34 @@ private struct CalculatorTab: View {
         self.env = env
         // The banner slot is the entry screen's (R39); the provider decides
         // whether there is anything in it, and the no-op one says no.
-        banner = env.banner(width: Self.bannerWidth)
+        banner = env.banner(width: RootTabs.bannerWidth)
     }
 
     var body: some View {
         CalculatorEntryView(model: model, adBanner: banner)
     }
+}
 
-    /// A width for the adaptive banner. The AdMob provider that actually uses it
-    /// lands in M7; the no-op provider ignores it.
-    private static let bannerWidth: CGFloat = 320
+/// Onboarding, holding its model for as long as it is open.
+///
+/// A view of its own for the same reason as `CalculatorTab`: the model has to be
+/// a `@StateObject`, or every redraw of the shell would start the flow over.
+private struct OnboardingCover: View {
+    @StateObject private var model: OnboardingModel
+    private let env: AppEnvironment
+    private let done: () -> Void
+
+    init(env: AppEnvironment, done: @escaping () -> Void) {
+        _model = StateObject(wrappedValue: OnboardingModel(store: env.profile))
+        self.env = env
+        self.done = done
+    }
+
+    var body: some View {
+        OnboardingFlow(model: model) { _ in
+            // The replay reads the profile it just saved.
+            Task { await env.history.invalidate() }
+            done()
+        }
+    }
 }

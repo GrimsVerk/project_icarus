@@ -1,0 +1,50 @@
+name: Screenshots
+
+# Runs the app in a simulator on the preview environment and uploads a
+# screenshot of every main screen as the run's artifact, so the screens can be
+# looked at without a Mac. By hand only: gh workflow run screenshots.yml --ref <branch>
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: screenshots-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  screenshots:
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - run: brew install xcodegen
+      - run: xcodegen generate
+      # The tests attach the screenshots; a failed step still has the ones
+      # taken before it, so the export runs either way.
+      - name: Walk the screens
+        run: >
+          xcodebuild test
+          -project ProjectIcarus.xcodeproj
+          -scheme Screenshots
+          -destination 'platform=iOS Simulator,name=iPhone 16'
+          -resultBundlePath Screenshots.xcresult
+          CODE_SIGNING_ALLOWED=NO
+      - name: Export the screenshots
+        if: always()
+        run: |
+          mkdir -p raw screenshots
+          xcrun xcresulttool export attachments --path Screenshots.xcresult --output-path raw
+          # manifest.json maps each exported file to the name the test gave it.
+          jq -r '.[].attachments[] | [.exportedFileName, .suggestedHumanReadableName] | @tsv' raw/manifest.json |
+            while IFS=$'\t' read -r file name; do
+              cp "raw/$file" "screenshots/${name%%_*}.png"
+            done
+          ls screenshots
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: screenshots
+          path: screenshots/
+          if-no-files-found: warn
