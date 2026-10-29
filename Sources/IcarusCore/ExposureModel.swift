@@ -427,8 +427,8 @@ private extension ExposureModel {
     static func fitted(_ shape: Shape, _ request: ExposureRequest, tunables: Tunables) -> Shape {
         guard !request.coverHeadAndShoulders else { return shape }
         let budget = remaining(request, .headAndShoulders)
-        guard budget.isFinite, shape.totalMinutes > 0 else { return shape }
-        guard credit(shape, request, tunables: tunables) > budget + 1e-9 else { return shape }
+        guard budget.isFinite, shape.totalMinutes > 0,
+              credit(shape, request, tunables: tunables) > budget + 1e-9 else { return shape }
         var low = 0.0
         var high = 1.0
         for _ in 0 ..< 50 {

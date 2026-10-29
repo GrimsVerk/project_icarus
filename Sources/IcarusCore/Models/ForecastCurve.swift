@@ -157,8 +157,8 @@ private extension ForecastCurve {
     }
 
     static func interpolatedUVI(_ samples: [HourlyUVI], at time: Date) -> UVI {
-        guard let first = samples.first, let last = samples.last else { return 0 }
-        guard time >= first.time, time <= last.time else { return 0 }
+        guard let first = samples.first, let last = samples.last, time >= first.time,
+              time <= last.time else { return 0 }
         var low = 0
         var high = samples.count - 1
         while high - low > 1 {
