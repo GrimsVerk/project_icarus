@@ -8,6 +8,11 @@ on:
   push:
     tags: ["v*"]
   workflow_dispatch:
+    inputs:
+      new_xcode:
+        description: "Also do a signed simulator build on the newest hosted Xcodes"
+        type: boolean
+        default: false
 
 concurrency:
   group: nightly-${{ github.ref }}
@@ -65,3 +70,29 @@ jobs:
           -scheme Screenshots
           -destination 'platform=iOS Simulator,name=iPhone 16'
           CODE_SIGNING_ALLOWED=NO
+
+  # By hand only (`gh workflow run nightly.yml --ref <branch> -f new_xcode=true`):
+  # the jobs above build unsigned on the image's Xcode 16.4, which misses what
+  # newer Xcodes reject when they sign, as a plain Run in Xcode does. Xcode 27
+  # signs SwiftPM resource bundles for the simulator and refused ones holding a
+  # top-level `Resources/` folder. `xcode-27` is a preview image; its default is
+  # the owner's Xcode 27.1 (27A9275).
+  new-xcode:
+    if: github.event_name == 'workflow_dispatch' && inputs.new_xcode
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [macos-26, xcode-27]
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - run: xcodebuild -version
+      - run: brew install xcodegen
+      - run: xcodegen generate
+      - name: Signed simulator build (default signing)
+        run: >
+          xcodebuild build
+          -project ProjectIcarus.xcodeproj
+          -scheme ProjectIcarus
+          -destination 'generic/platform=iOS Simulator'
