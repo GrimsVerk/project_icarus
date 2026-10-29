@@ -138,15 +138,13 @@ public enum AppCopySource {
                 takeValue(line)
                 return
             }
-            if section == AppCopySource.skinTypeSection, line.hasPrefix("|") {
-                if let row = try AppCopySource.skinTypeRow(line) {
-                    skinTypes.append(row)
-                }
+            if section == AppCopySource.skinTypeSection, line.hasPrefix("|"),
+               let row = try AppCopySource.skinTypeRow(line)
+            {
+                skinTypes.append(row)
             }
-            if section == AppCopySource.quizSection {
-                if let question = try AppCopySource.quizQuestion(line) {
-                    quiz.append(question)
-                }
+            if section == AppCopySource.quizSection, let question = try AppCopySource.quizQuestion(line) {
+                quiz.append(question)
             }
         }
 
