@@ -26,7 +26,7 @@ echo
 echo "== byte-for-byte against Sources/IcarusContent/Resources/Learn"
 diff -r Sources/IcarusContent/Resources/Learn "$generated"
 echo "  no drift: the committed files are the document, split."
-echo "  $(ls "$generated" | wc -l) module files compared."
+echo "  $(find "$generated" -type f | wc -l) module files compared."
 
 echo
 echo "== the content suite"

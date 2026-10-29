@@ -6,8 +6,7 @@ related:
   - docs/BUILD_PROMPT.md               # the owner's build prompt; this doc is derived from it
   - docs/LEARN_CONTENT.md              # the Learn tab copy, verbatim input, never rewritten
   - docs/MELANOGENIC_THRESHOLDS.md     # the owner's addendum on per-skin-type tanning thresholds
-  - docs/reviews/design/conceptual-reconciled.md     # stage 2 findings, landed in revision 2
-  - docs/reviews/design/conceptual-reconciled-2.md   # pass 2 findings, landed in revision 3
+  - docs/DECISIONS.md                  # the owner's rulings behind revisions 2 and 3
 ---
 
 # project_icarus — Design Doc
