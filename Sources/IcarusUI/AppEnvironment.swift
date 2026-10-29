@@ -39,6 +39,10 @@
         /// environment asks WeatherKit for it.
         public var weatherAttribution: @Sendable () async -> WeatherAttribution? = { nil }
 
+        /// The zone of the cached forecast's place, once there is one. The
+        /// Calculator shows the slot in it (screen review F1).
+        @Published public private(set) var forecastTimeZone: TimeZone?
+
         /// Whether the ad provider has been prepared this run.
         private var adsPrepared = false
 
@@ -77,6 +81,9 @@
             }
             if await needsRefresh(now: now), let coordinate = lastCoordinate {
                 _ = await forecast.current(for: coordinate, now: now)
+            }
+            if let zone = await forecast.cached().curve?.timeZone {
+                forecastTimeZone = zone
             }
             _ = try? await history.discardPlanned(before: now)
         }

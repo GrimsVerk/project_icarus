@@ -73,7 +73,9 @@ struct RootTabs: View {
                 learnPath = [id]
             }
         }
-        .onChange(of: scenePhase) { _, phase in
+        // A cold launch is a foreground too (R1): without `initial` the first
+        // fetch waited for a compute, and the Calculator had no place zone.
+        .onChange(of: scenePhase, initial: true) { _, phase in
             guard phase == .active else { return }
             Task { await env.didBecomeActive() }
         }

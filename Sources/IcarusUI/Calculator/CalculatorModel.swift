@@ -59,6 +59,8 @@
             self.env = env
             let start = Self.nextQuarterHour(after: env.clock())
             window = Window(start: start, end: start.addingTimeInterval(Self.defaultWindowSeconds))
+            // The foreground fetch can land after this screen first appears.
+            env.$forecastTimeZone.compactMap { $0 }.assign(to: &$timeZone)
         }
 
         /// Show the slot in the cached forecast's zone before anything is
