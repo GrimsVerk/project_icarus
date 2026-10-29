@@ -60,31 +60,25 @@ main `b03489b` (copy wired): Screenshots 40937984262. F10 is already done
 there (the switch has its own labelled row, ONB-4); Settings already had
 Done. The other fourteen still showed.
 
-Open PRs, none merged yet (the machine went down mid-run; macOS CI keeps
-running on GitHub). Merge each with `gh pr merge --rebase --delete-branch`
-once its CI (Linux) and `nightly.yml -f new_xcode=true` are green:
-
-- #45 `fix/range-minutes-and-ceiling`: F3 (range in minutes, FIG-8 to
-  FIG-10, tests `PlannerRangeTests`) and F6 (locked aggressive refused,
-  tests in `SettingsCeilingTests`). CI green on 27f5d47; nightly
-  40940881849 running. The first nightly caught two bugs, fixed in 27f5d47.
-- #46 `fix/screen-polish`: F1, F2, F5, F7, F8, F9, F13, F14, F15. Its
-  Screenshots run 40939844348 showed all but F1 working; d77bf34 fixes F1.
-  CI, nightly and Screenshots running on d77bf34. #45 and #46 both touch
-  `Planner.swift` and `PlannerTests.swift` (different places): rebase the
-  second one after the first merges, then rerun CI.
-- #47 `fix/screenshot-walk` (draft): F11 (walk gaps) and F12 (preview
-  privacy link and stand-in weather credit), plus dark-mode and
-  largest-text screenshots. Screenshots run 40940398809 in progress;
-  nightly not run yet.
+Merged (2026-10-30): #46 (F1, F2, F5, F7-F9, F13-F15) and #45 (F3, F6,
+rebased; its next-steps hunk dropped). In flight: #47
+`fix/screenshot-walk`: F11, F12, and F4 from its own dark and largest-text
+shots (run 40974908873). Dark mode needed nothing: every colour is a system
+one. Largest text clipped the Calculator's From/Until/You'll be labels and
+broke "Change place"/"Refresh forecast" mid-word: those rows stack at the
+accessibility sizes (`StackedWhenLarge`, the Result's `buttonLayout`).
+Walk fixes: `XCUIDevice.appearance` left the app light, so dark comes from
+`-IcarusAppearance dark` (debug only); the large walk no longer waits for the
+plan button, which is pages down. Screenshots workflow: one run (40941378554)
+built and then sat 43 min without a test, so the simulator now boots in its
+own 10-min step, the walk has a 40-min step limit and the job 60 (a clean
+walk is about 11 min).
 
 Left to do:
-1. F4: read #47's `15-dark-*` and `16-large-*` screenshots, fix what breaks
-   on that branch, run nightly, undraft and merge.
-2. After all three merge: `gh workflow run screenshots.yml --ref main`,
-   then update `../review/icarus-screens.html` in place (each F item fixed /
-   no longer needed / not done, new scores, the after-run URL, D1-D4 at the
-   top), and clear this section.
+1. #47: CI + nightly `new_xcode=true` green, undraft, merge.
+2. `gh workflow run screenshots.yml --ref main`, check F1-F15 on the shots,
+   write the scored list here and clear this section.
+   `../review/icarus-screens.html` lives on the owner's desktop: not ours.
 3. Copy gaps for the owner: none found; F15 reuses SET-2 ("Done").
 
 ## Waiting on the owner

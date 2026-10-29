@@ -92,22 +92,30 @@
         }
 
         private var startPicker: some View {
-            DatePicker(
-                selection: startBinding,
-                displayedComponents: [.hourAndMinute]
-            ) {
-                Label(AppCopy.text(.calcFrom), systemImage: "sun.max")
-            }
+            StackedWhenLarge(
+                title: AppCopy.text(.calcFrom),
+                systemImage: "sun.max",
+                control: DatePicker(
+                    selection: startBinding,
+                    displayedComponents: [.hourAndMinute]
+                ) {
+                    Label(AppCopy.text(.calcFrom), systemImage: "sun.max")
+                }
+            )
         }
 
         private var endPicker: some View {
-            DatePicker(
-                selection: endBinding,
-                in: model.window.start...,
-                displayedComponents: [.hourAndMinute]
-            ) {
-                Label(AppCopy.text(.calcUntil), systemImage: "clock")
-            }
+            StackedWhenLarge(
+                title: AppCopy.text(.calcUntil),
+                systemImage: "clock",
+                control: DatePicker(
+                    selection: endBinding,
+                    in: model.window.start...,
+                    displayedComponents: [.hourAndMinute]
+                ) {
+                    Label(AppCopy.text(.calcUntil), systemImage: "clock")
+                }
+            )
         }
 
         /// Moving the start carries the end with it, so dragging the start never
@@ -132,14 +140,18 @@
         // MARK: - How it will be spent
 
         private var postureRow: some View {
-            Picker(selection: $model.posture) {
-                ForEach(Self.postures, id: \.self) { posture in
-                    Text(CopyWords.posture(posture)).tag(posture)
+            StackedWhenLarge(
+                title: AppCopy.text(.calcPostureLabel),
+                systemImage: "figure.walk",
+                control: Picker(selection: $model.posture) {
+                    ForEach(Self.postures, id: \.self) { posture in
+                        Text(CopyWords.posture(posture)).tag(posture)
+                    }
+                } label: {
+                    Label(AppCopy.text(.calcPostureLabel), systemImage: "figure.walk")
                 }
-            } label: {
-                Label(AppCopy.text(.calcPostureLabel), systemImage: "figure.walk")
-            }
-            .accessibilityIdentifier("calculator.posture")
+                .accessibilityIdentifier("calculator.posture")
+            )
         }
 
         /// Sunscreen is never cover (R10), and the line under the toggle says

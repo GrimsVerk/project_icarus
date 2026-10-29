@@ -33,6 +33,7 @@
         /// The result "I did this" logged, so the line saying so shows under
         /// it (RES-9) and only for that result: computing again clears it.
         @State private var logged: DoseResult?
+        @Environment(\.dynamicTypeSize) private var typeSize
 
         public init(model: CalculatorModel) {
             self.model = model
@@ -68,7 +69,9 @@
                         .foregroundStyle(.secondary)
                 }
                 // Each button is a full 44-point target (screen review F5).
-                HStack {
+                // At the accessibility text sizes the two do not fit side by
+                // side and break mid-word, so they stack (F4).
+                buttonLayout {
                     Button {
                         changingPlace = true
                     } label: {
@@ -76,7 +79,9 @@
                             .frame(minHeight: 44)
                             .contentShape(Rectangle())
                     }
-                    Spacer()
+                    if !typeSize.isAccessibilitySize {
+                        Spacer()
+                    }
                     Button {
                         Task { await model.refreshForecast() }
                     } label: {
@@ -88,6 +93,12 @@
                 .font(.subheadline)
             }
             .buttonStyle(.borderless)
+        }
+
+        private var buttonLayout: AnyLayout {
+            typeSize.isAccessibilitySize
+                ? AnyLayout(VStackLayout(alignment: .leading, spacing: 0))
+                : AnyLayout(HStackLayout())
         }
 
         /// Whose forecast this is (RES-2, RES-3). A coordinate means nothing to
