@@ -11,19 +11,34 @@ var products: [Product] = [
     .library(name: "IcarusData", targets: ["IcarusData"]),
 ]
 
+var dependencies: [Package.Dependency] = []
+
 var targets: [Target] = [
     .target(name: "IcarusCore"),
-    .target(name: "IcarusContent", resources: [.copy("Resources")]),
+    // Content depends on Core for `CopyKey` and `SkinType`: the app copy is
+    // keyed by the engine's enum, never by strings (D-2026-09-03-F7).
+    .target(name: "IcarusContent", dependencies: ["IcarusCore"], resources: [.copy("Resources")]),
     .target(name: "IcarusData", dependencies: ["IcarusCore"], resources: [.copy("Resources")]),
     // The Learn module files are generated from docs/LEARN_CONTENT.md by this
     // executable (D-2026-09-03-F4). It is Linux-safe, so it is always built.
     .executableTarget(name: "split-learn-content", dependencies: ["IcarusContent"]),
+    // The app copy is generated from docs/APP_COPY.md the same way (R42).
+    .executableTarget(name: "build-app-copy", dependencies: ["IcarusContent"]),
     .testTarget(name: "IcarusCoreTests", dependencies: ["IcarusCore"]),
-    .testTarget(name: "IcarusContentTests", dependencies: ["IcarusContent"]),
+    .testTarget(name: "IcarusContentTests", dependencies: ["IcarusContent", "IcarusCore"]),
     .testTarget(name: "IcarusDataTests", dependencies: ["IcarusData"]),
 ]
 
 #if !os(Linux)
+    // MarkdownUI renders the Learn modules, including the tables two of them
+    // carry, which Apple's `AttributedString` markdown does not render
+    // (D-2026-09-03-DEP1, MIT). Pinned exactly, and declared here rather than at
+    // the top so the Linux build never even resolves it: IcarusUI, its only
+    // client, does not exist there (D-2026-09-03-F6).
+    dependencies += [
+        .package(url: "https://github.com/gonzalezreal/swift-markdown-ui", exact: "2.4.1"),
+    ]
+
     products += [
         .library(name: "IcarusAds", targets: ["IcarusAds"]),
         .library(name: "IcarusUI", targets: ["IcarusUI"]),
@@ -33,7 +48,13 @@ var targets: [Target] = [
         .target(name: "IcarusAds"),
         .target(
             name: "IcarusUI",
-            dependencies: ["IcarusCore", "IcarusData", "IcarusContent", "IcarusAds"]
+            dependencies: [
+                "IcarusCore",
+                "IcarusData",
+                "IcarusContent",
+                "IcarusAds",
+                .product(name: "MarkdownUI", package: "swift-markdown-ui"),
+            ]
         ),
         .testTarget(name: "IcarusAdsTests", dependencies: ["IcarusAds"]),
         .testTarget(name: "IcarusUITests", dependencies: ["IcarusUI"]),
@@ -44,5 +65,6 @@ let package = Package(
     name: "Icarus",
     platforms: [.iOS(.v18), .macOS(.v14)],
     products: products,
+    dependencies: dependencies,
     targets: targets
 )

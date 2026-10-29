@@ -15,6 +15,14 @@
             self.container = container
         }
 
+        /// The store the app runs on: the default on-disk container for the two
+        /// entities. They are internal to this package — nothing outside it
+        /// knows the shape of the stored rows — so the app asks for this rather
+        /// than building a container itself.
+        public static func onDisk() throws -> SwiftDataPersistence {
+            try SwiftDataPersistence(container: ModelContainer(for: SessionEntity.self, ReportEntity.self))
+        }
+
         public func load() throws -> History {
             let context = ModelContext(container)
             let decoder = JSONDecoder()

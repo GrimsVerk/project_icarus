@@ -23,9 +23,32 @@ IcarusUI, IcarusAds and `App/` on those branches have never been compiled
 (written on Linux). Merge them one at a time; the first Xcode build (nightly or
 a Mac) will need fix rounds. Plans for them: `docs/plans/`.
 
-## Next
+## In progress (2026-10-29): bring the UI branches onto `main`
 
-- Owner rules on BL-1 (`docs/BACKLOG.md`).
-- Bring `feat/calculator-ui` onto `main` (rebase onto v2 `main`, run the checks, PR).
+Order: calculator-ui, learn-tab-2, calculator-ui-2, logging-calibration,
+history. Findings so far: `feat/calculator-ui` already contains
+`feat/learn-tab-2` (PR #19 was merged into it; identical trees), and
+`feat/logging-calibration` already contains `feat/history` (PR #21, plus later
+fixes). So three real merges; learn-tab-2 and history get checked as no-ops.
+
+Method per branch: new branch `merge/<name>` off `main`, merge the feature
+branch (a rebase would replay dozens of cascade merges), keep v2's side for
+`.github/`, `AGENTS.md`, README and drop the summer process files, then
+`gh workflow run ci.yml --ref merge/<name>` and `gh workflow run nightly.yml
+--ref merge/<name>` (no local Swift or Docker on the Linux box), fix until
+green, then PR and `gh pr merge --merge --delete-branch`.
+
+- [x] calculator-ui (+ learn-tab-2): macOS build and tests green first time;
+  Linux needed one swiftformat fix and jq in `core-tests`.
+  Local format/lint without Docker: the Linux release binaries of swiftformat
+  0.64.4 and SwiftLint 0.65.1 (`gh release download`) match CI.
+- [ ] calculator-ui-2
+- [ ] logging-calibration (+ history)
+
+## Waiting on the owner
+
+- BL-1 ruling (`docs/BACKLOG.md`).
+
+## Next
 - M7 release readiness needs the owner's inputs: AdMob app id, WeatherKit
   entitlement and signing, privacy-policy URL.
