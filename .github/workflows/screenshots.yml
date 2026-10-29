@@ -21,6 +21,11 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - run: brew install xcodegen
       - run: xcodegen generate
+      # Runner images differ in which simulators they carry, and some carry
+      # none until the platform is downloaded: take the iPhone that is there.
+      - name: Pick a simulator
+        id: sim
+        run: echo "udid=$(.github/scripts/pick-simulator.sh)" >> "$GITHUB_OUTPUT"
       # The tests attach the screenshots; a failed step still has the ones
       # taken before it, so the export runs either way.
       - name: Walk the screens
@@ -28,7 +33,7 @@ jobs:
           xcodebuild test
           -project ProjectIcarus.xcodeproj
           -scheme Screenshots
-          -destination 'platform=iOS Simulator,name=iPhone 16'
+          -destination 'id=${{ steps.sim.outputs.udid }}'
           -resultBundlePath Screenshots.xcresult
           CODE_SIGNING_ALLOWED=NO
       - name: Export the screenshots
