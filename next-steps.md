@@ -52,6 +52,41 @@ Branch rules: the `grimsverk-gates` ruleset makes `feat/**` PR-only after the
 first push and undeletable, so don't name work branches `feat/`. Its leftover
 `feat/screenshots` is merged and can only be deleted by the owner.
 
+## In progress: screen review fixes (2026-10-29)
+
+Owner ruling (2026-10-29, via Verkmester): "do the obvious fixes" = F1-F15
+of `../review/icarus-screens.html`; D1-D4 stay the owner's. Re-check run on
+main `b03489b` (copy wired): Screenshots 40937984262. F10 is already done
+there (the switch has its own labelled row, ONB-4); Settings already had
+Done. The other fourteen still showed.
+
+Open PRs, none merged yet (the machine went down mid-run; macOS CI keeps
+running on GitHub). Merge each with `gh pr merge --rebase --delete-branch`
+once its CI (Linux) and `nightly.yml -f new_xcode=true` are green:
+
+- #45 `fix/range-minutes-and-ceiling`: F3 (range in minutes, FIG-8 to
+  FIG-10, tests `PlannerRangeTests`) and F6 (locked aggressive refused,
+  tests in `SettingsCeilingTests`). CI green on 27f5d47; nightly
+  40940881849 running. The first nightly caught two bugs, fixed in 27f5d47.
+- #46 `fix/screen-polish`: F1, F2, F5, F7, F8, F9, F13, F14, F15. Its
+  Screenshots run 40939844348 showed all but F1 working; d77bf34 fixes F1.
+  CI, nightly and Screenshots running on d77bf34. #45 and #46 both touch
+  `Planner.swift` and `PlannerTests.swift` (different places): rebase the
+  second one after the first merges, then rerun CI.
+- #47 `fix/screenshot-walk` (draft): F11 (walk gaps) and F12 (preview
+  privacy link and stand-in weather credit), plus dark-mode and
+  largest-text screenshots. Screenshots run 40940398809 in progress;
+  nightly not run yet.
+
+Left to do:
+1. F4: read #47's `15-dark-*` and `16-large-*` screenshots, fix what breaks
+   on that branch, run nightly, undraft and merge.
+2. After all three merge: `gh workflow run screenshots.yml --ref main`,
+   then update `../review/icarus-screens.html` in place (each F item fixed /
+   no longer needed / not done, new scores, the after-run URL, D1-D4 at the
+   top), and clear this section.
+3. Copy gaps for the owner: none found; F15 reuses SET-2 ("Done").
+
 ## Waiting on the owner
 
 - Screen review (2026-10-29): every screen of Screenshots run 40924394592
@@ -74,9 +109,8 @@ first push and undeletable, so don't name work branches `feat/`. Its leftover
   `python3 scripts/copy-review.py ../review/icarus-copy.html` (add
   `--screenshots <dir>` with an unzipped Screenshots artifact). S17 is not
   met while a line is provisional. For the owner:
-  - FIG-8 to FIG-10 say "minutes", but the range figures are SED (R7 says
-    minutes; screen review F3). Either the engine gives the range in minutes
-    or the lines change; until then the two range figures keep their key.
+  - FIG-8 to FIG-10 say "minutes": with #45 the engine gives the range in
+    minutes (F3) and the lines fit as written.
   - FILL-6 ("your location") does not fit `staleFarFromCache` ("The saved
     forecast is for {place}, which is not where you are"); that line shows
     the cached coordinate instead.
