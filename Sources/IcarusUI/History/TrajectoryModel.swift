@@ -81,10 +81,8 @@
                     let total = running[region, default: 0] + (session.dosePerRegion[region] ?? 0)
                     running[region] = total
                     built.append(TrajectoryPoint(id: end, region: region, cumulativeSED: total))
-                    if notices[region] == nil {
-                        if await noticeRisen(region, at: end, skinType: skinType) {
-                            notices[region] = total
-                        }
+                    if notices[region] == nil, await noticeRisen(region, at: end, skinType: skinType) {
+                        notices[region] = total
                     }
                 }
             }
