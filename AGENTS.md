@@ -257,17 +257,7 @@ A lockfile that moves on its own is not covered by that detection —
 `plan-metrics.sh` reads the manifests, not the lock. Say so in the pull request
 when you refresh one.
 
-**Licensing.** This project is intentionally unlicensed unless the OWNER has
-placed a `LICENSE` file at the repository root themselves — never remove or
-second-guess one that exists. Absent that: there is no
-`LICENSE` file and no `license` field in package metadata, and their absence
-is a decision, not an omission. Licensing is assessed per project by the
-owner, at the point it actually matters — publication, distribution, or
-accepting outside contributions — because a default chosen up front silently
-attaches terms to a project that never revisits them. So: do not add a
-license file, do not populate a `license` field, and do not ask which license
-to use. If a task genuinely cannot proceed without one, say so in chat and
-let the owner decide.
+**Licensing.** PolyForm Shield 1.0.0 (see `LICENSE`), chosen by the owner on 2026-10-29. Don't change the license or add others; outside contributions need a CLA first, so merge no outside code.
 
 **Decisions.** Design choices and owner rulings are recorded in
 `docs/DECISIONS.md` (ADR-lite: one dated entry per decision, newest at the
