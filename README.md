@@ -310,3 +310,15 @@ revert restores a known-good state immediately.
 > touches payments, secrets, or user data, regenerate (or set) `auto_merge`
 > to `false` to keep a human merge step; the review gate still runs.
 
+
+## License
+
+Licensed under the [PolyForm Shield License 1.0.0](LICENSE)
+(<https://polyformproject.org/licenses/shield/1.0.0>). You may use, change and
+share this software for any purpose except providing a product that competes
+with it. The `Required Notice:` line at the top of `LICENSE` must travel with
+any copy.
+
+Outside contributions are accepted only under a contributor licence agreement
+granting the licensor a licence to the contribution. None is set up yet, so no
+outside code is merged.
