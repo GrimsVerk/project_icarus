@@ -46,6 +46,7 @@
                         }
                     }
                 }
+                .navigationTitle(AppCopy.text(.sunscreenSheetTitle))
             }
         }
 
@@ -59,7 +60,7 @@
                     Text(String(spf)).tag(spf)
                 }
             } label: {
-                Image(systemName: "drop.circle")
+                Label(AppCopy.text(.sunscreenSheetSPF), systemImage: "drop.circle")
             }
         }
 
@@ -74,10 +75,10 @@
         private var applicationPicker: some View {
             Picker(selection: $application) {
                 ForEach(Application.allCases, id: \.self) { applied in
-                    Text(applied.rawValue).tag(applied)
+                    Text(CopyWords.applicationOption(applied)).tag(applied)
                 }
             } label: {
-                Image(systemName: "hand.draw")
+                Label(AppCopy.text(.sunscreenSheetApplication), systemImage: "hand.draw")
             }
         }
 
@@ -86,7 +87,7 @@
                 model.confirmedSunscreen = .alternative(choice)
                 dismiss()
             } label: {
-                Image(systemName: "checkmark.circle")
+                Label(AppCopy.text(.sunscreenSheetConfirm), systemImage: "checkmark.circle")
             }
         }
 
@@ -103,7 +104,7 @@
             let zone = model.forecastStatus?.curve?.timeZone ?? .current
             let resolved = AppCopy.text(plan.copy, skinType: skinType, args: [
                 "spf": "SPF \(plan.with.spfLabel)",
-                "application": plan.with.application.rawValue,
+                "application": CopyWords.application(plan.with.application),
                 "coveredMinutes": String(Int(plan.coveredWindow.minutes.rounded())),
                 "window": ResultCopy.windowText(model.window, in: zone),
             ])

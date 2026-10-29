@@ -53,7 +53,8 @@ final class ScreenshotTests: XCTestCase {
 
         // Lying down, so the result offers the flip timer.
         app.buttons["calculator.posture"].tap()
-        let lying = app.buttons["lyingTurning"]
+        // CALC-5 in docs/APP_COPY.md: the menu's option is found by its words.
+        let lying = app.buttons["Lying down, turning over"]
         XCTAssertTrue(lying.waitForExistence(timeout: timeout))
         lying.tap()
         compute.tap()

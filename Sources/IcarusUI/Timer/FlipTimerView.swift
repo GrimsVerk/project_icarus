@@ -50,6 +50,8 @@
                 }
             }
             .padding()
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .navigationTitle(AppCopy.text(.timerTitle))
             .onReceive(beat) { tick in
                 now = tick
                 model.tick(now: tick)
@@ -58,17 +60,16 @@
 
         // MARK: - The pieces
 
-        /// Which way up the user starts (D-2026-09-03-F8). The two options carry
-        /// no words: no approved copy names a side, so each is the figure of a
-        /// body lying that way up.
+        /// Which way up the user starts (D-2026-09-03-F8), in the same words
+        /// the posture picker and the skin check use (TIM-2 to TIM-4).
         private var sidePicker: some View {
             VStack(alignment: .leading, spacing: 8) {
                 Text(AppCopy.text(.whichSideFirst))
                 Picker(selection: $model.firstSide) {
-                    Image(systemName: "figure.arms.open").tag(Side.faceUp)
-                    Image(systemName: "figure.wave").tag(Side.faceDown)
+                    Text(CopyWords.side(.faceUp)).tag(Side.faceUp)
+                    Text(CopyWords.side(.faceDown)).tag(Side.faceDown)
                 } label: {
-                    Image(systemName: "arrow.up.arrow.down")
+                    Text(AppCopy.text(.timerSidePicker))
                 }
                 .pickerStyle(.segmented)
             }
@@ -78,7 +79,7 @@
             Button {
                 start(ignoringNotifications: false)
             } label: {
-                Image(systemName: "play.circle.fill").font(.largeTitle)
+                Label(AppCopy.text(.timerStart), systemImage: "play.circle.fill").font(.title2)
             }
         }
 
@@ -86,28 +87,64 @@
             Button {
                 start(ignoringNotifications: true)
             } label: {
-                Image(systemName: "play.circle").font(.title)
+                Label(AppCopy.text(.timerStartWithoutAlerts), systemImage: "play.circle").font(.title3)
             }
         }
 
+        /// The side that is up, the time left on it, and the time left in the
+        /// session. On the last side the big clock runs to the session's end,
+        /// so it says that instead of "until you turn over" (TIM-8, TIM-9).
         private func running(exposure: Exposure, endsAt: Date, sessionEnd: Date) -> some View {
-            VStack(alignment: .leading, spacing: 16) {
-                Image(systemName: exposure == .lying(.faceDown) ? "figure.wave" : "figure.arms.open")
-                    .font(.largeTitle)
-                // Two clocks, and both are numbers rather than sentences: what
-                // is left of this side, and what is left of the session.
-                Text(clock(until: endsAt))
-                    .font(.system(size: 56, weight: .medium, design: .rounded))
-                    .monospacedDigit()
-                Text(clock(until: sessionEnd))
-                    .font(.title3)
-                    .monospacedDigit()
+            let side: Side = exposure == .lying(.faceDown) ? .faceDown : .faceUp
+            let lastSide = abs(endsAt.timeIntervalSince(sessionEnd)) < 1
+            return VStack(alignment: .leading, spacing: 16) {
+                Label(
+                    AppCopy.text(.timerNow, args: ["side": CopyWords.side(side).lowercased()]),
+                    systemImage: side == .faceDown ? "figure.wave" : "figure.arms.open"
+                )
+                .font(.title2)
+                countdown(
+                    until: endsAt,
+                    caption: lastSide ? .timerUntilEnd : .timerUntilTurn,
+                    spoken: lastSide ? .voTimerUntilEnd : .voTimerUntilTurn,
+                    font: .system(size: 56, weight: .medium, design: .rounded)
+                )
+                countdown(
+                    until: sessionEnd,
+                    caption: .timerLeftInSession,
+                    spoken: .voTimerLeftInSession,
+                    font: .title3
+                )
                 Button {
                     Task { try? await model.stop(now: Date()) }
                 } label: {
-                    Image(systemName: "stop.circle.fill").font(.largeTitle)
+                    Label(AppCopy.text(.timerStop), systemImage: "stop.circle.fill").font(.title2)
                 }
+                // Stopping shortens the record (R11): people should know
+                // before they tap.
+                Text(AppCopy.text(.timerStopFootnote))
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
             }
+        }
+
+        /// One clock and the words under it, which VoiceOver reads as one
+        /// sentence (VO-13) rather than as a string of digits.
+        private func countdown(until moment: Date, caption: CopyKey, spoken: CopyKey, font: Font) -> some View {
+            let seconds = max(0, Int(moment.timeIntervalSince(now)))
+            return VStack(alignment: .leading, spacing: 2) {
+                Text(clock(until: moment))
+                    .font(font)
+                    .monospacedDigit()
+                Text(AppCopy.text(caption))
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(Text(AppCopy.text(spoken, args: [
+                "minutes": String(seconds / 60),
+                "seconds": String(seconds % 60),
+            ])))
         }
 
         // MARK: - Inside
