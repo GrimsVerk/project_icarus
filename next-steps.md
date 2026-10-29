@@ -54,6 +54,17 @@ first push and undeletable, so don't name work branches `feat/`. Its leftover
 
 ## Waiting on the owner
 
+- Screen review (2026-10-29): every screen of Screenshots run 40924394592
+  (main `8604dde`) scored against DESIGN, the S criteria and Apple's HIG,
+  with 19 proposed fixes (F1-F15 obvious, D1-D4 the owner's call), in a
+  local file, `../review/icarus-screens.html` from this repo's parent folder
+  (outside every repo; may be deleted once answered). **Fix nothing until
+  the owner answers** on the GrimsVerk Desk: "do all obvious fixes" or fix
+  ids. Copy problems point at the copy review's ids, not new words. Two are
+  bugs found in the code while scoring: F6 (tapping 100% before aggressive
+  unlocks saves it, then disables the whole selector) and F3 (the range is
+  per-region SED, R7 says minutes on the recommendation).
+
 - Copy (BL-2, S17): a draft of every missing line is with the owner as a
   local file, `../review/icarus-copy.html` from this repo's parent folder,
   outside every repo (it may be deleted once answered). It has 186 lines with
@@ -85,11 +96,13 @@ first push and undeletable, so don't name work branches `feat/`. Its leftover
 
 ## Next
 
-- First run on the owner's iPhone (README, "Run on your iPhone"; PR #37):
-  on the owner's Mac, `Local.xcconfig` from the example, then build and
-  install. CI checks the settings resolve and that the app builds for a device
-  unsigned. Not yet tried anywhere: real Personal Team signing, the install
-  and the README's team-id `defaults` command. They need that Mac.
+- The app runs on the owner's iPhone 16 (iOS 26.5.2) since 2026-10-29, as
+  `com.grimsverk.icarus.personaldev` on a Personal Team, no forecast. The
+  Mac built it with signing overrides on the `xcodebuild` line, not
+  `Local.xcconfig`, after keychain fixes; README "Run on your iPhone" now
+  has that route. Still untried: `Local.xcconfig` signing a real build.
+  Split (owner, 2026-10-29): agents check screens via CI screenshots (and the
+  Mac simulator if needed); the owner tests by hand on the phone.
 - Small things the screenshots show, none of them blocking: the History chart
   is an empty box with one session; times on the Calculator are in the device's
   zone and on the Result and History in the place's (the simulator runs in UTC,
