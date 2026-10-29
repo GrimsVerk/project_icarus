@@ -48,11 +48,10 @@ public enum AppCopy {
     }
 
     private static let resourceName = "app-copy"
-    private static let subdirectory = "Resources"
 
     private static func load() -> AppCopyDocument {
-        let url = Bundle.module.url(forResource: resourceName, withExtension: "json", subdirectory: subdirectory)
-            ?? Bundle.module.bundleURL.appendingPathComponent("\(subdirectory)/\(resourceName).json")
+        let url = Bundle.module.url(forResource: resourceName, withExtension: "json")
+            ?? Bundle.module.bundleURL.appendingPathComponent("\(resourceName).json")
         guard let data = try? Data(contentsOf: url) else {
             preconditionFailure("missing bundled app copy at \(url.path)")
         }

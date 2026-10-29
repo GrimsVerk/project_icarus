@@ -59,7 +59,7 @@ public struct FakeForecastProvider: UVForecastProvider {
     }
 
     private static func fixtureData(named: String) throws -> Data {
-        let subdirectory = "Resources/Fixtures"
+        let subdirectory = "Fixtures"
         if let url = Bundle.module.url(forResource: named, withExtension: "json", subdirectory: subdirectory) {
             return try Data(contentsOf: url)
         }
