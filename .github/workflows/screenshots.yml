@@ -16,7 +16,8 @@ permissions:
 jobs:
   screenshots:
     runs-on: macos-15
-    timeout-minutes: 45
+    # A clean walk with the dark and largest-text shots takes about 20 minutes.
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - run: brew install xcodegen
@@ -26,9 +27,15 @@ jobs:
       - name: Pick a simulator
         id: sim
         run: echo "udid=$(.github/scripts/pick-simulator.sh)" >> "$GITHUB_OUTPUT"
+      # One run (40941378554) built, then sat 43 minutes without starting a
+      # test: boot the simulator first, so a stuck boot fails here, fast.
+      - name: Boot the simulator
+        timeout-minutes: 10
+        run: xcrun simctl bootstatus '${{ steps.sim.outputs.udid }}' -b
       # The tests attach the screenshots; a failed step still has the ones
       # taken before it, so the export runs either way.
       - name: Walk the screens
+        timeout-minutes: 40
         run: >
           xcodebuild test
           -project ProjectIcarus.xcodeproj

@@ -213,9 +213,9 @@ final class ScreenshotTests: XCTestCase {
     }
 
     func test12DarkMode() {
-        XCUIDevice.shared.appearance = .dark
-        defer { XCUIDevice.shared.appearance = .light }
-        walkMainScreens(prefix: "15-dark")
+        // `XCUIDevice.shared.appearance` left the app light on the runner, so
+        // the app takes the scheme from a launch argument instead.
+        walkMainScreens(prefix: "15-dark", dark: true)
     }
 
     func test13LargestText() {
@@ -236,11 +236,14 @@ final class ScreenshotTests: XCTestCase {
     /// The Calculator, the Result top and bottom, and Settings top, middle and
     /// end, on the preview with a session the day before: the screens a
     /// dark-mode or text-size check needs (screen review F4).
-    private func walkMainScreens(prefix: String, textSize: String? = nil) {
-        let app = launch(preview: "yesterday", textSize: textSize)
-        let compute = app.buttons["calculator.compute"]
-        XCTAssertTrue(compute.waitForExistence(timeout: timeout))
+    private func walkMainScreens(prefix: String, textSize: String? = nil, dark: Bool = false) {
+        let app = launch(preview: "yesterday", textSize: textSize, dark: dark)
+        // At the largest text sizes the plan button is pages down the list and
+        // does not exist until it is scrolled to: wait for the bar instead.
+        XCTAssertTrue(app.buttons["settings"].waitForExistence(timeout: timeout))
+        sleep(1)
         snap("\(prefix)-calculator")
+        let compute = app.buttons["calculator.compute"]
         XCTAssertTrue(scroll(app, to: compute))
         compute.tap()
         XCTAssertTrue(app.navigationBars.buttons.firstMatch.waitForExistence(timeout: timeout))
@@ -265,7 +268,8 @@ final class ScreenshotTests: XCTestCase {
     private func launch(
         preview: String,
         tapping notification: String? = nil,
-        textSize: String? = nil
+        textSize: String? = nil,
+        dark: Bool = false
     ) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["-IcarusPreview", preview]
@@ -274,6 +278,9 @@ final class ScreenshotTests: XCTestCase {
         }
         if let textSize {
             app.launchArguments += ["-UIPreferredContentSizeCategoryName", textSize]
+        }
+        if dark {
+            app.launchArguments += ["-IcarusAppearance", "dark"]
         }
         app.launch()
         return app
