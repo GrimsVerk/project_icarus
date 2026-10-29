@@ -39,6 +39,7 @@
                 }
             }
         }
+
         /// The zone the slot's times are shown in: the forecast place's, as on
         /// the Result and in History, because the forecast and its day belong
         /// to the place (screen review F1). The phone's until a forecast is
