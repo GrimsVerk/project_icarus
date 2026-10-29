@@ -2,9 +2,10 @@ import Foundation
 
 /// The twelve Learn modules, loaded once from the bundled markdown.
 ///
-/// The files under `Resources/Learn` are generated from `docs/LEARN_CONTENT.md`
-/// by `scripts/split-learn-content.sh` and committed; S7 fails if they drift
-/// from the source (D-2026-09-03-F4). Nothing here edits the text.
+/// The files under `Resources/Learn` (bundled as `Learn/`) are generated from
+/// `docs/LEARN_CONTENT.md` by `scripts/split-learn-content.sh` and committed;
+/// S7 fails if they drift from the source (D-2026-09-03-F4). Nothing here
+/// edits the text.
 public enum ModuleIndex {
     public static let all: [LearnModule] = ModuleID.range.map { number in
         guard let id = ModuleID(rawValue: number) else {
@@ -24,7 +25,7 @@ public enum ModuleIndex {
 
     // MARK: - Loading
 
-    private static let subdirectory = "Resources/Learn"
+    private static let subdirectory = "Learn"
 
     private static func fileText(for id: ModuleID) -> String {
         let name = String(format: "module-%02d", id.rawValue)

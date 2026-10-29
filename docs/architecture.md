@@ -74,7 +74,7 @@ answer.
 | `IcarusContent` / `LearnSource` | Reading `docs/LEARN_CONTENT.md`. `split` cuts it into its twelve sections verbatim, markers kept; `normalise` removes exactly the build annotations — every `[VERIFY]` token with its backticks, the preamble above Module 1 — and trailing whitespace. Nothing else is ever changed: no text is edited, paraphrased or summarised. |
 | `IcarusContent` / `LearnModule` | One module: its id (1...12, a `ModuleID`), its heading title, its body with the markers stripped, and its citations. Built from the text of one bundled file. |
 | `IcarusContent` / `Citation` | One `> - ` line of a `> **Sources**` block: authors, title, venue, year, the identifier the source carries (`doi`, `pmid`, `iso`, `url` or none) and `needsVerification`. `link` resolves a DOI through doi.org and a PMID through PubMed; an ISO number and a citation with no identifier have no link and render as text. |
-| `IcarusContent` / `ModuleIndex` | The twelve modules, loaded once from `Bundle.module` at `Resources/Learn/module-NN.md`, plus lookup by id and the deep link for a module. |
+| `IcarusContent` / `ModuleIndex` | The twelve modules, loaded once from `Bundle.module` at `Learn/module-NN.md`, plus lookup by id and the deep link for a module. |
 | `IcarusContent` / `DeepLink` | `icarus://learn/<n>` in both directions, as pure value work, so the app's router (M3) maps a URL to a screen without reaching further into the content layer. |
 | `split-learn-content` | The executable that generates the module files from the document. Linux-safe, so it is always built. `scripts/split-learn-content.sh` is the one command that runs it. |
 | `IcarusContent` / `AppCopySource` | Reading `docs/APP_COPY.md`: the `### <CopyKey>` sections with their `- base:` and optional `- fair:` lines, the skin-type table, and the numbered quiz. It refuses a document that names a key the engine does not have, or leaves one of the engine's without copy. The `## Notification texts` section is skipped: that wording is approved for a later plan and its keys are not in `CopyKey` yet. |
@@ -1157,8 +1157,10 @@ The file names are `S<n>.sh` exactly, one per criterion id: CI runs every
   `unavailable("WeatherKit is not available on this platform")`. The engine is
   built against the protocol, so the type must exist to be named; the live path
   cannot be run or verified until the entitlement lands (M7).
-- The fixture bundle is declared as `.copy("Resources")` on `IcarusData`, so the
-  fixture's path inside the bundle is `Resources/Fixtures/<name>.json`. The test
+- The fixture bundle is declared as `.copy("Resources/Fixtures")` on `IcarusData`,
+  so the fixture's path inside the bundle is `Fixtures/<name>.json`. Never copy a
+  whole `Resources` folder: a top-level `Resources/` in a shallow iOS bundle
+  fails codesign on Xcode 26+ signed simulator builds. The test
   target declares no resources of its own; a test needing a fixture either loads
   `beach-oslo` through the provider or carries its own JSON as a literal.
 - `ForecastCurveError` gained `Sendable` in `IcarusCore` so `ForecastFailure`

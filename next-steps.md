@@ -3,6 +3,16 @@
 Work in flight. Write a task here before starting it; delete it when done.
 Keep this short enough to read in one go.
 
+## In flight (2026-10-29): plain ⌘R in Xcode 27
+
+Branch `fix/xcode27-resource-bundles`. The owner's Xcode 27.1 fails the default
+(signed) simulator build: codesign rejects `Icarus_IcarusData.bundle` and
+`Icarus_IcarusContent.bundle` ("bundle format unrecognized"), each a shallow
+bundle with a top-level `Resources/` folder from `.copy("Resources")`. Fix: copy
+the folder's children instead, so no bundle has a `Resources/` dir; adjust the
+`Bundle.module` lookups. Add a manual job on the newest GitHub-hosted Xcode
+(26+) doing a signed simulator build. Small PR, CI green, rebase merge.
+
 ## State (2026-10-29)
 
 On `main`, built and tested on macOS (nightly) and Linux (CI), all green:
@@ -80,3 +90,8 @@ first push and undeletable, so don't name work branches `feat/`. Its leftover
   the preview place is Oslo).
 - Once the owner's inputs arrive: fill `project.yml`, run S16 on a device,
   TestFlight.
+- Release risk: the pinned CI jobs build on `macos-15`'s Xcode 16.4, and App
+  Store uploads need a current Xcode SDK, so a release build cannot come from
+  that pin. The pin is the template's; Verkmester handles it there. Until then
+  `gh workflow run nightly.yml --ref <branch> -f new_xcode=true` builds signed
+  on Xcode 26 and 27.

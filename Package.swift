@@ -17,8 +17,15 @@ var targets: [Target] = [
     .target(name: "IcarusCore"),
     // Content depends on Core for `CopyKey` and `SkinType`: the app copy is
     // keyed by the engine's enum, never by strings (D-2026-09-03-F7).
-    .target(name: "IcarusContent", dependencies: ["IcarusCore"], resources: [.copy("Resources")]),
-    .target(name: "IcarusData", dependencies: ["IcarusCore"], resources: [.copy("Resources")]),
+    // Resources are copied by their children, never as `.copy("Resources")`:
+    // a bundle with a top-level `Resources/` folder is not a valid shallow iOS
+    // bundle, and Xcode 26+ codesign rejects it on a signed simulator build.
+    .target(
+        name: "IcarusContent",
+        dependencies: ["IcarusCore"],
+        resources: [.copy("Resources/app-copy.json"), .copy("Resources/Learn")]
+    ),
+    .target(name: "IcarusData", dependencies: ["IcarusCore"], resources: [.copy("Resources/Fixtures")]),
     // The Learn module files are generated from docs/LEARN_CONTENT.md by this
     // executable (D-2026-09-03-F4). It is Linux-safe, so it is always built.
     .executableTarget(name: "split-learn-content", dependencies: ["IcarusContent"]),
