@@ -35,12 +35,18 @@ struct RootTabs: View {
             // The entry screen owns its navigation stack, so the shell hands it
             // its controls for that bar. Settings is a sheet, not a third tab
             // (R39).
-            CalculatorTab(env: env, controls: AnyView(controls))
+            CalculatorTab(env: env, controls: AnyView(controls(on: .calculator)))
                 .tabItem { Label(AppCopy.text(.tabPlan), systemImage: "sun.max") }
                 .tag(Tab.calculator)
-            LearnListView(adBanner: env.banner(width: Self.bannerWidth), path: $learnPath)
-                .tabItem { Label(AppCopy.text(.tabLearn), systemImage: "book") }
-                .tag(Tab.learn)
+            // The same two buttons, so the disclaimer and Apple's weather
+            // credit in Settings are reachable from every tab (R29).
+            LearnListView(
+                adBanner: env.banner(width: Self.bannerWidth),
+                path: $learnPath,
+                controls: AnyView(controls(on: .learn))
+            )
+            .tabItem { Label(AppCopy.text(.tabLearn), systemImage: "book") }
+            .tag(Tab.learn)
         }
         .onAppear {
             onboarding = !env.profile.flags().onboardingComplete
@@ -80,11 +86,13 @@ struct RootTabs: View {
         }
     }
 
-    /// History and Settings. History is reached from the Calculator rather
-    /// than from a tab of its own: the record is what the user already did,
-    /// not a third thing they do (M6).
-    private var controls: some View {
-        HStack {
+    /// History and Settings, in each tab's bar. History is not a tab of its
+    /// own: the record is what the user already did, not a third thing they
+    /// do (M6). Each tab's pair has its own identifiers, so a UI test finds
+    /// exactly one.
+    private func controls(on tab: Tab) -> some View {
+        let prefix = tab == .learn ? "learn." : ""
+        return HStack {
             // Icons in the bar, as iOS draws them; VoiceOver reads the line.
             Button {
                 showingHistory = true
@@ -92,14 +100,14 @@ struct RootTabs: View {
                 Label(AppCopy.text(.calcHistory), systemImage: "clock.arrow.circlepath")
                     .labelStyle(.iconOnly)
             }
-            .accessibilityIdentifier("history")
+            .accessibilityIdentifier(prefix + "history")
             Button {
                 settingsShown = true
             } label: {
                 Label(AppCopy.text(.calcSettings), systemImage: "gearshape")
                     .labelStyle(.iconOnly)
             }
-            .accessibilityIdentifier("settings")
+            .accessibilityIdentifier(prefix + "settings")
         }
     }
 

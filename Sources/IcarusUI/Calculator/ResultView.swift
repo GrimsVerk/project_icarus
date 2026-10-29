@@ -67,20 +67,25 @@
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
+                // Each button is a full 44-point target (screen review F5).
                 HStack {
                     Button {
                         changingPlace = true
                     } label: {
                         Label(AppCopy.text(.resultChangePlace), systemImage: "mappin.and.ellipse")
+                            .frame(minHeight: 44)
+                            .contentShape(Rectangle())
                     }
                     Spacer()
                     Button {
                         Task { await model.refreshForecast() }
                     } label: {
                         Label(AppCopy.text(.resultRefresh), systemImage: "arrow.clockwise")
+                            .frame(minHeight: 44)
+                            .contentShape(Rectangle())
                     }
                 }
-                .font(.footnote)
+                .font(.subheadline)
             }
             .buttonStyle(.borderless)
         }

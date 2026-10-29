@@ -66,6 +66,9 @@
                         adBanner
                     }
                 }
+                .task {
+                    await model.loadTimeZone()
+                }
                 .navigationDestination(isPresented: $showingResult) {
                     ResultView(model: model)
                 }
@@ -79,14 +82,26 @@
 
         // MARK: - The window
 
+        /// The two times are the forecast place's, as the Result shows them.
         @ViewBuilder
         private var windowRows: some View {
+            Group {
+                startPicker
+                endPicker
+            }
+            .environment(\.timeZone, model.timeZone)
+        }
+
+        private var startPicker: some View {
             DatePicker(
                 selection: startBinding,
                 displayedComponents: [.hourAndMinute]
             ) {
                 Label(AppCopy.text(.calcFrom), systemImage: "sun.max")
             }
+        }
+
+        private var endPicker: some View {
             DatePicker(
                 selection: endBinding,
                 in: model.window.start...,

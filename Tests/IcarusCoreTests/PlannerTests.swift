@@ -219,6 +219,13 @@ final class PlannerSunscreenTests: XCTestCase {
         XCTAssertEqual(advice.prescribed.spfLabel, lowestSufficientLabel(result))
     }
 
+    /// Screen review F2: which side goes first is the flip timer's question
+    /// (R11). On the result it had nothing to answer it with.
+    func testALyingResultLeavesWhichSideFirstToTheTimer() throws {
+        let result = try Plans.beachPlan(minutes: 180, posture: .lyingTurning)
+        XCTAssertFalse(result.copyKeys.contains(.whichSideFirst))
+    }
+
     func testThePrescribedPairKeepsEveryExposedRegionInsideItsBudget() throws {
         let result = try Plans.beachPlan(minutes: 60, state: PlannerFixture.state(spent: [.front: 1.0]))
         try expectTheProtectionCoversEveryRegion(result)

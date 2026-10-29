@@ -19,6 +19,7 @@
         public nonisolated static let showsFigures = false
 
         @ObservedObject private var model: LastingColourModel
+        @Environment(\.dismiss) private var dismiss
 
         public init(model: LastingColourModel) {
             self.model = model
@@ -46,6 +47,17 @@
                     }
                 }
                 .navigationTitle(AppCopy.text(.lastingColourTitle))
+                .toolbar {
+                    // A visible way out; the sheet could only be swiped away
+                    // (SET-2, screen review F15).
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button {
+                            dismiss()
+                        } label: {
+                            Text(AppCopy.text(.settingsDone))
+                        }
+                    }
+                }
             }
         }
 
