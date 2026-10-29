@@ -38,7 +38,7 @@ pipeline rows (ESC-*) are moot.
 
 ## Next
 
-- Land the two docs branches (merge onto `main`, drop summer process files,
+- In progress (branch `docs/land-20260903`): land the two docs branches (merge onto `main`, drop summer process files,
   bring BL-2 into `docs/BACKLOG.md`).
 - Run the app in a simulator once and look at it: the tests pass, but no one has
   seen the screens yet.
