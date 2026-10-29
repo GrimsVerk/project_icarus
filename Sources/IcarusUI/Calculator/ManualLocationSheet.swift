@@ -23,6 +23,9 @@
 
         @State private var query = ""
         @State private var candidates: [Place] = []
+        /// True once a search has answered, so an empty list can say that
+        /// nothing was found (PLACE-3) rather than stay blank.
+        @State private var searched = false
 
         public init(model: CalculatorModel, resolver: (any PlaceResolver)? = nil) {
             self.model = model
@@ -32,10 +35,14 @@
         public var body: some View {
             NavigationStack {
                 List {
-                    TextField(text: $query, prompt: nil) {
-                        Image(systemName: "magnifyingglass")
+                    TextField(text: $query, prompt: Text(AppCopy.text(.placeSearchPrompt))) {
+                        Label(AppCopy.text(.placeSearchPrompt), systemImage: "magnifyingglass")
                     }
                     .onSubmit { Task { await search() } }
+                    if searched, candidates.isEmpty {
+                        Text(AppCopy.text(.placeNotFound))
+                            .foregroundStyle(.secondary)
+                    }
                     // The candidates are the geocoder's own place names: data
                     // from outside the app, never copy of ours.
                     ForEach(candidates, id: \.name) { place in
@@ -49,11 +56,13 @@
                         }
                     }
                 }
+                .navigationTitle(AppCopy.text(.placeSheetTitle))
             }
         }
 
         private func search() async {
             candidates = await (try? resolver.resolve(query)) ?? []
+            searched = true
         }
 
         /// Apple's geocoder where there is one; a resolver that knows nothing

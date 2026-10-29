@@ -33,6 +33,10 @@
         /// the place and the age for every outcome, including the ones with no
         /// number at all.
         @Published public private(set) var forecastStatus: ForecastResult?
+        /// The name of the place the user typed, while the app is pinned to
+        /// one; nil while it follows the phone. The result screen names the
+        /// place by it (RES-3), and says "your location" otherwise (RES-2).
+        @Published public private(set) var placeName: String?
         /// The one planned session this model owns. Computing again replaces it
         /// rather than adding a second (R45).
         public private(set) var plannedSessionID: UUID?
@@ -91,6 +95,7 @@
         public func compute() async {
             let now = env.clock()
             let answer = await env.location.location(now: now)
+            placeName = Self.placeName(of: answer)
             var status = await env.forecast.cached()
             if status.curve == nil, let coordinate = answer.coordinate {
                 status = await env.forecast.current(for: coordinate, now: now)
@@ -120,11 +125,20 @@
         public func refreshForecast() async {
             let now = env.clock()
             let answer = await env.location.location(now: now)
+            placeName = Self.placeName(of: answer)
             guard let coordinate = answer.coordinate ?? env.lastCoordinate else {
                 forecastStatus = await env.forecast.cached()
                 return
             }
             forecastStatus = await env.forecast.current(for: coordinate, now: now, force: true)
+        }
+
+        /// The typed place's own name, which is the geocoder's data.
+        private static func placeName(of answer: LocationAnswer) -> String? {
+            if case let .manual(place) = answer {
+                return place.name
+            }
+            return nil
         }
 
         /// Pin the app to a place the user typed, refetch for it, and answer

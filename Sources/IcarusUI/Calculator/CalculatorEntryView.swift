@@ -19,10 +19,8 @@
     /// `acceptance/S11.sh` and `acceptance/S15.sh` check that by grepping this
     /// file for any use of the figure view at all.
     ///
-    /// The controls carry system images rather than words: no approved copy key
-    /// names an input, and a view may not invent one (R42, S11). Their VoiceOver
-    /// labels are built from the option data itself — the posture case name, the
-    /// window's own times — which is data, not copy.
+    /// Every label is a line of `docs/APP_COPY.md` (CALC-1 to CALC-11), and
+    /// VoiceOver reads the same words (R42, S9).
     public struct CalculatorEntryView: View, ScreenManifest {
         public nonisolated static let hasBannerSlot = true
         public nonisolated static let showsFigures = false
@@ -52,6 +50,8 @@
                     Form {
                         Section {
                             windowRows
+                        } header: {
+                            Text(AppCopy.text(.calcSlotHeader))
                         }
                         Section {
                             postureRow
@@ -85,14 +85,14 @@
                 selection: startBinding,
                 displayedComponents: [.hourAndMinute]
             ) {
-                Image(systemName: "sun.max")
+                Label(AppCopy.text(.calcFrom), systemImage: "sun.max")
             }
             DatePicker(
                 selection: endBinding,
                 in: model.window.start...,
                 displayedComponents: [.hourAndMinute]
             ) {
-                Image(systemName: "clock")
+                Label(AppCopy.text(.calcUntil), systemImage: "clock")
             }
         }
 
@@ -119,26 +119,37 @@
 
         private var postureRow: some View {
             Picker(selection: $model.posture) {
-                // The case names are the option data. No copy key names a
-                // posture, so the data is what the row shows.
                 ForEach(Self.postures, id: \.self) { posture in
-                    Text(posture.rawValue).tag(posture)
+                    Text(CopyWords.posture(posture)).tag(posture)
                 }
             } label: {
-                Image(systemName: "figure.walk")
+                Label(AppCopy.text(.calcPostureLabel), systemImage: "figure.walk")
             }
             .accessibilityIdentifier("calculator.posture")
         }
 
+        /// Sunscreen is never cover (R10), and the line under the toggle says
+        /// so, because people switch it on when they wear sunscreen.
         private var coverRow: some View {
             Toggle(isOn: $model.cover) {
-                Image(systemName: "person.crop.circle")
+                labelled(.calcCover, footnote: .calcCoverFootnote, systemImage: "person.crop.circle")
             }
         }
 
+        /// The toggle swaps the answer's order and turns the warnings on (R15,
+        /// R19), which its line underneath spells out.
         private var stayRow: some View {
             Toggle(isOn: $model.stay) {
-                Image(systemName: "hourglass")
+                labelled(.calcStay, footnote: .calcStayFootnote, systemImage: "hourglass")
+            }
+        }
+
+        private func labelled(_ title: CopyKey, footnote: CopyKey, systemImage: String) -> some View {
+            VStack(alignment: .leading, spacing: 4) {
+                Label(AppCopy.text(title), systemImage: systemImage)
+                Text(AppCopy.text(footnote))
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
             }
         }
 
@@ -151,7 +162,7 @@
                     showingResult = model.result != nil
                 }
             } label: {
-                Image(systemName: "arrow.forward.circle")
+                Label(AppCopy.text(.calcCompute), systemImage: "arrow.forward.circle")
             }
             .accessibilityIdentifier("calculator.compute")
         }
@@ -167,9 +178,16 @@
         /// It exists so the app target can fill the entry screen's slot without
         /// naming the ad provider: `AdBannerProvider` is IcarusAds' type, and
         /// R40 keeps ad code out of everything but that package and this one,
-        /// which already composes it.
+        /// which already composes it. VoiceOver names the container (VO-14),
+        /// so nobody mistakes the banner for part of the app.
         func banner(width: CGFloat) -> AnyView? {
-            ads.banner(width: width)
+            ads.banner(width: width).map { banner in
+                AnyView(
+                    banner
+                        .accessibilityElement(children: .contain)
+                        .accessibilityLabel(Text(AppCopy.text(.voAdvertisement)))
+                )
+            }
         }
     }
 #endif

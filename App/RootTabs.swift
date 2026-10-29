@@ -7,7 +7,7 @@ import SwiftUI
 /// Nothing is decided here. The Calculator tab is the entry screen from Slice 3
 /// of `calculator-ui`, built once against the shared environment so the window
 /// the user entered survives a tab switch; the Learn tab is the module list. The
-/// tab items are system images: their titles wait for approved copy (R42, BL-2).
+/// tabs are TAB-1 and TAB-2 in `docs/APP_COPY.md` (R42).
 /// Settings opens as a sheet from the Calculator's navigation bar; History sits
 /// beside it and opens over the Calculator. First launch opens onboarding over everything (R28).
 struct RootTabs: View {
@@ -36,10 +36,10 @@ struct RootTabs: View {
             // its controls for that bar. Settings is a sheet, not a third tab
             // (R39).
             CalculatorTab(env: env, controls: AnyView(controls))
-                .tabItem { Image(systemName: "sun.max") }
+                .tabItem { Label(AppCopy.text(.tabPlan), systemImage: "sun.max") }
                 .tag(Tab.calculator)
             LearnListView(adBanner: env.banner(width: Self.bannerWidth), path: $learnPath)
-                .tabItem { Image(systemName: "book") }
+                .tabItem { Label(AppCopy.text(.tabLearn), systemImage: "book") }
                 .tag(Tab.learn)
         }
         .onAppear {
@@ -85,16 +85,19 @@ struct RootTabs: View {
     /// not a third thing they do (M6).
     private var controls: some View {
         HStack {
+            // Icons in the bar, as iOS draws them; VoiceOver reads the line.
             Button {
                 showingHistory = true
             } label: {
-                Image(systemName: "clock.arrow.circlepath")
+                Label(AppCopy.text(.calcHistory), systemImage: "clock.arrow.circlepath")
+                    .labelStyle(.iconOnly)
             }
             .accessibilityIdentifier("history")
             Button {
                 settingsShown = true
             } label: {
-                Image(systemName: "gearshape")
+                Label(AppCopy.text(.calcSettings), systemImage: "gearshape")
+                    .labelStyle(.iconOnly)
             }
             .accessibilityIdentifier("settings")
         }

@@ -30,6 +30,9 @@
         @ObservedObject private var model: CalculatorModel
         @State private var changingPlace = false
         @State private var choosingSunscreen = false
+        /// The result "I did this" logged, so the line saying so shows under
+        /// it (RES-9) and only for that result: computing again clears it.
+        @State private var logged: DoseResult?
 
         public init(model: CalculatorModel) {
             self.model = model
@@ -46,6 +49,7 @@
                     actionsSection(result)
                 }
             }
+            .navigationTitle(AppCopy.text(.resultTitle))
             .sheet(isPresented: $changingPlace) {
                 ManualLocationSheet(model: model)
             }
@@ -57,28 +61,49 @@
         // MARK: - The forecast line, on every outcome
 
         private var forecastLine: some View {
-            HStack {
-                // A coordinate is data; the app has no name for a place it was
-                // given as two numbers, and inventing one would be copy.
-                Text(placeText)
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-                Spacer()
-                Button {
-                    changingPlace = true
-                } label: {
-                    Image(systemName: "mappin.and.ellipse")
+            VStack(alignment: .leading, spacing: 8) {
+                if !placeLine.isEmpty {
+                    Text(placeLine)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
                 }
-                Button {
-                    Task { await model.refreshForecast() }
-                } label: {
-                    Image(systemName: "arrow.clockwise")
+                HStack {
+                    Button {
+                        changingPlace = true
+                    } label: {
+                        Label(AppCopy.text(.resultChangePlace), systemImage: "mappin.and.ellipse")
+                    }
+                    Spacer()
+                    Button {
+                        Task { await model.refreshForecast() }
+                    } label: {
+                        Label(AppCopy.text(.resultRefresh), systemImage: "arrow.clockwise")
+                    }
                 }
+                .font(.footnote)
             }
             .buttonStyle(.borderless)
         }
 
+        /// Whose forecast this is (RES-2, RES-3). A coordinate means nothing to
+        /// a reader, and turning it into a town would be one more network
+        /// call (V11), so the phone's own place is "your location".
+        private var placeLine: String {
+            if let name = model.placeName {
+                return AppCopy.text(.resultForecastFor, args: ["place": name])
+            }
+            return model.forecastStatus?.curve == nil ? "" : AppCopy.text(.resultForecastHere)
+        }
+
+        /// `{place}` in the stale-forecast heads-up (FILL-6).
         private var placeText: String {
+            model.placeName ?? AppCopy.text(.placeYourLocation)
+        }
+
+        /// `{place}` in "the saved forecast is for {place}, which is not where
+        /// you are": there FILL-6's "your location" would contradict itself,
+        /// so the line names the saved forecast's own coordinate, as data.
+        private var cachedPlaceText: String {
             guard let location = model.forecastStatus?.curve?.location else { return "" }
             return String(format: "%.2f, %.2f", location.latitude, location.longitude)
         }
@@ -93,20 +118,21 @@
             }
         }
 
-        /// Every figure the result carries, each labelled by the key it is a
-        /// value of — the key is data, and it is what a figure with no line of
-        /// its own is named by.
+        /// Every figure the result carries, under the line that says the number
+        /// is what to do (RES-6, R7), each with its own label (FIG-1 to FIG-13).
+        @ViewBuilder
         private func figuresSection(_ result: DoseResult) -> some View {
-            Section {
-                ForEach(Array(result.figures.enumerated()), id: \.offset) { numbered in
-                    FigureView(figure: numbered.element, label: label(for: numbered.element))
+            let figures = FigureLabels.shown(result.figures)
+            if !figures.isEmpty {
+                Section {
+                    Text(AppCopy.text(.resultDoTheNumber))
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                    ForEach(Array(figures.enumerated()), id: \.offset) { numbered in
+                        FigureView(figure: numbered.element.figure, label: numbered.element.label)
+                    }
                 }
             }
-        }
-
-        private func label(for figure: Figure) -> String {
-            guard let region = figure.region else { return figure.key.rawValue }
-            return "\(figure.key.rawValue) · \(region.rawValue)"
         }
 
         // MARK: - What the user can do about it
@@ -119,22 +145,36 @@
                         Button {
                             choosingSunscreen = true
                         } label: {
-                            Image(systemName: "drop.circle")
+                            Label(AppCopy.text(.resultNoSuchSPF), systemImage: "drop.circle")
                         }
                     }
                     Button {
-                        Task { try? await model.didThis() }
+                        Task {
+                            do {
+                                try await model.didThis()
+                                logged = result
+                            } catch {
+                                logged = nil
+                            }
+                        }
                     } label: {
-                        Image(systemName: "checkmark.circle")
+                        Label(AppCopy.text(.resultDidThis), systemImage: "checkmark.circle")
                     }
                     .accessibilityIdentifier("result.didThis")
+                    // Nothing else changes on the screen after the tap, so
+                    // without this line people tap twice.
+                    if logged == result {
+                        Text(AppCopy.text(.resultLogged))
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                    }
                     // Lying down, the flip timer is the session clock (R11), and
                     // starting it is the other way a plan becomes a record.
                     if model.posture == .lyingTurning {
                         NavigationLink {
                             FlipTimerScreen(calculator: model)
                         } label: {
-                            Image(systemName: "timer")
+                            Label(AppCopy.text(.resultStartTimer), systemImage: "timer")
                         }
                         .accessibilityIdentifier("result.timer")
                     }
@@ -151,6 +191,7 @@
                 tunables: model.env.tunables,
                 window: model.window,
                 place: placeText,
+                cachedPlace: cachedPlaceText,
                 showWarnings: model.stay,
                 timeZone: model.forecastStatus?.curve?.timeZone ?? .current
             )
@@ -217,6 +258,7 @@
         let tunables: Tunables
         let window: Window
         let place: String
+        let cachedPlace: String
         let showWarnings: Bool
         let timeZone: TimeZone
 
@@ -249,7 +291,7 @@
             case .noViableWindow:
                 ["days": String(horizonDays), "peakUVI": Self.sed(peakUVI)]
             case .budgetSpent:
-                ["region": spentRegion.rawValue]
+                ["region": CopyWords.region(spentRegion)]
             case .missingForecast:
                 ["reason": missingReason]
             default:
@@ -264,7 +306,7 @@
             case .staleWarn:
                 ["hours": staleHours]
             case .staleFarFromCache:
-                ["place": place]
+                ["place": cachedPlace]
             default:
                 nil
             }
@@ -294,7 +336,7 @@
             case .coverToRunLonger:
                 ["minutes": Self.minutes(plan?.extraMinutesIfCovered.values.max() ?? 0)]
             case .oneSideSpent:
-                ["region": (plan?.limitingRegion ?? focusRegion).rawValue]
+                ["region": CopyWords.region(plan?.limitingRegion ?? focusRegion)]
             case .warnPastTarget, .warnReachesThreshold:
                 warningArgs(key)
             default:
@@ -333,7 +375,7 @@
                     continue
                 }
             }
-            return ["window": windowText, "region": region.rawValue, "sed": Self.sed(total)]
+            return ["window": windowText, "region": CopyWords.region(region), "sed": Self.sed(total)]
         }
 
         // MARK: What the result says
@@ -393,7 +435,7 @@
 
         private var missingReason: String {
             if case let .missingForecast(kind) = result.outcome {
-                return kind?.rawValue ?? ""
+                return CopyWords.reason(kind)
             }
             return ""
         }
@@ -419,8 +461,9 @@
             "SPF \(advice?.prescribed.spfLabel ?? 0)"
         }
 
+        /// FILL-2: "applied normally", not the enum's "applied normal".
         private var applicationText: String {
-            (advice?.prescribed.application ?? .normal).rawValue
+            CopyWords.application(advice?.prescribed.application ?? .normal)
         }
 
         private var windowText: String {

@@ -10,8 +10,7 @@
     /// Whether this is an estimate is never guessed at here: `Figure.isEstimate`
     /// is the engine's own answer, computed from what a recording `Tunables`
     /// observed while the number was made. The badge's VoiceOver label names the
-    /// assumptions themselves, which are constant keys and so are data rather
-    /// than copy.
+    /// assumptions themselves, each by its line in `docs/APP_COPY.md`.
     ///
     /// Every figure the app shows goes through this view, and it lives on the
     /// Result screen alone: the Calculator entry screen shows no figure at all
@@ -50,10 +49,10 @@
             }
         }
 
-        /// The assumed constants behind this number, by the keys `Tunables`
-        /// reports them under.
+        /// "Estimate. It rests on an assumption: …", naming each assumed
+        /// constant behind this number in words (VO-1, R30).
         private var assumptions: String {
-            figure.assumptionKeys.joined(separator: ", ")
+            CopyWords.estimate(figure.assumptionKeys)
         }
     }
 #endif
