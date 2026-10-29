@@ -39,7 +39,7 @@ setting `needsVerification` from what it stripped (no sidecar; tactical #26).
 ## Slice 1 — Modules as data, with citations parsed and markers stripped
 
 - **Delivers:** `ModuleIndex.all` lists twelve `LearnModule`s loaded from bundled markdown; each exposes its title, body (markers stripped at load), and parsed `Citation`s with the identifier kind the source carries and `needsVerification` set from the marker the loader stripped; the split script regenerates the files byte-identically and S7 proves the rendered text equals the source section after normalisation. Content only, no views: `calculator-ui` Slice 2 depends on this slice.
-- **Files:** `Package.swift`, `scripts/split-learn-content.sh`, `Sources/split-learn-content/main.swift`, `Sources/IcarusContent/Resources/Learn/module-01.md` … `module-12.md`, `Sources/IcarusContent/LearnModule.swift`, `Sources/IcarusContent/ModuleIndex.swift`, `Sources/IcarusContent/Citation.swift`, `Sources/IcarusContent/DeepLink.swift`, `Tests/IcarusContentTests/ModuleIndexTests.swift`, `Tests/IcarusContentTests/CitationTests.swift`, `Tests/IcarusContentTests/DeepLinkTests.swift`, `acceptance/S7-learn.sh`
+- **Files:** `Package.swift`, `scripts/split-learn-content.sh`, `Sources/split-learn-content/main.swift`, `Sources/IcarusContent/Resources/Learn/module-01.md` … `module-12.md`, `Sources/IcarusContent/LearnModule.swift`, `Sources/IcarusContent/ModuleIndex.swift`, `Sources/IcarusContent/Citation.swift`, `Sources/IcarusContent/DeepLink.swift`, `Tests/IcarusContentTests/ModuleIndexTests.swift`, `Tests/IcarusContentTests/CitationTests.swift`, `Tests/IcarusContentTests/DeepLinkTests.swift`, `acceptance/S7.sh`
 - **Estimate:** ~380 lines
 
 ### Signatures
@@ -83,7 +83,7 @@ scripts/split-learn-content.sh: `swift run split-learn-content docs/LEARN_CONTEN
 LearnModule loader: markdown = normalise(fileText); citations parsed from the file text BEFORE stripping so needsVerification = line contained [VERIFY]
 Citation parser: for lines under "> **Sources**" starting "> - ": authors up to first ". *"; title between *…*; venue/year after; identifier by regex applied to the text after the year's ". ":
   https://doi\.org/(\S+) | PMID (\d+) | ISO (\d+(?::\d+)?) | (https?://\S+)   — the DOI/URL capture stops at whitespace, so a trailing `[VERIFY]` is never part of it
-acceptance/S7-learn.sh: regenerate into a temp dir, diff byte-for-byte against Sources/…/Learn; then `swift test --filter IcarusContentTests`
+acceptance/S7.sh: regenerate into a temp dir, diff byte-for-byte against Sources/…/Learn; then `swift test --filter IcarusContentTests`
 ```
 
 ## Slice 2 — The Learn tab: list, markdown with tables, tappable citations, deep links

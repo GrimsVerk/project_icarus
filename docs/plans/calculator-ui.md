@@ -33,7 +33,7 @@ Rulings: D-2026-09-03-F7, F8, T3 (docs/DECISIONS.md); design revision 3 for suns
 ## Slice 1 — App copy as data, the ad protocol and no-op, the profile store, the screen manifest, and the environment
 
 - **Delivers:** `docs/APP_COPY.md` exists with a keyed table for every `CopyKey`; `AppCopy.text(_:skinType:)` resolves them; the `AdBannerProvider` protocol and `NoAdsProvider` exist in IcarusAds; `ProfileStore` exists in IcarusData; every screen declares `hasBannerSlot` and `showsFigures`; `AppEnvironment` lives in IcarusUI and composes the packages, refreshes the forecast on foreground (the R1 trigger), discards stale planned sessions, and routes deep links; the app target only instantiates it.
-- **Files:** `docs/APP_COPY.md`, `scripts/build-app-copy.sh`, `Sources/IcarusContent/Resources/app-copy.json`, `Sources/IcarusContent/AppCopy.swift`, `Sources/IcarusContent/SkinTypeTable.swift`, `Sources/IcarusAds/AdBannerProvider.swift`, `Sources/IcarusAds/NoAdsProvider.swift`, `Sources/IcarusData/ProfileStore.swift`, `Sources/IcarusUI/ScreenManifest.swift`, `Sources/IcarusUI/AppEnvironment.swift`, `App/ProjectIcarusApp.swift`, `App/RootTabs.swift`, `Tests/IcarusContentTests/AppCopyTests.swift`, `Tests/IcarusUITests/ScreenManifestTests.swift`, `Tests/IcarusUITests/AppEnvironmentTests.swift`, `acceptance/S11-static.sh`, `acceptance/S15-screens.sh`
+- **Files:** `docs/APP_COPY.md`, `scripts/build-app-copy.sh`, `Sources/IcarusContent/Resources/app-copy.json`, `Sources/IcarusContent/AppCopy.swift`, `Sources/IcarusContent/SkinTypeTable.swift`, `Sources/IcarusAds/AdBannerProvider.swift`, `Sources/IcarusAds/NoAdsProvider.swift`, `Sources/IcarusData/ProfileStore.swift`, `Sources/IcarusUI/ScreenManifest.swift`, `Sources/IcarusUI/AppEnvironment.swift`, `App/ProjectIcarusApp.swift`, `App/RootTabs.swift`, `Tests/IcarusContentTests/AppCopyTests.swift`, `Tests/IcarusUITests/ScreenManifestTests.swift`, `Tests/IcarusUITests/AppEnvironmentTests.swift`, `acceptance/S11.sh`, `acceptance/S15.sh`
 - **Estimate:** ~520 lines
 
 ### Signatures
@@ -81,8 +81,8 @@ public enum ScreenTable { public static let all: [(name: String, hasBanner: Bool
 
 ```text
 docs/APP_COPY.md and scripts/build-app-copy.sh as revision 2
-acceptance/S11-static.sh: copy-bearing call sites only (Text(" Label(" Button(" .navigationTitle(" .alert(" .confirmationDialog(" Section(" accessibilityLabel(" accessibilityHint(") — no allowlist; package describe; import greps; FigureView( must not appear in CalculatorEntryView.swift or Prompts/
-acceptance/S15-screens.sh: `swift test --filter ScreenManifestTests` asserting the ScreenTable rows, plus the FigureView grep
+acceptance/S11.sh: copy-bearing call sites only (Text(" Label(" Button(" .navigationTitle(" .alert(" .confirmationDialog(" Section(" accessibilityLabel(" accessibilityHint(") — no allowlist; package describe; import greps; FigureView( must not appear in CalculatorEntryView.swift or Prompts/
+acceptance/S15.sh: `swift test --filter ScreenManifestTests` asserting the ScreenTable rows, plus the FigureView grep
 RootTabs: TabView { Calculator, Learn }; History and Settings via toolbar; .onOpenURL → env.handle(url); .onChange(scenePhase == .active) → env.didBecomeActive()
 ```
 
