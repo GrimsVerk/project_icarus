@@ -111,10 +111,9 @@ final class ScreenshotTests: XCTestCase {
         let pastHistory = past.buttons["history"]
         XCTAssertTrue(pastHistory.waitForExistence(timeout: timeout))
         pastHistory.tap()
-        sleep(1)
+        // The chart fills in after the list: one second once caught it empty.
+        sleep(3)
         snap("06-history-past-session")
-        sleep(5)
-        snap("06-history-past-session-later")
     }
 
     func test04Settings() {

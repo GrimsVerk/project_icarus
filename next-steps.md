@@ -65,7 +65,8 @@ Merged (2026-10-30): #46, #45 (rebased) and #47. Screenshots on main
 session (`06-history-past-session`) still draws an empty chart box. In flight:
 `fix/history-chart-one-session`: a date axis padded a day either side of a
 single instant, plus a model test that the one-session preview gives a point
-per region (it tells a model gap from a drawing one).
+per region (it passed: the gap was the drawing). The walk waits 3 s for the
+chart: at 1 s one run caught it before its points arrived.
 
 Left to do:
 1. That branch: CI, nightly `new_xcode=true`, Screenshots; merge.
