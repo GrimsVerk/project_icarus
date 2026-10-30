@@ -70,24 +70,16 @@
                 }
                 // Each button is a full 44-point target (screen review F5).
                 // At the accessibility text sizes the two do not fit side by
-                // side and break mid-word, so they stack (F4).
+                // side and broke mid-word, so they stack (F4).
                 buttonLayout {
-                    Button {
+                    forecastButton(.resultChangePlace, systemImage: "mappin.and.ellipse") {
                         changingPlace = true
-                    } label: {
-                        Label(AppCopy.text(.resultChangePlace), systemImage: "mappin.and.ellipse")
-                            .frame(minHeight: 44)
-                            .contentShape(Rectangle())
                     }
                     if !typeSize.isAccessibilitySize {
                         Spacer()
                     }
-                    Button {
+                    forecastButton(.resultRefresh, systemImage: "arrow.clockwise") {
                         Task { await model.refreshForecast() }
-                    } label: {
-                        Label(AppCopy.text(.resultRefresh), systemImage: "arrow.clockwise")
-                            .frame(minHeight: 44)
-                            .contentShape(Rectangle())
                     }
                 }
                 .font(.subheadline)
@@ -99,6 +91,28 @@
             typeSize.isAccessibilitySize
                 ? AnyLayout(VStackLayout(alignment: .leading, spacing: 0))
                 : AnyLayout(HStackLayout())
+        }
+
+        /// At the accessibility sizes the icon alone took half the row and
+        /// squeezed the words to a few letters a line, so there the button is
+        /// its words across the whole row, wrapping as they need.
+        private func forecastButton(
+            _ title: CopyKey,
+            systemImage: String,
+            action: @escaping () -> Void
+        ) -> some View {
+            Button(action: action) {
+                if typeSize.isAccessibilitySize {
+                    Text(AppCopy.text(title))
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                        .contentShape(Rectangle())
+                } else {
+                    Label(AppCopy.text(title), systemImage: systemImage)
+                        .frame(minHeight: 44)
+                        .contentShape(Rectangle())
+                }
+            }
         }
 
         /// Whose forecast this is (RES-2, RES-3). A coordinate means nothing to
