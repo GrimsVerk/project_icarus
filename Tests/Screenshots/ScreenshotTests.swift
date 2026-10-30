@@ -113,6 +113,8 @@ final class ScreenshotTests: XCTestCase {
         pastHistory.tap()
         sleep(1)
         snap("06-history-past-session")
+        sleep(5)
+        snap("06-history-past-session-later")
     }
 
     func test04Settings() {
