@@ -52,42 +52,49 @@ Branch rules: the `grimsverk-gates` ruleset makes `feat/**` PR-only after the
 first push and undeletable, so don't name work branches `feat/`. Its leftover
 `feat/screenshots` is merged and can only be deleted by the owner.
 
-## In progress: screen review fixes (2026-10-29)
+## Done: screen review fixes F1-F15 (2026-10-30)
 
-Owner ruling (2026-10-29, via Verkmester): "do the obvious fixes" = F1-F15
-of `../review/icarus-screens.html`; D1-D4 stay the owner's. Re-check run on
-main `b03489b` (copy wired): Screenshots 40937984262. F10 is already done
-there (the switch has its own labelled row, ONB-4); Settings already had
-Done. The other fourteen still showed.
+Owner ruling (2026-10-29): "do the obvious fixes" = F1-F15; D1-D4 stay the
+owner's (untouched). Merged: #46, #45, #47, #49. Checked on main `5350f91`,
+Screenshots run 40987923475 (shot names below are in its artifact):
 
-Merged (2026-10-30): #46, #45 (rebased) and #47. Screenshots on main
-`42cca35` (run 40982030035) show every fix but F14: History with one ended
-session (`06-history-past-session`) still draws an empty chart box. In flight:
-`fix/history-chart-one-session`: a date axis padded a day either side of a
-single instant, plus a model test that the one-session preview gives a point
-per region (it passed: the gap was the drawing). The walk waits 3 s for the
-chart: at 1 s one run caught it before its points arrived.
+| Fix | Done | Shot |
+|---|---|---|
+| F1 Calculator in the forecast's zone | yes | 03-calculator 11:15-12:15 = 04-result |
+| F2 first side only on the flip timer | yes | 04-result-middle (no line), 05-flip-timer |
+| F3 range in minutes | yes | 04-result-middle (23 / 44 minutes) |
+| F4 dark mode, largest text | yes | 15-dark-*, 16-large-calculator, 16-large-result |
+| F5 44-pt place/refresh, full-width timer | yes | 04-result, 05-flip-timer |
+| F6 locked aggressive refused | yes, tests only | `SettingsCeilingTests`; a still can't show a tap |
+| F7 History/Settings in Learn's bar | yes | 08-learn-list |
+| F8 citation venues grey | yes | 09-learn-module |
+| F9 no bar title on modules | yes | 09-learn-module |
+| F10 disclaimer switch on its own row | yes (before this run) | 01-onboarding-2-disclaimer |
+| F11 walk gaps | yes | 38 shots, incl. 10-skin-check-questions, 12-sheet-*, 13-quiz, 14-* |
+| F12 privacy link, weather credit | yes | 07-settings-scrolled |
+| F13 day totals in the footer | yes | 06-history, 06-history-past-session |
+| F14 one session on the chart | yes | 06-history-past-session |
+| F15 Done on every sheet | yes | 06-history, 10-skin-check, 11-lasting-colour |
 
-Left to do:
-1. That branch: CI, nightly `new_xcode=true`, Screenshots; merge.
-2. Screenshots on main again; write the scored F1-F15 list here and clear
-   this section. `../review/icarus-screens.html` lives on the owner's
-   desktop: not ours.
+`../review/icarus-screens.html` is on the owner's desktop; not updated here.
+
+Seen on the way, not F items (left as they are):
+- 04-result-scrolled lists "8 more minutes per side with head and shoulders
+  covered" twice (once per side, same words).
+- 05-flip-timer-running: "The timer cannot start ... That slot has already
+  passed": the walk's preview slot is in June 2026, so the timer's own check
+  presumably reads the wall clock, not the preview clock. Unchecked.
+- The chart's front and back dots coincide when their doses match.
+- Nightly `xcode` job: twice the runner had no "iPhone 16" simulator
+  (destination is a fixed name, template-owned); a rerun passed. The
+  PerformanceTests flake (below) recurred once at 310 ms on a slow runner.
+- Screenshots: simulator boots hang now and then; `boot-simulator.sh` erases
+  and retries (3 x 5 min). A clean walk is about 11 min.
 
 ## Waiting on the owner
 
-- Screen review (2026-10-29): every screen of Screenshots run 40924394592
-  (main `8604dde`) scored against DESIGN, the S criteria and Apple's HIG,
-  with 19 proposed fixes (F1-F15 obvious, D1-D4 the owner's call), in a
-  local file, `../review/icarus-screens.html` from this repo's parent folder
-  (outside every repo; may be deleted once answered). **Fix nothing until
-  the owner answers** on the GrimsVerk Desk: "do all obvious fixes" or fix
-  ids. Copy problems point at the copy review's ids, not new words. Two are
-  bugs found in the code while scoring: F6 (tapping 100% before aggressive
-  unlocks saves it, then disables the whole selector) and F3 (the range is
-  per-region SED, R7 says minutes on the recommendation).
-  The review predates the copy (#40 to #43): its screens had no words.
-
+- Screen review (2026-10-29): D1-D4 in `../review/icarus-screens.html`
+  (the owner's local file) are the owner's call; F1-F15 are done (above).
 - Copy (D-2026-10-29-C1): all 186 draft lines are in the app, **provisional**
   (owner OK 2026-10-29, work in progress): `docs/APP_COPY.md` by id,
   `docs/privacy-policy.md`, and PERM-1 in `project.yml`. The owner settles
@@ -96,7 +103,7 @@ Left to do:
   `python3 scripts/copy-review.py ../review/icarus-copy.html` (add
   `--screenshots <dir>` with an unzipped Screenshots artifact). S17 is not
   met while a line is provisional. For the owner:
-  - FIG-8 to FIG-10 say "minutes": with #45 the engine gives the range in
+  - FIG-8 to FIG-10 say "minutes": since #45 the engine gives the range in
     minutes (F3) and the lines fit as written.
   - FILL-6 ("your location") does not fit `staleFarFromCache` ("The saved
     forecast is for {place}, which is not where you are"); that line shows
@@ -132,10 +139,6 @@ Left to do:
   has that route. Still untried: `Local.xcconfig` signing a real build.
   Split (owner, 2026-10-29): agents check screens via CI screenshots (and the
   Mac simulator if needed); the owner tests by hand on the phone.
-- Small things the screenshots show, none of them blocking: the History chart
-  is an empty box with one session; times on the Calculator are in the device's
-  zone and on the Result and History in the place's (the simulator runs in UTC,
-  the preview place is Oslo).
 - Once the owner's inputs arrive: fill `project.yml`, run S16 on a device,
   TestFlight.
 - `PerformanceTests` (S14) times the slowest of 100 plans with wall-clock
