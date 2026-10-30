@@ -66,8 +66,23 @@
                         .lineStyle(StrokeStyle(lineWidth: 1, dash: [4, 4]))
                 }
             }
+            .chartXScale(domain: xDomain)
             .chartYAxisLabel { Text(verbatim: unit) }
             .chartLegend(position: .bottom)
+        }
+
+        /// The dates the x axis spans. Every point of a single session sits at
+        /// one instant, and a date axis that starts and ends there has no width
+        /// to draw in: the chart came out an empty box (screen review F14). So
+        /// one instant gets a day either side.
+        private var xDomain: ClosedRange<Date> {
+            let dates = points.map(\.id)
+            let first = dates.min() ?? Date(timeIntervalSince1970: 0)
+            let last = dates.max() ?? first
+            guard last > first else {
+                return first.addingTimeInterval(-86400) ... first.addingTimeInterval(86400)
+            }
+            return first ... last
         }
 
         /// The marked lines, in a fixed region order so the chart does not

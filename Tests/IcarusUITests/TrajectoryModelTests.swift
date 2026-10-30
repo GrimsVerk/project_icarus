@@ -470,4 +470,18 @@
             )
         }
     }
+
+    // MARK: - One session, as the screenshot walk shows it (screen review F14)
+
+    @MainActor
+    final class TrajectoryOneSessionTests: XCTestCase {
+        /// The preview with one session logged the day before: History lists
+        /// it, so the chart must have a point per region for it.
+        func testOneLoggedSessionGivesAPointPerRegion() async {
+            let env = AppEnvironment.preview(onboarded: true, scenario: .sessionYesterday)
+            let model = TrajectoryModel(env: env)
+            await model.reload(now: env.clock())
+            XCTAssertEqual(model.points.count, Region.allCases.count, "points: \(model.points)")
+        }
+    }
 #endif

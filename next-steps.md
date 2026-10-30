@@ -60,28 +60,18 @@ main `b03489b` (copy wired): Screenshots 40937984262. F10 is already done
 there (the switch has its own labelled row, ONB-4); Settings already had
 Done. The other fourteen still showed.
 
-Merged (2026-10-30): #46 (F1, F2, F5, F7-F9, F13-F15) and #45 (F3, F6,
-rebased; its next-steps hunk dropped). In flight: #47
-`fix/screenshot-walk`: F11, F12, and F4 from its own dark and largest-text
-shots (run 40974908873). Dark mode needed nothing: every colour is a system
-one. Largest text clipped the Calculator's From/Until/You'll be labels and
-broke "Change place"/"Refresh forecast" mid-word: those rows stack at the
-accessibility sizes (`StackedWhenLarge`, the Result's `buttonLayout`).
-Walk fixes: `XCUIDevice.appearance` left the app light, so dark comes from
-`-IcarusAppearance dark` (debug only); the large walk no longer waits for the
-plan button, which is pages down. Screenshots workflow: one run (40941378554)
-built and then sat 43 min without a test, and 40976330798 hung booting
-("Waiting on BackBoard"): the simulator now boots in its own step
-(`.github/scripts/boot-simulator.sh`, 5 min per try, erase and retry, 3
-tries), the walk has a 40-min step limit and the job 75 (a clean walk is
-about 11 min).
+Merged (2026-10-30): #46, #45 (rebased) and #47. Screenshots on main
+`42cca35` (run 40982030035) show every fix but F14: History with one ended
+session (`06-history-past-session`) still draws an empty chart box. In flight:
+`fix/history-chart-one-session`: a date axis padded a day either side of a
+single instant, plus a model test that the one-session preview gives a point
+per region (it tells a model gap from a drawing one).
 
 Left to do:
-1. #47: CI + nightly `new_xcode=true` green, undraft, merge.
-2. `gh workflow run screenshots.yml --ref main`, check F1-F15 on the shots,
-   write the scored list here and clear this section.
-   `../review/icarus-screens.html` lives on the owner's desktop: not ours.
-3. Copy gaps for the owner: none found; F15 reuses SET-2 ("Done").
+1. That branch: CI, nightly `new_xcode=true`, Screenshots; merge.
+2. Screenshots on main again; write the scored F1-F15 list here and clear
+   this section. `../review/icarus-screens.html` lives on the owner's
+   desktop: not ours.
 
 ## Waiting on the owner
 
