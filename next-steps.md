@@ -70,9 +70,11 @@ accessibility sizes (`StackedWhenLarge`, the Result's `buttonLayout`).
 Walk fixes: `XCUIDevice.appearance` left the app light, so dark comes from
 `-IcarusAppearance dark` (debug only); the large walk no longer waits for the
 plan button, which is pages down. Screenshots workflow: one run (40941378554)
-built and then sat 43 min without a test, so the simulator now boots in its
-own 10-min step, the walk has a 40-min step limit and the job 60 (a clean
-walk is about 11 min).
+built and then sat 43 min without a test, and 40976330798 hung booting
+("Waiting on BackBoard"): the simulator now boots in its own step
+(`.github/scripts/boot-simulator.sh`, 5 min per try, erase and retry, 3
+tries), the walk has a 40-min step limit and the job 75 (a clean walk is
+about 11 min).
 
 Left to do:
 1. #47: CI + nightly `new_xcode=true` green, undraft, merge.
